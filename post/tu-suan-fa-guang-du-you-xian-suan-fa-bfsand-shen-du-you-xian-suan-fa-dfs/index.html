@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>图算法：广度优先算法（BFS）&amp; 深度优先算法（DFS） | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1590322525830">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="本文主要依据北京航空航天大学童咏昕教授《算法设计与分析》课程内容，并结合本人对于图数据的研究课题内容，对图搜索上的两类基础算法进行总结。
+
+本文主要内容：
+
+图的搜索
+广度优先算法（BFS）
+深度优先算法（DFS）
+
+1. 图的搜索
+每当提..." />
+    <meta name="keywords" content="图算法" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1590322525830" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">图算法：广度优先算法（BFS）&amp; 深度优先算法（DFS）</h2>
+            <div class="post-date">2020-05-24</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/tu-suan-fa-guang-du-you-xian-suan-fa-bfsand-shen-du-you-xian-suan-fa-dfs.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>本文主要依据北京航空航天大学童咏昕教授《算法设计与分析》课程内容，并结合本人对于图数据的研究课题内容，对图搜索上的两类基础算法进行总结。</p>
+<!-- more -->
+<p>本文主要内容：</p>
+<ul>
+<li>图的搜索</li>
+<li>广度优先算法（BFS）</li>
+<li>深度优先算法（DFS）</li>
+</ul>
+<h2 id="1-图的搜索">1. 图的搜索</h2>
+<p>每当提及图搜索问题，便不得不提及图上的可达性查询问题，即：给定图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi></mrow><annotation encoding="application/x-tex">G</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span></span></span></span>与查询节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi><mo separator="true">,</mo><mi>v</mi></mrow><annotation encoding="application/x-tex">u,v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">u</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span></span></span></span>，我们需要回答图上是否存在一条路径使得查询节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi><mo separator="true">,</mo><mi>v</mi></mrow><annotation encoding="application/x-tex">u,v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">u</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span></span></span></span>之间可达。可达性查询问题是图查询问题中一类最基本，也是最重要的问题，是大多数查询问题的基础。可达性查询问题在现实生活中也具有大量的应用场景，如：社交网络查询任意用户之间的好友关系查询、任意两地之间道路交通的可达性查询等。<br>
+近年来，大量的科研工作已在可达性查询问题上进行了深入且细致的研究，提出了包括链分解、树覆盖、区间标记、2-Hop在内的多种高效的查询方法。此外，其研究对象也从传统的静态图进一步讨论到动态图、时间依赖图以至于演化图流序列等。<br>
+然而，无论目前在可达性查询领域有多少先进的查询方法，其最基本的思路均集中在如何构建规模合理的查询索引以提升查询效率。换言之，目前的方法均采用以空间成本换取时间成本的策略。关于可达性查询问题上时空代价的权衡可参见下图：<br>
+<img src="https://mocuishle0.github.io//post-images/1590319857159.png" alt="" loading="lazy"><br>
+在本文中，我们并不对当前最新进的图搜索方法进行介绍，而是对最基础的两类图搜索算法进行介绍。只有切实掌握了最基础的方法，才能进一步掌握更高效的方法。</p>
+<h2 id="2-广度优先查询bfs">2. 广度优先查询（BFS）</h2>
+<p>2.1. <strong>算法思想</strong>：<br>
+童咏昕教授在《算法设计与分析》课程中介绍的思想很形象地诠释了BFS的核心思——水滴落入水面所激起的涟漪会向相邻区域逐渐扩散。如下图所示：<br>
+<img src="https://mocuishle0.github.io//post-images/1590320562598.png" alt="" loading="lazy"><br>
+这种依次扩散的现象，蕴含了搜索图结构的一种顺序，即：<strong>处理某顶点时，一次性发现所有其相邻顶点</strong>。其实质可以称之为一种“分层”搜索的思想。该方法在多处同时“扩散”时，为了维护节点处理顺序需要借助“队列”这常用的数据结构。（p.s：队列的性质为先进先出（First In First Out，FIFO））。<br>
+综上所述，BFS的核心思想：<strong>处理某顶点时，一次性发现其所有相邻顶点，未处理顶点加入等待队列</strong></p>
+<p>2.2. <strong>算法实现</strong>：<br>
+BFS算法的实现多种多样，可以根据自己的具体应用需求设计相应实现方法。本文中采用《算法设计与分析》课程中提出的实现方法，该方法更易于理解BFS的核心思想：</p>
+<ul>
+<li>算法首先需要借助以下三类辅助数组维护相关节点信息：
+<ul>
+<li>𝒄𝒐𝒍𝒐𝒓数组表示顶点状态：
+<ul>
+<li>𝑾𝒉𝒊𝒕𝒆：白色顶点——𝒖尚未被发现，发现后直接入队；</li>
+<li>𝑩𝒍𝒂𝒄𝒌：黑色顶点——𝒖已被处理，无需再次入队；</li>
+<li>𝑮𝒓𝒂𝒚：灰色顶点——𝒖已加入队列，无需再次入队。</li>
+</ul>
+</li>
+<li>𝒑𝒓𝒆𝒅数组：表明顶点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>的前驱节点，即：节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>由𝒑𝒓𝒆𝒅[u]发现</li>
+<li>𝒅𝒊𝒔𝒕数组：顶点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>距离源点的距离。</li>
+</ul>
+</li>
+<li>实例演示：<br>
+<img src="https://mocuishle0.github.io//post-images/1590321503546.png" alt="" loading="lazy"></li>
+</ul>
+<p>P.s: 需要注意的是，由BFS算法中的𝒑𝒓𝒆𝒅数组可衍生出广度优先树：<br>
+<img src="https://mocuishle0.github.io//post-images/1590321646383.png" alt="" loading="lazy"></p>
+<p>2.3. <strong>算法伪代码</strong>：<br>
+<img src="https://mocuishle0.github.io//post-images/1590321737484.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590321800858.png" alt="" loading="lazy"></p>
+<p>2.4. <strong>复杂度分析</strong>：</p>
+<ul>
+<li>对于每个顶点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>，搜索其相邻顶点消耗时间<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>𝑻</mi><mi>𝒖</mi></msub><mo>=</mo><mi>𝑶</mi><mo>(</mo><mi>𝟏</mi><mo>)</mo><mo>+</mo><mi>𝒅</mi><mi>𝒆</mi><mi>𝒈</mi><mo>(</mo><mi>𝒖</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">𝑻_𝒖= 𝑶(𝟏) + 𝒅𝒆𝒈(𝒖)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.12903em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.161108em;"><span style="top:-2.5500000000000003em;margin-left:-0.12903em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight" style="margin-right:0.09426em;">u</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mord mathbf">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord boldsymbol" style="margin-right:0.10861em;">d</span><span class="mord boldsymbol" style="margin-right:0.085em;">e</span><span class="mord boldsymbol" style="margin-right:0.105em;">g</span><span class="mopen">(</span><span class="mord boldsymbol" style="margin-right:0.09426em;">u</span><span class="mclose">)</span></span></span></span></li>
+<li>总运行时间：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>𝑻</mi><mo>&lt;</mo><msub><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><mi>V</mi></mrow></msub><msub><mi>𝑻</mi><mi>𝒖</mi></msub></mrow><annotation encoding="application/x-tex">𝑻 &lt; \sum_{u\in V} 𝑻_𝒖</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72521em;vertical-align:-0.0391em;"></span><span class="mord boldsymbol" style="margin-right:0.12903em;">T</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.07708em;vertical-align:-0.32708000000000004em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.17862099999999992em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">u</span><span class="mrel mtight">∈</span><span class="mord mathdefault mtight" style="margin-right:0.22222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.32708000000000004em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.12903em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.161108em;"><span style="top:-2.5500000000000003em;margin-left:-0.12903em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight" style="margin-right:0.09426em;">u</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>
+<ul>
+<li>由于<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><mi>V</mi></mrow></msub><msub><mi>𝑻</mi><mi>𝒖</mi></msub><mo>=</mo><msub><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><mi>V</mi></mrow></msub><mi>𝑶</mi><mo>(</mo><mi>𝟏</mi><mo>+</mo><mi>𝒅</mi><mi>𝒆</mi><mi>𝒈</mi><mo>(</mo><mi>𝒖</mi><mo>)</mo><mo>)</mo><mo>=</mo><msub><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><mi>V</mi></mrow></msub><mi>𝑶</mi><mo>(</mo><mi>𝟏</mi><mo>)</mo><mo>+</mo><msub><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><mi>V</mi></mrow></msub><mi>𝑶</mi><mo>(</mo><mi>𝒅</mi><mi>𝒆</mi><mi>𝒈</mi><mo>(</mo><mi>𝒖</mi><mo>)</mo><mo>)</mo><mo>=</mo><mi>𝑶</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>)</mo><mo>+</mo><msub><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><mi>V</mi></mrow></msub><mi>𝑶</mi><mo>(</mo><mi>𝒅</mi><mi>𝒆</mi><mi>𝒈</mi><mo>(</mo><mi>𝒖</mi><mo>)</mo><mo>)</mo></mrow><annotation encoding="application/x-tex">\sum_{u\in V} 𝑻_𝒖=\sum_{u\in V} 𝑶(𝟏 + 𝒅𝒆𝒈(𝒖))=\sum_{u\in V} 𝑶(𝟏)+\sum_{u\in V} 𝑶(𝒅𝒆𝒈(𝒖))=𝑶(|V|)+\sum_{u\in V} 𝑶(𝒅𝒆𝒈(𝒖))</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.07708em;vertical-align:-0.32708000000000004em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.17862099999999992em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">u</span><span class="mrel mtight">∈</span><span class="mord mathdefault mtight" style="margin-right:0.22222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.32708000000000004em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.12903em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.161108em;"><span style="top:-2.5500000000000003em;margin-left:-0.12903em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight" style="margin-right:0.09426em;">u</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.07708em;vertical-align:-0.32708000000000004em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.17862099999999992em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">u</span><span class="mrel mtight">∈</span><span class="mord mathdefault mtight" style="margin-right:0.22222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.32708000000000004em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mord mathbf">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord boldsymbol" style="margin-right:0.10861em;">d</span><span class="mord boldsymbol" style="margin-right:0.085em;">e</span><span class="mord boldsymbol" style="margin-right:0.105em;">g</span><span class="mopen">(</span><span class="mord boldsymbol" style="margin-right:0.09426em;">u</span><span class="mclose">)</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.07708em;vertical-align:-0.32708000000000004em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.17862099999999992em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">u</span><span class="mrel mtight">∈</span><span class="mord mathdefault mtight" style="margin-right:0.22222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.32708000000000004em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mord mathbf">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.07708em;vertical-align:-0.32708000000000004em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.17862099999999992em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">u</span><span class="mrel mtight">∈</span><span class="mord mathdefault mtight" style="margin-right:0.22222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.32708000000000004em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mord boldsymbol" style="margin-right:0.10861em;">d</span><span class="mord boldsymbol" style="margin-right:0.085em;">e</span><span class="mord boldsymbol" style="margin-right:0.105em;">g</span><span class="mopen">(</span><span class="mord boldsymbol" style="margin-right:0.09426em;">u</span><span class="mclose">)</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.07708em;vertical-align:-0.32708000000000004em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.17862099999999992em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">u</span><span class="mrel mtight">∈</span><span class="mord mathdefault mtight" style="margin-right:0.22222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.32708000000000004em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mord boldsymbol" style="margin-right:0.10861em;">d</span><span class="mord boldsymbol" style="margin-right:0.085em;">e</span><span class="mord boldsymbol" style="margin-right:0.105em;">g</span><span class="mopen">(</span><span class="mord boldsymbol" style="margin-right:0.09426em;">u</span><span class="mclose">)</span><span class="mclose">)</span></span></span></span>；</li>
+<li>由握手定理可知：𝒅𝒆𝒈(G)=2|E|；<br>
+综上所述：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>𝑻</mi><mo>=</mo><mi>𝑶</mi><mo>(</mo><mi>V</mi><mo>+</mo><mi>E</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">𝑻=𝑶(V+E)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68611em;vertical-align:0em;"></span><span class="mord boldsymbol" style="margin-right:0.12903em;">T</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mclose">)</span></span></span></span></li>
+</ul>
+</li>
+</ul>
+<p>2.5. <strong>其他应用</strong>：<br>
+结合BFS中构建的𝒑𝒓𝒆𝒅数组与𝒅𝒊𝒔𝒕数组，我们可以得到源节点到达其可达节点的最短距离：<br>
+<img src="https://mocuishle0.github.io//post-images/1590322496621.png" alt="" loading="lazy"><br>
+<strong>该方法使后续最短距离算法的核心与基础</strong></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/x1sHDnjLu/" class="tag">
+                    图算法
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/tu-suan-fa/">
+                  <h3 class="post-title">
+                    图算法概论
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>
