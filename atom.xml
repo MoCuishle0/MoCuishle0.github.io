@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://mocuishle0.github.io/</id>
     <title>MoCuishle</title>
-    <updated>2020-05-24T04:45:38.282Z</updated>
+    <updated>2020-05-24T08:08:57.610Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://mocuishle0.github.io/"/>
     <link rel="self" href="https://mocuishle0.github.io/atom.xml"/>
@@ -12,12 +12,30 @@
     <icon>https://mocuishle0.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, MoCuishle</rights>
     <entry>
-        <title type="html"><![CDATA[图算法]]></title>
+        <title type="html"><![CDATA[图算法概论]]></title>
         <id>https://mocuishle0.github.io/post/tu-suan-fa/</id>
         <link href="https://mocuishle0.github.io/post/tu-suan-fa/">
         </link>
         <updated>2020-05-24T03:51:07.000Z</updated>
-        <content type="html"><![CDATA[<p>ready～go～go～go～</p>
+        <summary type="html"><![CDATA[<p>本文从“柯尼斯堡七桥问题”作为引入，介绍“图”这一重要数据类型上的相关的一些定义、定理。<br>
+&lt;本文涉及的概念均采用目前公认的定义、及描述方法&gt;</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>本文从“柯尼斯堡七桥问题”作为引入，介绍“图”这一重要数据类型上的相关的一些定义、定理。<br>
+&lt;本文涉及的概念均采用目前公认的定义、及描述方法&gt;</p>
+<!-- more -->
+<p>本文涉及知识点：<br>
+* 图的概念：<br>
+- [x] 图的定义、相邻与关联；<br>
+- [x] 顶点的度与图的度、握手定理；<br>
+- [x] 路径与环路；<br>
+- [x] 连通、连通分量；<br>
+- [x] 子图、生成子图、树<br>
+* 图的表示：<br>
+- [x] 邻接链表<br>
+- [x] 邻接矩阵</p>
+<h2 id="1-引入柯尼斯堡七桥问题">1. 引入——柯尼斯堡七桥问题</h2>
+<p><strong>问题描述</strong>：七座桥连接河岸和两个小岛，步行者怎样才能不重复、不遗漏地一次走完七座桥?<br>
+<img src="https://mocuishle0.github.io//post-images/1590305567760.png" alt="" loading="lazy"></p>
 ]]></content>
     </entry>
     <entry>

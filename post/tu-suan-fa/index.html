@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8" >
 
-<title>图算法 | MoCuishle</title>
+<title>图算法概论 | MoCuishle</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1590295536077">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1590307733512">
 <link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
 
 
@@ -18,9 +18,14 @@
 
 
 
-    <meta name="description" content="ready～go～go～go～
-" />
-    <meta name="keywords" content="" />
+    <meta name="description" content="本文从“柯尼斯堡七桥问题”作为引入，介绍“图”这一重要数据类型上的相关的一些定义、定理。
+&lt;本文涉及的概念均采用目前公认的定义、及描述方法&gt;
+
+本文涉及知识点：
+* 图的概念：
+- [x] 图的定义、相邻与关联；
+- [x] 顶..." />
+    <meta name="keywords" content="图算法" />
   </head>
   <body>
     <div id="app" class="main">
@@ -29,7 +34,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://mocuishle0.github.io/">
-        <img src="https://mocuishle0.github.io//images/avatar.png?v=1590295536077" class="site-logo">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1590307733512" class="site-logo">
         <h1 class="site-title">MoCuishle</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -92,13 +97,39 @@
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
-            <h2 class="post-title">图算法</h2>
+            <h2 class="post-title">图算法概论</h2>
             <div class="post-date">2020-05-24</div>
             
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/tu-suan-fa.png')">
+              </div>
+            
             <div class="post-content" v-pre>
-              <p>ready～go～go～go～</p>
+              <p>本文从“柯尼斯堡七桥问题”作为引入，介绍“图”这一重要数据类型上的相关的一些定义、定理。<br>
+&lt;本文涉及的概念均采用目前公认的定义、及描述方法&gt;</p>
+<!-- more -->
+<p>本文涉及知识点：<br>
+* 图的概念：<br>
+- [x] 图的定义、相邻与关联；<br>
+- [x] 顶点的度与图的度、握手定理；<br>
+- [x] 路径与环路；<br>
+- [x] 连通、连通分量；<br>
+- [x] 子图、生成子图、树<br>
+* 图的表示：<br>
+- [x] 邻接链表<br>
+- [x] 邻接矩阵</p>
+<h2 id="1-引入柯尼斯堡七桥问题">1. 引入——柯尼斯堡七桥问题</h2>
+<p><strong>问题描述</strong>：七座桥连接河岸和两个小岛，步行者怎样才能不重复、不遗漏地一次走完七座桥?<br>
+<img src="https://mocuishle0.github.io//post-images/1590305567760.png" alt="" loading="lazy"></p>
 
             </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/x1sHDnjLu/" class="tag">
+                    图算法
+                  </a>
+                
+              </div>
             
             
               <div class="next-post">
