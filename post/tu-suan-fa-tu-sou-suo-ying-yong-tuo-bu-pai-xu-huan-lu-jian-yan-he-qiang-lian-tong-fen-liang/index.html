@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>图算法：图搜索应用——拓扑排序、环路检验和强连通分量（下） | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1590478158580">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="本文主要介绍图搜索算法（DFS &amp; BFS）的应用实例，其包括：拓扑排序、环路检验和强连通分量计算。
+本章主要介绍强连通分量计算问题～
+
+本文内容提纲：
+
+拓扑排序
+环路检验
+强连通分量计算
+
+1. 概念：连通分量 &amp; 强连..." />
+    <meta name="keywords" content="图算法" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1590478158580" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">图算法：图搜索应用——拓扑排序、环路检验和强连通分量（下）</h2>
+            <div class="post-date">2020-05-26</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/tu-suan-fa-tu-sou-suo-ying-yong-tuo-bu-pai-xu-huan-lu-jian-yan-he-qiang-lian-tong-fen-liang.jpeg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>本文主要介绍图搜索算法（DFS &amp; BFS）的应用实例，其包括：拓扑排序、环路检验和强连通分量计算。<br>
+本章主要介绍强连通分量计算问题～</p>
+<!-- more -->
+<p><strong>本文内容提纲</strong>：</p>
+<ul>
+<li>拓扑排序</li>
+<li>环路检验</li>
+<li>强连通分量计算</li>
+</ul>
+<h2 id="1-概念连通分量-强连通分量">1. 概念：连通分量 &amp; 强连通分量：</h2>
+<p>在之前的文章中介绍了连通分量的定义，如下：</p>
+<blockquote>
+<p><strong>连通分量</strong>：根据是否连通（任意对顶点互相可达）将顶点进行分组，相互可达的顶点集称为连通分量。</p>
+</blockquote>
+<p>相较于连通分量，强连通分量（<strong>Strongly Connected Components，SCC</strong>）有如下特点：</p>
+<blockquote>
+<p><strong>强连通分量</strong>：1）有向图中，一个强连通分量是顶点的子集；2）强连通分量中任意两点相互可达；3）满足<strong>最大性</strong>：加入新顶点，不保证相互可达。</p>
+</blockquote>
+<h2 id="2-应用背景">2. 应用背景：</h2>
+<p>强连通分量是图算法中一个重要的概念，在众多实际应用中也有大量的实际应用，例如：社交圈子的划分、可达性查询时对于原始图数据的简化等。在此，我们并不详细展开介绍。</p>
+<h2 id="3-问题定义">3. 问题定义：</h2>
+<blockquote>
+<p><strong>定义：强连通分量问题</strong></p>
+<ul>
+<li>输入：有向图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi><mo>=</mo><mo>(</mo><mi>V</mi><mo separator="true">,</mo><mi>E</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">G=(V,E)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mclose">)</span></span></span></span>；</li>
+<li>输出：图的所有强连通分量<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>C</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>C</mi><mn>2</mn></msub><mo separator="true">,</mo><mo>⋯</mo><msub><mi>C</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">C_1,C_2,\dotsb C_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>；<br>
+<img src="https://mocuishle0.github.io//post-images/1590464776419.png" alt="" loading="lazy"></li>
+</ul>
+</blockquote>
+<h2 id="4-算法框架与实例">4. 算法框架与实例：</h2>
+<p>由于该问题较难理解，我们首先介绍算法的整体框架——运行过程，以及一个实例演示：</p>
+<ul>
+<li>把原图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi></mrow><annotation encoding="application/x-tex">G</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span></span></span></span>中各条边反向，得到反向图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mi>R</mi></msup></mrow><annotation encoding="application/x-tex">G^R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413309999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.00773em;">R</span></span></span></span></span></span></span></span></span></span></span><br>
+<img src="https://mocuishle0.github.io//post-images/1590465002980.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590465012286.png" alt="" loading="lazy"></li>
+<li>在反向图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mi>R</mi></msup></mrow><annotation encoding="application/x-tex">G^R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413309999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.00773em;">R</span></span></span></span></span></span></span></span></span></span></span>上执行DFS，得到顶点<strong>完成时刻顺序</strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>L</mi></mrow><annotation encoding="application/x-tex">L</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">L</span></span></span></span>；<br>
+（实例中根据节点编号顺序开始执行DFS，即首先从1节点开始，之后2节点，最后7节点）<br>
+<img src="https://mocuishle0.github.io//post-images/1590465112302.png" alt="" loading="lazy"></li>
+<li>：在原图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi></mrow><annotation encoding="application/x-tex">G</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span></span></span></span>上按<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>L</mi></mrow><annotation encoding="application/x-tex">L</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">L</span></span></span></span>逆序执行DFS，得到强连通分量。<br>
+<img src="https://mocuishle0.github.io//post-images/1590465214451.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590465260852.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590465282753.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590465302100.png" alt="" loading="lazy"></li>
+</ul>
+<h2 id="5-算法伪代码">5. 算法伪代码：</h2>
+<p><img src="https://mocuishle0.github.io//post-images/1590466764733.png" alt="" loading="lazy"><br>
+在搜索过程中得到<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>L</mi></mrow><annotation encoding="application/x-tex">L</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">L</span></span></span></span>可参考基于深度优先策略解决拓扑排序问题中的方法：<br>
+<img src="https://mocuishle0.github.io//post-images/1590466816829.png" alt="" loading="lazy"></p>
+<p>显然，该算法复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>+</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|V|+|E|)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mord">∣</span><span class="mclose">)</span></span></span></span></p>
+<h2 id="6-算法分析">6. 算法分析：</h2>
+<p>在介绍算法正确性之前，我们先引入强连通分量图的概念及其性质：<br>
+<strong>强连通分量图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mrow><mi>S</mi><mi>C</mi><mi>C</mi></mrow></msup></mrow><annotation encoding="application/x-tex">G^{SCC}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413309999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05764em;">S</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span></span></span></span></span></span></span></span></span></span></span></span></strong>：把强连通分量看作一个点，得到的有向图。<br>
+<img src="https://mocuishle0.github.io//post-images/1590467108423.png" alt="" loading="lazy"></p>
+<ul>
+<li>性质：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mrow><mi>S</mi><mi>C</mi><mi>C</mi></mrow></msup></mrow><annotation encoding="application/x-tex">G^{SCC}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413309999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05764em;">S</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span></span></span></span></span></span></span></span></span></span></span></span>一定是有向无环图——由“最大性”易证得。</li>
+</ul>
+<p><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi><mi>C</mi><msub><mi>C</mi><mrow><mi>s</mi><mi>i</mi><mi>n</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">SCC_{sink}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">S</span><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></strong>：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mrow><mi>S</mi><mi>C</mi><mi>C</mi></mrow></msup></mrow><annotation encoding="application/x-tex">G^{SCC}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413309999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05764em;">S</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span></span></span></span></span></span></span></span></span></span></span></span>中出度为0的点，我们称之为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi><mi>C</mi><msub><mi>C</mi><mrow><mi>s</mi><mi>i</mi><mi>n</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">SCC_{sink}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">S</span><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>。<br>
+<img src="https://mocuishle0.github.io//post-images/1590467154930.png" alt="" loading="lazy"></p>
+<ul>
+<li>性质1：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mrow><mi>S</mi><mi>C</mi><mi>C</mi></mrow></msup></mrow><annotation encoding="application/x-tex">G^{SCC}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413309999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05764em;">S</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span></span></span></span></span></span></span></span></span></span></span></span>中至少存在一个<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi><mi>C</mi><msub><mi>C</mi><mrow><mi>s</mi><mi>i</mi><mi>n</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">SCC_{sink}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">S</span><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>；</li>
+<li>性质2：删除<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi><mi>C</mi><msub><mi>C</mi><mrow><mi>s</mi><mi>i</mi><mi>n</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">SCC_{sink}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">S</span><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，会产生新的<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi><mi>C</mi><msub><mi>C</mi><mrow><mi>s</mi><mi>i</mi><mi>n</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">SCC_{sink}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">S</span><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>；</li>
+</ul>
+<p>结合以上性质观察算法第2次DFS，可知：第2次DFS按照<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi><mi>C</mi><msub><mi>C</mi><mrow><mi>s</mi><mi>i</mi><mi>n</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">SCC_{sink}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">S</span><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>的顺序搜索，并且每次搜索恰好访问该SCC的所有点。<br>
+<img src="https://mocuishle0.github.io//post-images/1590467577732.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590467950487.png" alt="" loading="lazy"></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/x1sHDnjLu/" class="tag">
+                    图算法
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/tu-suan-fa/">
+                  <h3 class="post-title">
+                    图算法概论
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

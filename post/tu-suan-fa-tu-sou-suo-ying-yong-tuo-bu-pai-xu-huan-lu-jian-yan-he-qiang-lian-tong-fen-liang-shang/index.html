@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>图算法：图搜索应用——拓扑排序、环路检验和强连通分量（上） | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1590478158580">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="本文主要介绍图搜索算法（DFS &amp; BFS）的应用实例，其包括：拓扑排序、环路检验和强连通分量计算。
+P.s：考虑到强连通分量算法是一个较为难以理解的算法，故将强连通分量问题放在下章单独介绍。
+
+本文内容提纲：
+
+拓扑排序
+环路检验..." />
+    <meta name="keywords" content="图算法" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1590478158580" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">图算法：图搜索应用——拓扑排序、环路检验和强连通分量（上）</h2>
+            <div class="post-date">2020-05-26</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/tu-suan-fa-tu-sou-suo-ying-yong-tuo-bu-pai-xu-huan-lu-jian-yan-he-qiang-lian-tong-fen-liang-shang.jpeg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>本文主要介绍图搜索算法（DFS &amp; BFS）的应用实例，其包括：拓扑排序、环路检验和强连通分量计算。<br>
+P.s：考虑到强连通分量算法是一个较为难以理解的算法，故将强连通分量问题放在下章单独介绍。</p>
+<!-- more -->
+<p><strong>本文内容提纲</strong>：</p>
+<ul>
+<li>拓扑排序</li>
+<li>环路检验</li>
+<li>强连通分量计算（见下章）</li>
+</ul>
+<h2 id="1-拓扑排序">1. 拓扑排序：</h2>
+<p>首先需要明确的是，拓扑排序主要用于确定事件间流程顺序，而有向图则是对事件间依赖关系的一种准确的建模。因此，本文对拓扑排序的讨论主要基于<strong>有向无环图</strong>（<strong>Directed Acyclic Graph，DAG</strong>）。此处强调无环图是因为，一旦图中出现环路，说明事件之间存在相互依赖关系，即难以确定事件间的流程顺序。这也引发出对于图中环路检验的一种方法，我们将在环路检验部分进行介绍。</p>
+<blockquote>
+<p><strong>定义：拓扑排序</strong>：</p>
+<ul>
+<li>输入：有向无环图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi><mo>=</mo><mo>(</mo><mi>V</mi><mo separator="true">,</mo><mi>E</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">G=(V,E)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mclose">)</span></span></span></span>；</li>
+<li>输出：图顶点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span></span></span></span>的拓扑序<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi></mrow><annotation encoding="application/x-tex">S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">S</span></span></span></span>，满足：对图中任意有向边<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>u</mi><mo separator="true">,</mo><mi>v</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">(u,v)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">u</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mclose">)</span></span></span></span>，在<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi></mrow><annotation encoding="application/x-tex">S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">S</span></span></span></span>中<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>在<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>v</mi></mrow><annotation encoding="application/x-tex">v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span></span></span></span>之前。</li>
+<li>拓扑序不唯一</li>
+</ul>
+</blockquote>
+<h3 id="11-基于广度优先bfs策略">1.1. 基于广度优先（BFS）策略：</h3>
+<h4 id="1算法思想">1）算法思想：</h4>
+<p>从节点度数入手——若顶点入度为0，说明所对应事件无制约条件，可直接完成。因此算法思想如下：</p>
+<ul>
+<li>完成入度为0的节点所对应的事件；</li>
+<li>删除完成事件，产生新的入度为0节点，继续完成。</li>
+</ul>
+<p>具体而言，借助<strong>队列</strong>这一数据结构，进行实现：<br>
+（1）将图中入度为0的节点全部压入队列；<br>
+（2）若队列非空，则将队首元素出队列，视为完成该节点对应事件。同时，删除图中该节点对应节点及其出边；<br>
+（3）将图中新产生入度为0的节点，压入队列。<br>
+（4）反复执行（2）、（3）直至队列为空。</p>
+<h4 id="2算法伪代码">2）算法伪代码：</h4>
+<figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1590460039571.png" alt="" loading="lazy"></figure>
+<h4 id="3算法复杂度分析">3）算法复杂度分析：</h4>
+<figure data-type="image" tabindex="2"><img src="https://mocuishle0.github.io//post-images/1590460092651.png" alt="" loading="lazy"></figure>
+<h3 id="12-基于深度优先dfs策略">1.2 基于深度优先（DFS）策略：</h3>
+<h4 id="1算法思想-2">1）算法思想：</h4>
+<p>根据DFS算法我们可：搜索深度越深，顺序越靠后；而对于深度越深的节点：发现时刻越晚，完成时刻越早（参考DFS中对节点标记<strong>发现时刻</strong>与<strong>完成时刻</strong>标记）。若我们依据发现时刻顺序得到拓扑序，很容易得到反例，因此，依据发现时刻顺序的思路并不可行；因而，我们考虑能否按照完成时刻的逆序进行拓扑排序。以下给出一个实例：<br>
+<img src="https://mocuishle0.github.io//post-images/1590460422331.png" alt="" loading="lazy"><br>
+所得拓扑序：手表、衬衫、领带、短裤、长裤、腰带、外套、袜子、鞋</p>
+<h4 id="2算法分析">2）算法分析：</h4>
+<p>下图给出了该方法的正确性证明：<br>
+<img src="https://mocuishle0.github.io//post-images/1590460556415.png" alt="" loading="lazy"></p>
+<h4 id="3算法伪代码">3）算法伪代码：</h4>
+<p><img src="https://mocuishle0.github.io//post-images/1590460873027.png" alt="" loading="lazy"><br>
+为了在搜索过程中得到按完成时刻顺序排列的顶点，可参考如下伪代码：<br>
+<img src="https://mocuishle0.github.io//post-images/1590461043449.png" alt="" loading="lazy"><br>
+之所以引入<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>L</mi><mo mathvariant="normal">′</mo></msup></mrow><annotation encoding="application/x-tex">L&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>是因为，对于有向图DFS，得到的可能是一个深度优先森林，因此引入<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>L</mi><mo mathvariant="normal">′</mo></msup></mrow><annotation encoding="application/x-tex">L&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>。</p>
+<h4 id="4算法复杂度分析">4）算法复杂度分析：</h4>
+<p>显然，基于DFS策略的拓扑排序其复杂度与DFS算法一致：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>+</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|V|+|E|)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mord">∣</span><span class="mclose">)</span></span></span></span></p>
+<h3 id="13-小结">1.3 小结：</h3>
+<figure data-type="image" tabindex="3"><img src="https://mocuishle0.github.io//post-images/1590461187123.png" alt="" loading="lazy"></figure>
+<h2 id="2-环路检验">2. 环路检验：</h2>
+<blockquote>
+<p><strong>定义：有向图中环路的存在性判断</strong>：</p>
+<ul>
+<li>输入：有向图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi><mo>=</mo><mo>(</mo><mi>V</mi><mo separator="true">,</mo><mi>E</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">G=(V,E)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mclose">)</span></span></span></span>；</li>
+<li>输出：图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi></mrow><annotation encoding="application/x-tex">G</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span></span></span></span>中是否存在环。<br>
+目前，有向图中环路的存在性判断问题主要存在两种解决思路：1）基于深度优先搜索边的性质；2）利用拓扑排序的性质。</li>
+</ul>
+</blockquote>
+<h3 id="21-基于深度优先搜索边的性质">2.1 基于深度优先搜索边的性质：</h3>
+<h4 id="1算法思路">1）算法思路</h4>
+<p>对于有向图，深度优先搜索时存在以下边的种类：</p>
+<ul>
+<li>树边：在深度优先树中的边；</li>
+<li>前向边：不在深度优先树中，从祖先指向后代的边</li>
+<li>后向边：从后代指向祖先的边</li>
+<li>横向边：顶点不具有祖先后代关系的边<br>
+<img src="https://mocuishle0.github.io//post-images/1590461447043.png" alt="" loading="lazy"></li>
+</ul>
+<p>经过证明，我们不难得到：<strong>有向图存在环路</strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mtext>  </mtext><mo>⟺</mo><mtext>  </mtext></mrow><annotation encoding="application/x-tex">\iff</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.549em;vertical-align:-0.024em;"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⟺</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span></span></span><strong>搜索时出现后向边</strong></p>
+<h4 id="2算法伪代码-2">2）算法伪代码：</h4>
+<p><img src="https://mocuishle0.github.io//post-images/1590461784330.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590461870292.png" alt="" loading="lazy"></p>
+<h4 id="3算法复杂性分析">3）算法复杂性分析：</h4>
+<p>显然，基于DFS策略的环路检验其复杂度与DFS算法一致：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>+</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|V|+|E|)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mord">∣</span><span class="mclose">)</span></span></span></span></p>
+<h3 id="22-利用拓扑排序的性质">2.2 利用拓扑排序的性质：</h3>
+<p>根据之前拓扑排序算法的介绍（基于BFS）：算法首先寻找一个入度为0的顶点，将该顶点从图中删除（即放进一个队列里存着，这个队列的顺序就是最后的拓扑排序）；并将该结点及其所有的出边从图中删除（即该结点指向的结点的入度减1）；最终若图中节点<strong>非空</strong>且<strong>当前图中不存在无前驱的顶点</strong>，则说明该有向图中必然存在环</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/x1sHDnjLu/" class="tag">
+                    图算法
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/tu-suan-fa-tu-sou-suo-ying-yong-tuo-bu-pai-xu-huan-lu-jian-yan-he-qiang-lian-tong-fen-liang/">
+                  <h3 class="post-title">
+                    图算法：图搜索应用——拓扑排序、环路检验和强连通分量（下）
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>
