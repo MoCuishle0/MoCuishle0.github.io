@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>图算法：单源最短路径问题——Bellman-Ford算法 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1590720621882">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="在前一篇文章中，主要介绍了如何利用Dijkstra算法解决正权图上的单源最短路径问题。然而，在现实生活中的许多图模型中，其权值并不一定全部为正。因此，本文将讨论带负权图上的单源最短路径问题。
+
+本文概要：
+
+算法背景
+算法思想
+算法实例
+算..." />
+    <meta name="keywords" content="图算法" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1590720621882" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">图算法：单源最短路径问题——Bellman-Ford算法</h2>
+            <div class="post-date">2020-05-28</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/tu-suan-fa-dan-yuan-zui-duan-lu-jing-wen-ti-bellman-ford-suan-fa.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>在前一篇文章中，主要介绍了如何利用Dijkstra算法解决正权图上的单源最短路径问题。然而，在现实生活中的许多图模型中，其权值并不一定全部为正。因此，本文将讨论带负权图上的单源最短路径问题。</p>
+<!-- more -->
+<p>本文概要：</p>
+<ul>
+<li>算法背景</li>
+<li>算法思想</li>
+<li>算法实例</li>
+<li>算法分析</li>
+<li>算法性质</li>
+</ul>
+<h2 id="1-算法背景dijkstra算法的局限性">1. 算法背景——Dijkstra算法的局限性</h2>
+<p>考虑以下实例：<br>
+<img src="https://mocuishle0.github.io//post-images/1590657049468.png" alt="" loading="lazy"><br>
+根据Dijkstra算法的思想，一旦确定源节点与任意节点最短距离后，在后续的过程中该距离将不会被松弛。然而，由于负权边的存在将与该情况发生冲突，因此Dijkstra算法无法适用于负权图上的单源最短路径问题。</p>
+<p>根据上述情况随之需要思考：图中存在负权边时，是否一定存在单源最短路径?——<strong>不一定</strong>。考虑以下情况：<br>
+<img src="https://mocuishle0.github.io//post-images/1590657737868.png" alt="" loading="lazy"><br>
+所以，<strong>若源点𝒔无可达负环，则存在源点𝒔的单源最短路径</strong>。</p>
+<p>综上，我们给出图中允许出现负权边时的单源最短路径问题的定义：<br>
+<strong>定义. 单源最短路径问题（可含负权边）：</strong></p>
+<ul>
+<li>输入：
+<ul>
+<li>带权图𝑮 =(𝑽, 𝑬, 𝑾 )</li>
+<li>源点编号𝒔</li>
+</ul>
+</li>
+<li>输出：
+<ul>
+<li>源点𝒔到所有其他顶点𝒕的最短距离𝜹(𝒔, 𝒕)和最短路径&lt; 𝒔, … , 𝒕 &gt;</li>
+<li>或存在源点𝒔可达的负环</li>
+</ul>
+</li>
+</ul>
+<p>根据问题定义可知，该问题存在以下两点挑战：</p>
+<ul>
+<li>挑战𝟏：图中存在负权边时，如何求解单源最短路径?</li>
+<li>挑战𝟐：图中存在负权边时，如何发现源点可达负环?</li>
+</ul>
+<h2 id="2-算法思想多轮松弛">2. 算法思想——多轮松弛</h2>
+<p>在Dijkstra算法中，我们主要通过<strong>松弛操作</strong>迭代更新最短距离：<br>
+<img src="https://mocuishle0.github.io//post-images/1590658201059.png" alt="" loading="lazy"><br>
+直观地，存在负权边时，需要比Dijkstra算法更多次数的松弛操作：<br>
+<img src="https://mocuishle0.github.io//post-images/1590658320213.png" alt="" loading="lazy"></p>
+<p><strong>Bellman-Ford算法</strong></p>
+<ul>
+<li>解决挑战1：图中存在负权边时，如何求解单源最短路径?
+<ul>
+<li>每轮对<strong>所有边</strong>进行松弛，持续迭代|𝑽 |-1轮</li>
+</ul>
+</li>
+<li>解决挑战2：图中存在负权边时，如何发现源点可达负环?
+<ul>
+<li>进行第|𝑽 |轮松弛，若仍松弛成功，存在源点𝒔可达的负环</li>
+</ul>
+</li>
+</ul>
+<h2 id="3-算法实例">3. 算法实例</h2>
+<p>初始时，我们任意给定一个松弛边的顺序：<br>
+<img src="https://mocuishle0.github.io//post-images/1590658636753.png" alt="" loading="lazy"><br>
+第一轮松弛后，结果如图：<br>
+<img src="https://mocuishle0.github.io//post-images/1590658718748.png" alt="" loading="lazy"><br>
+第二轮松弛后，结果如图：<br>
+<img src="https://mocuishle0.github.io//post-images/1590658764758.png" alt="" loading="lazy"><br>
+第三轮松弛后，结果如图：<br>
+<img src="https://mocuishle0.github.io//post-images/1590658797977.png" alt="" loading="lazy"><br>
+第四轮松弛后，结果如图：<br>
+<img src="https://mocuishle0.github.io//post-images/1590658840317.png" alt="" loading="lazy"></p>
+<p>可见，第四轮后已经无法继续松弛，因此后续必然无法继续松弛，可得到最终结果。</p>
+<h2 id="4-算法分析">4. 算法分析</h2>
+<p><img src="https://mocuishle0.github.io//post-images/1590660153675.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590660173506.png" alt="" loading="lazy"><br>
+显然，该算法的复杂度为𝑶(|𝑬 | ⋅ |𝑽 |)</p>
+<h2 id="5-算法性质正确性证明">5. 算法性质——正确性证明：</h2>
+<ul>
+<li>挑战𝟏：图中存在负权边时，如何求解单源最短路径?——最坏情况分析<br>
+<img src="https://mocuishle0.github.io//post-images/1590660327820.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590660352404.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590660406572.png" alt="" loading="lazy"></li>
+<li>挑战𝟐：图中存在负权边时，如何发现源点可达负环?<br>
+<img src="https://mocuishle0.github.io//post-images/1590660507814.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590660565463.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590660582971.png" alt="" loading="lazy"></li>
+</ul>
+<h2 id="6-小结">6. 小结</h2>
+<figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1590660611474.png" alt="" loading="lazy"></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/x1sHDnjLu/" class="tag">
+                    图算法
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/tu-suan-fa-dan-yuan-zui-duan-lu-jing-wen-ti-dijkstra-suan-fa/">
+                  <h3 class="post-title">
+                    图算法：单源最短路径问题——Dijkstra算法
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

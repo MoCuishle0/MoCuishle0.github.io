@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>图算法：单源最短路径问题——Dijkstra算法 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1590720621882">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="最短路径问题始终是图算法中一类重要的研究问题，目前也有众多工作提出了一些高效的解决策略。然而，就单源最短路径问题而言，Dijkstra算法和Bellman-Ford算法历经多年仍然是最经典的算法。本文将重点介绍Dijkstra算法。
+
+本文..." />
+    <meta name="keywords" content="图算法" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1590720621882" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">图算法：单源最短路径问题——Dijkstra算法</h2>
+            <div class="post-date">2020-05-28</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/tu-suan-fa-dan-yuan-zui-duan-lu-jing-wen-ti-dijkstra-suan-fa.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>最短路径问题始终是图算法中一类重要的研究问题，目前也有众多工作提出了一些高效的解决策略。然而，就单源最短路径问题而言，Dijkstra算法和Bellman-Ford算法历经多年仍然是最经典的算法。本文将重点介绍Dijkstra算法。</p>
+<!-- more -->
+<p>本文概要：</p>
+<ul>
+<li>算法背景</li>
+<li>算法思想</li>
+<li>算法实例</li>
+<li>算法实现</li>
+<li>算法分析</li>
+<li>算法小结</li>
+</ul>
+<h2 id="1-算法背景">1. 算法背景</h2>
+<p>最短路径问题的应用背景极其广泛，例如：查询从某地A到达目的地B的最短路径/时耗，查询社交网络中用户A和用户B之间最短的社交代价等等。其实，以上问题其实质均可建模为一类带权值的图模型。在本文中，我们重点讨论单源最短路径问题，即源节点确定的最短路径查询问题。回想一下，我们之前也说到：BFS搜素也可以解决一些最短路径，此处进行一些解释：<br>
+下图所示是一张地铁线路图，如果我们的问题是：需要求从地点A到地点B，如何规划路径可使得地铁<strong>经停最少车站</strong>。<br>
+<img src="https://mocuishle0.github.io//post-images/1590636050661.png" alt="" loading="lazy"><br>
+我们可以使用BFS算法即可求的相应结果，因为该问题其实可建模为在无权图（或所有边权值均为1的带权图）上的最短路问题。<br>
+然而，如果我们的问题是：需要求从地点A到地点B，如何规划路径可使得地铁<strong>运行时间最短</strong>。<br>
+<img src="https://mocuishle0.github.io//post-images/1590637196384.png" alt="" loading="lazy"><br>
+显然，该问题实质为如何计算带权图中源点到所有其他顶点的最短路径。对于带权图我们无法使用BFS方法直接求解，因此引出我们的Dijkstra算法。<br>
+我们首先给出问题的定义：<br>
+<strong>定义1.1 单源最短路径问题 (边权为正)：</strong></p>
+<ul>
+<li>输入：
+<ul>
+<li>带权图𝑮 =(𝑽, 𝑬, 𝑾 )，其中𝒘(𝒖, 𝒗) ≥ 𝟎（图中所有边权为正）, (𝒖, 𝒗) ∈ 𝑬</li>
+<li>源点编号𝒔</li>
+</ul>
+</li>
+<li>输出：源点𝒔到所有其他顶点𝒕的<strong>最短距离</strong>𝜹(𝒔, 𝒕)和<strong>最短路径</strong>&lt; 𝒔, … , 𝒕 &gt;<br>
+P.s：需要强调的是，Dijkstra算法所能解决的是边权值权值均为正数的情况。对于权值为负数的情况，该算法并不能很好解决。</li>
+</ul>
+<p>##2. 算法思想<br>
+Dijkstra算法其算法思想与之前Prim算法求最小生成树有异曲同工之处，但由于其处理问题不同，故存在一定差异。<br>
+Dijkstra算法的实现我们同样借助辅助数组来完成：</p>
+<ul>
+<li>𝒅𝒊𝒔𝒕表示距离上界（估计距离）：
+<ul>
+<li>源点𝒔，𝒅𝒊𝒔𝒕[𝒔]= 𝟎；其他顶点𝒖，𝒅𝒊𝒔𝒕[𝒖]初始化为∞;</li>
+<li>𝒅𝒊𝒔𝒕[𝒖]：源点𝒔到顶点𝒖的距离上界，𝜹(𝒔, 𝒖) ≤ 𝒅𝒊𝒔𝒕 𝒖</li>
+</ul>
+</li>
+<li>𝒄𝒐𝒍𝒐𝒓表示顶点状态：
+<ul>
+<li>黑色：到顶点𝒖最短路已被确定</li>
+<li>白色：到顶点𝒖最短路尚未被确定</li>
+</ul>
+</li>
+<li>𝒑𝒓𝒆𝒅表示前驱顶点：
+<ul>
+<li>(𝒑𝒓𝒆𝒅[𝒖] , 𝒖)𝒊为最短路径上的边</li>
+</ul>
+</li>
+</ul>
+<p>总结算法的核心思想如下：<br>
+<img src="https://mocuishle0.github.io//post-images/1590640865461.png" alt="" loading="lazy"><br>
+目前存在以下两个问题：</p>
+<ul>
+<li>选择哪个白色顶点变为黑色——贪心策略选择<br>
+<img src="https://mocuishle0.github.io//post-images/1590640991934.png" alt="" loading="lazy"></li>
+<li>如何更新每顶点的估计距离——利用已选节点进行松弛处理<br>
+<img src="https://mocuishle0.github.io//post-images/1590641045056.png" alt="" loading="lazy"></li>
+</ul>
+<h2 id="3-算法实例">3. 算法实例</h2>
+<p>初始时：<br>
+<img src="https://mocuishle0.github.io//post-images/1590641894616.png" alt="" loading="lazy"><br>
+利用当前已确定节点松弛其相邻接节点：<br>
+<img src="https://mocuishle0.github.io//post-images/1590641944151.png" alt="" loading="lazy"><br>
+之后，贪心选择当前估计距离最小的节点：<br>
+<img src="https://mocuishle0.github.io//post-images/1590642006599.png" alt="" loading="lazy"><br>
+重复上述过程，直至确定源节点到所有节点的最小距离：<br>
+<img src="https://mocuishle0.github.io//post-images/1590642154514.png" alt="" loading="lazy"></p>
+<h2 id="4-算法实现">4. 算法实现</h2>
+<p>通过上述实例演示，其实我们不难发现：Dijkstra算法整个算法流程与Prim算法的实现很类似。以下我们给出Dijkstra算法直观实现的伪代码：<br>
+<img src="https://mocuishle0.github.io//post-images/1590650064773.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590650107560.png" alt="" loading="lazy"><br>
+以上对于Dijkstra算法朴素地实现，<strong>其复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><msup><mi mathvariant="normal">∣</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|V|^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord"><span class="mord">∣</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></strong>。<br>
+显然，算法中贪心选择𝒅𝒊𝒔𝒕数组中最小的节点仍然可以借助优先队列实现，以此来降低算法复杂度：<br>
+<img src="https://mocuishle0.github.io//post-images/1590650766296.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590650813491.png" alt="" loading="lazy"><br>
+可见，通过优先队列实现Dijkstra算法，可将<strong>复杂度降至<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi><mi mathvariant="normal">.</mi><mi>l</mi><mi>o</mi><mi>g</mi><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|E|.log|V|)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mord">∣</span><span class="mord">.</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mclose">)</span></span></span></span></strong>。</p>
+<h2 id="5算法分析">5.算法分析</h2>
+<p>童咏昕老师在《算法设计与分析》课程中详细讲解了Dijkstra算法的正确性证明：<br>
+<img src="https://mocuishle0.github.io//post-images/1590651213094.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590651261482.png" alt="" loading="lazy"><br>
+该证明使用反证法，巧妙地借助了逆否命题与原命题等价证得Dijkstra算法的正确性。反证法也是证明算法正确性时常用的方法之一。</p>
+<h2 id="6算法小结">6.算法小结</h2>
+<h3 id="61-dijkstra算法-prim算法">6.1 Dijkstra算法 &amp; Prim算法</h3>
+<p>Dijkstra算法与Prim算法有很多<strong>相似</strong>之处：</p>
+<ul>
+<li>均是基于贪心策略的算法；</li>
+<li>均使用𝒅𝒊𝒔𝒕数组；</li>
+<li>算法过程中，均需要不断更新𝒅𝒊𝒔𝒕数组；</li>
+</ul>
+<p>但同时，Dijkstra算法与Prim算法由于其处理问题不同，故仍存在差异：</p>
+<ul>
+<li>虽然均需要使用𝒅𝒊𝒔𝒕数组，但𝒅𝒊𝒔𝒕数组作用不同：
+<ul>
+<li>Prim算法中，𝒅𝒊𝒔𝒕数组用于记录横跨割的边的权重；</li>
+<li>Dijkstra算法中，𝒅𝒊𝒔𝒕数组用于记录距离上界（估计距离）；</li>
+<li>P.s：Prim算法需要维护候选轻边权重；Dijkstra算法需要维护源节点到任意节点间路径最短距离。</li>
+</ul>
+</li>
+<li>更新𝒅𝒊𝒔𝒕数组的方法不同：
+<ul>
+<li>Prim算法将一个节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>选入子树后，判断该节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>到邻居节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>v</mi></mrow><annotation encoding="application/x-tex">v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span></span></span></span>的距离是否小于𝒅𝒊𝒔𝒕[v]；</li>
+<li>Dijkstra算法确定源节点到一个节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>的最短距离后，判断利用源节点到节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>的最短路径能否将源节点到节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>的邻居节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>v</mi></mrow><annotation encoding="application/x-tex">v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span></span></span></span>的距离松弛，即：𝒅𝒊𝒔𝒕[u]+$w(u,v)\leq $𝒅𝒊𝒔𝒕[v]；</li>
+</ul>
+</li>
+</ul>
+<h3 id="62-dijkstra算法-bfs算法">6.2 Dijkstra算法 &amp; BFS算法</h3>
+<figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1590652128370.png" alt="" loading="lazy"></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/x1sHDnjLu/" class="tag">
+                    图算法
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/tu-suan-fa-zui-xiao-sheng-cheng-shu/">
+                  <h3 class="post-title">
+                    图算法：最小生成树
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

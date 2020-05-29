@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://mocuishle0.github.io/</id>
     <title>MoCuishle</title>
-    <updated>2020-05-28T01:34:22.699Z</updated>
+    <updated>2020-05-29T02:50:29.310Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://mocuishle0.github.io/"/>
     <link rel="self" href="https://mocuishle0.github.io/atom.xml"/>
@@ -11,6 +11,281 @@
     <logo>https://mocuishle0.github.io/images/avatar.png</logo>
     <icon>https://mocuishle0.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, MoCuishle</rights>
+    <entry>
+        <title type="html"><![CDATA[图算法：多源最短路径问题——Floyd算法]]></title>
+        <id>https://mocuishle0.github.io/post/tu-suan-fa-duo-yuan-zui-duan-lu-jing-wen-ti-floyd-suan-fa/</id>
+        <link href="https://mocuishle0.github.io/post/tu-suan-fa-duo-yuan-zui-duan-lu-jing-wen-ti-floyd-suan-fa/">
+        </link>
+        <updated>2020-05-29T01:53:16.000Z</updated>
+        <summary type="html"><![CDATA[<p>之前，我们介绍了单源最短路径问题：Dijkstra算法——解决正权边图上的单源最短路径；Bellman-Ford算法——解决图上带负权边的单源最短路径问题。而今天，我们将主要介绍一种解决图上多元最短路径的算法——Floyd算法。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>之前，我们介绍了单源最短路径问题：Dijkstra算法——解决正权边图上的单源最短路径；Bellman-Ford算法——解决图上带负权边的单源最短路径问题。而今天，我们将主要介绍一种解决图上多元最短路径的算法——Floyd算法。</p>
+<!-- more -->
+<p>本文概要：</p>
+<ul>
+<li>算法背景</li>
+<li>算法思想</li>
+<li>算法实例</li>
+<li>算法实现</li>
+</ul>
+<p>P.s：本文图例参考：<a href="https://juejin.im/post/5d8ede95e51d457824771d27">原文链接</a></p>
+<h2 id="1-算法背景">1. 算法背景</h2>
+<p>现实生活中，我们的需求时常不仅仅是求得某地到其他各地的最短距离，更常见的情况是我们需要知道各地之间的最短距离。一种朴素且可行的想法是：对于图中每个节点使用解决单源最短路径问题的算法（Dijkstra算法 或 Bellman-Ford算法）。然而，在现实环境中图数据规模庞大，该方法的时间复杂度显然是我们所难以接受的。因此，我们需要一种高效的方法解决这样一个多源最短路径问题。</p>
+<p>解决多源最短路径问题的众多算法中，最为人们所熟知的是Floyd算法。该算法凭借其明了的思想、简洁的代码实现，被大家称之为一个短小精悍的算法。本文将在后续部分主要介绍该算法的核心思想。</p>
+<h2 id="2-算法思想">2. 算法思想</h2>
+<p>之前在介绍Dijkstra算法时，我们首次提出了**“松弛”**的思想，并强调这一思想是大多数最短路算法的核心思想。因此，Floyd算法也不例外，其核心思想概括而言是——<strong>动态规划策略+松弛</strong>。<br>
+在正式介绍算法之前，我们对下图进行观察：<br>
+<img src="https://mocuishle0.github.io//post-images/1590718757078.png" alt="" loading="lazy"><br>
+不难发现，在不考虑其他节点/路径的情况下，节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn><mo>→</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">1\to 4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">4</span></span></span></span>之间的最短距离即为边<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mn>1</mn><mo separator="true">,</mo><mn>4</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">(1,4)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">4</span><span class="mclose">)</span></span></span></span>的权值6。然而，如果我们引入节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>3</mn></mrow><annotation encoding="application/x-tex">3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span></span></span></span>，并利用边<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mn>1</mn><mo separator="true">,</mo><mn>3</mn><mo>)</mo><mo separator="true">,</mo><mo>(</mo><mn>3</mn><mo separator="true">,</mo><mn>4</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">(1,3),(3,4)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">3</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mopen">(</span><span class="mord">3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">4</span><span class="mclose">)</span></span></span></span>可将节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn><mo>→</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">1\to 4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">4</span></span></span></span>之间的最短距离更新为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>5</mn></mrow><annotation encoding="application/x-tex">5</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">5</span></span></span></span>，即松弛成功。<br>
+因此，我们不难想到——对图中所有点均进行试探，判断每一个点对间的距离是否因为加入的点而更新，即可得到任意两点间的最短距离。这便是Floyd算法的核心思想。总结如下：<br>
+1）利用邻接矩阵dist[i][j]储存节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi><mo separator="true">,</mo><mi>j</mi></mrow><annotation encoding="application/x-tex">i,j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">i</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span></span></span></span>间的最短距离。如果没有直接相连的两点那么默认为一个很大的值，并且其到自己的长度为0；<br>
+2）从第1个到第<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">|V|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span></span></span></span>个点依次加入图中。每个点加入进行试探是否有路径长度被更新；<br>
+3）上述试探具体方法为遍历图中每一个点(i,j双重循环)，判断每一个点对距离是否因为加入的点而发生最小距离变化。如果发生改变，那么两点(i,j)距离就更新；<br>
+4）重复上述直到最后插点试探完成。</p>
+<h2 id="3-算法实例">3. 算法实例</h2>
+<p>依然沿用我们上述的图例：<br>
+<img src="https://mocuishle0.github.io//post-images/1590720071412.png" alt="" loading="lazy"><br>
+利用邻接矩阵dist[i][j]储存节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi><mo separator="true">,</mo><mi>j</mi></mrow><annotation encoding="application/x-tex">i,j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">i</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span></span></span></span>间的最短距离，上述dist[i][j]矩阵展示了初始阶段的内容。之后我们对图中每个节点进行试探：</p>
+<p>对于节点1进行试探：由于1的加入，使得本来不连通的2，3点对和2，4点对变得联通，并且加入1后距离为当前最小。同时，我们发现加入1其中也使得产生路径3$\to<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>\to<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>4</mn><mi mathvariant="normal">，</mi><mi mathvariant="normal">但</mi><mi mathvariant="normal">是</mi><mi mathvariant="normal">路</mi><mi mathvariant="normal">径</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">4，但是路径3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">4</span><span class="mord cjk_fallback">，</span><span class="mord cjk_fallback">但</span><span class="mord cjk_fallback">是</span><span class="mord cjk_fallback">路</span><span class="mord cjk_fallback">径</span><span class="mord">3</span></span></span></span>\to<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>\to$4的距离为9远远大于本来的(3,4)为2，所以不进行更新。<br>
+<img src="https://mocuishle0.github.io//post-images/1590720145062.png" alt="" loading="lazy"></p>
+<p>对于节点2进行试探：<br>
+<img src="https://mocuishle0.github.io//post-images/1590720406969.png" alt="" loading="lazy"><br>
+后续同理。</p>
+<h2 id="4-算法实现">4. 算法实现</h2>
+<p>Floyd算法的实现非常简洁，其核心代码仅需要三层循环即可：</p>
+<pre><code>for(int i = 1; i &lt;= n; i++)
+{
+    for(int j = 1; j &lt;= n; j++)
+    {
+        for(int k = 1; k &lt;= n; k++)
+        {
+            if(dis[j][k] &gt; dis[j][i] + dis[i][k])
+            {
+                dis[j][k] = dis[j][i] + dis[i][k];
+            }
+        }
+    }
+}
+</code></pre>
+<p>显然，该算法复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><msup><mi mathvariant="normal">∣</mi><mn>3</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|V|^3)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord"><span class="mord">∣</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[图算法：单源最短路径问题——Bellman-Ford算法]]></title>
+        <id>https://mocuishle0.github.io/post/tu-suan-fa-dan-yuan-zui-duan-lu-jing-wen-ti-bellman-ford-suan-fa/</id>
+        <link href="https://mocuishle0.github.io/post/tu-suan-fa-dan-yuan-zui-duan-lu-jing-wen-ti-bellman-ford-suan-fa/">
+        </link>
+        <updated>2020-05-28T09:00:30.000Z</updated>
+        <summary type="html"><![CDATA[<p>在前一篇文章中，主要介绍了如何利用Dijkstra算法解决正权图上的单源最短路径问题。然而，在现实生活中的许多图模型中，其权值并不一定全部为正。因此，本文将讨论带负权图上的单源最短路径问题。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>在前一篇文章中，主要介绍了如何利用Dijkstra算法解决正权图上的单源最短路径问题。然而，在现实生活中的许多图模型中，其权值并不一定全部为正。因此，本文将讨论带负权图上的单源最短路径问题。</p>
+<!-- more -->
+<p>本文概要：</p>
+<ul>
+<li>算法背景</li>
+<li>算法思想</li>
+<li>算法实例</li>
+<li>算法分析</li>
+<li>算法性质</li>
+</ul>
+<h2 id="1-算法背景dijkstra算法的局限性">1. 算法背景——Dijkstra算法的局限性</h2>
+<p>考虑以下实例：<br>
+<img src="https://mocuishle0.github.io//post-images/1590657049468.png" alt="" loading="lazy"><br>
+根据Dijkstra算法的思想，一旦确定源节点与任意节点最短距离后，在后续的过程中该距离将不会被松弛。然而，由于负权边的存在将与该情况发生冲突，因此Dijkstra算法无法适用于负权图上的单源最短路径问题。</p>
+<p>根据上述情况随之需要思考：图中存在负权边时，是否一定存在单源最短路径?——<strong>不一定</strong>。考虑以下情况：<br>
+<img src="https://mocuishle0.github.io//post-images/1590657737868.png" alt="" loading="lazy"><br>
+所以，<strong>若源点𝒔无可达负环，则存在源点𝒔的单源最短路径</strong>。</p>
+<p>综上，我们给出图中允许出现负权边时的单源最短路径问题的定义：<br>
+<strong>定义. 单源最短路径问题（可含负权边）：</strong></p>
+<ul>
+<li>输入：
+<ul>
+<li>带权图𝑮 =(𝑽, 𝑬, 𝑾 )</li>
+<li>源点编号𝒔</li>
+</ul>
+</li>
+<li>输出：
+<ul>
+<li>源点𝒔到所有其他顶点𝒕的最短距离𝜹(𝒔, 𝒕)和最短路径&lt; 𝒔, … , 𝒕 &gt;</li>
+<li>或存在源点𝒔可达的负环</li>
+</ul>
+</li>
+</ul>
+<p>根据问题定义可知，该问题存在以下两点挑战：</p>
+<ul>
+<li>挑战𝟏：图中存在负权边时，如何求解单源最短路径?</li>
+<li>挑战𝟐：图中存在负权边时，如何发现源点可达负环?</li>
+</ul>
+<h2 id="2-算法思想多轮松弛">2. 算法思想——多轮松弛</h2>
+<p>在Dijkstra算法中，我们主要通过<strong>松弛操作</strong>迭代更新最短距离：<br>
+<img src="https://mocuishle0.github.io//post-images/1590658201059.png" alt="" loading="lazy"><br>
+直观地，存在负权边时，需要比Dijkstra算法更多次数的松弛操作：<br>
+<img src="https://mocuishle0.github.io//post-images/1590658320213.png" alt="" loading="lazy"></p>
+<p><strong>Bellman-Ford算法</strong></p>
+<ul>
+<li>解决挑战1：图中存在负权边时，如何求解单源最短路径?
+<ul>
+<li>每轮对<strong>所有边</strong>进行松弛，持续迭代|𝑽 |-1轮</li>
+</ul>
+</li>
+<li>解决挑战2：图中存在负权边时，如何发现源点可达负环?
+<ul>
+<li>进行第|𝑽 |轮松弛，若仍松弛成功，存在源点𝒔可达的负环</li>
+</ul>
+</li>
+</ul>
+<h2 id="3-算法实例">3. 算法实例</h2>
+<p>初始时，我们任意给定一个松弛边的顺序：<br>
+<img src="https://mocuishle0.github.io//post-images/1590658636753.png" alt="" loading="lazy"><br>
+第一轮松弛后，结果如图：<br>
+<img src="https://mocuishle0.github.io//post-images/1590658718748.png" alt="" loading="lazy"><br>
+第二轮松弛后，结果如图：<br>
+<img src="https://mocuishle0.github.io//post-images/1590658764758.png" alt="" loading="lazy"><br>
+第三轮松弛后，结果如图：<br>
+<img src="https://mocuishle0.github.io//post-images/1590658797977.png" alt="" loading="lazy"><br>
+第四轮松弛后，结果如图：<br>
+<img src="https://mocuishle0.github.io//post-images/1590658840317.png" alt="" loading="lazy"></p>
+<p>可见，第四轮后已经无法继续松弛，因此后续必然无法继续松弛，可得到最终结果。</p>
+<h2 id="4-算法分析">4. 算法分析</h2>
+<p><img src="https://mocuishle0.github.io//post-images/1590660153675.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590660173506.png" alt="" loading="lazy"><br>
+显然，该算法的复杂度为𝑶(|𝑬 | ⋅ |𝑽 |)</p>
+<h2 id="5-算法性质正确性证明">5. 算法性质——正确性证明：</h2>
+<ul>
+<li>挑战𝟏：图中存在负权边时，如何求解单源最短路径?——最坏情况分析<br>
+<img src="https://mocuishle0.github.io//post-images/1590660327820.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590660352404.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590660406572.png" alt="" loading="lazy"></li>
+<li>挑战𝟐：图中存在负权边时，如何发现源点可达负环?<br>
+<img src="https://mocuishle0.github.io//post-images/1590660507814.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590660565463.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590660582971.png" alt="" loading="lazy"></li>
+</ul>
+<h2 id="6-小结">6. 小结</h2>
+<figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1590660611474.png" alt="" loading="lazy"></figure>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[图算法：单源最短路径问题——Dijkstra算法]]></title>
+        <id>https://mocuishle0.github.io/post/tu-suan-fa-dan-yuan-zui-duan-lu-jing-wen-ti-dijkstra-suan-fa/</id>
+        <link href="https://mocuishle0.github.io/post/tu-suan-fa-dan-yuan-zui-duan-lu-jing-wen-ti-dijkstra-suan-fa/">
+        </link>
+        <updated>2020-05-28T03:01:54.000Z</updated>
+        <summary type="html"><![CDATA[<p>最短路径问题始终是图算法中一类重要的研究问题，目前也有众多工作提出了一些高效的解决策略。然而，就单源最短路径问题而言，Dijkstra算法和Bellman-Ford算法历经多年仍然是最经典的算法。本文将重点介绍Dijkstra算法。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>最短路径问题始终是图算法中一类重要的研究问题，目前也有众多工作提出了一些高效的解决策略。然而，就单源最短路径问题而言，Dijkstra算法和Bellman-Ford算法历经多年仍然是最经典的算法。本文将重点介绍Dijkstra算法。</p>
+<!-- more -->
+<p>本文概要：</p>
+<ul>
+<li>算法背景</li>
+<li>算法思想</li>
+<li>算法实例</li>
+<li>算法实现</li>
+<li>算法分析</li>
+<li>算法小结</li>
+</ul>
+<h2 id="1-算法背景">1. 算法背景</h2>
+<p>最短路径问题的应用背景极其广泛，例如：查询从某地A到达目的地B的最短路径/时耗，查询社交网络中用户A和用户B之间最短的社交代价等等。其实，以上问题其实质均可建模为一类带权值的图模型。在本文中，我们重点讨论单源最短路径问题，即源节点确定的最短路径查询问题。回想一下，我们之前也说到：BFS搜素也可以解决一些最短路径，此处进行一些解释：<br>
+下图所示是一张地铁线路图，如果我们的问题是：需要求从地点A到地点B，如何规划路径可使得地铁<strong>经停最少车站</strong>。<br>
+<img src="https://mocuishle0.github.io//post-images/1590636050661.png" alt="" loading="lazy"><br>
+我们可以使用BFS算法即可求的相应结果，因为该问题其实可建模为在无权图（或所有边权值均为1的带权图）上的最短路问题。<br>
+然而，如果我们的问题是：需要求从地点A到地点B，如何规划路径可使得地铁<strong>运行时间最短</strong>。<br>
+<img src="https://mocuishle0.github.io//post-images/1590637196384.png" alt="" loading="lazy"><br>
+显然，该问题实质为如何计算带权图中源点到所有其他顶点的最短路径。对于带权图我们无法使用BFS方法直接求解，因此引出我们的Dijkstra算法。<br>
+我们首先给出问题的定义：<br>
+<strong>定义1.1 单源最短路径问题 (边权为正)：</strong></p>
+<ul>
+<li>输入：
+<ul>
+<li>带权图𝑮 =(𝑽, 𝑬, 𝑾 )，其中𝒘(𝒖, 𝒗) ≥ 𝟎（图中所有边权为正）, (𝒖, 𝒗) ∈ 𝑬</li>
+<li>源点编号𝒔</li>
+</ul>
+</li>
+<li>输出：源点𝒔到所有其他顶点𝒕的<strong>最短距离</strong>𝜹(𝒔, 𝒕)和<strong>最短路径</strong>&lt; 𝒔, … , 𝒕 &gt;<br>
+P.s：需要强调的是，Dijkstra算法所能解决的是边权值权值均为正数的情况。对于权值为负数的情况，该算法并不能很好解决。</li>
+</ul>
+<p>##2. 算法思想<br>
+Dijkstra算法其算法思想与之前Prim算法求最小生成树有异曲同工之处，但由于其处理问题不同，故存在一定差异。<br>
+Dijkstra算法的实现我们同样借助辅助数组来完成：</p>
+<ul>
+<li>𝒅𝒊𝒔𝒕表示距离上界（估计距离）：
+<ul>
+<li>源点𝒔，𝒅𝒊𝒔𝒕[𝒔]= 𝟎；其他顶点𝒖，𝒅𝒊𝒔𝒕[𝒖]初始化为∞;</li>
+<li>𝒅𝒊𝒔𝒕[𝒖]：源点𝒔到顶点𝒖的距离上界，𝜹(𝒔, 𝒖) ≤ 𝒅𝒊𝒔𝒕 𝒖</li>
+</ul>
+</li>
+<li>𝒄𝒐𝒍𝒐𝒓表示顶点状态：
+<ul>
+<li>黑色：到顶点𝒖最短路已被确定</li>
+<li>白色：到顶点𝒖最短路尚未被确定</li>
+</ul>
+</li>
+<li>𝒑𝒓𝒆𝒅表示前驱顶点：
+<ul>
+<li>(𝒑𝒓𝒆𝒅[𝒖] , 𝒖)𝒊为最短路径上的边</li>
+</ul>
+</li>
+</ul>
+<p>总结算法的核心思想如下：<br>
+<img src="https://mocuishle0.github.io//post-images/1590640865461.png" alt="" loading="lazy"><br>
+目前存在以下两个问题：</p>
+<ul>
+<li>选择哪个白色顶点变为黑色——贪心策略选择<br>
+<img src="https://mocuishle0.github.io//post-images/1590640991934.png" alt="" loading="lazy"></li>
+<li>如何更新每顶点的估计距离——利用已选节点进行松弛处理<br>
+<img src="https://mocuishle0.github.io//post-images/1590641045056.png" alt="" loading="lazy"></li>
+</ul>
+<h2 id="3-算法实例">3. 算法实例</h2>
+<p>初始时：<br>
+<img src="https://mocuishle0.github.io//post-images/1590641894616.png" alt="" loading="lazy"><br>
+利用当前已确定节点松弛其相邻接节点：<br>
+<img src="https://mocuishle0.github.io//post-images/1590641944151.png" alt="" loading="lazy"><br>
+之后，贪心选择当前估计距离最小的节点：<br>
+<img src="https://mocuishle0.github.io//post-images/1590642006599.png" alt="" loading="lazy"><br>
+重复上述过程，直至确定源节点到所有节点的最小距离：<br>
+<img src="https://mocuishle0.github.io//post-images/1590642154514.png" alt="" loading="lazy"></p>
+<h2 id="4-算法实现">4. 算法实现</h2>
+<p>通过上述实例演示，其实我们不难发现：Dijkstra算法整个算法流程与Prim算法的实现很类似。以下我们给出Dijkstra算法直观实现的伪代码：<br>
+<img src="https://mocuishle0.github.io//post-images/1590650064773.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590650107560.png" alt="" loading="lazy"><br>
+以上对于Dijkstra算法朴素地实现，<strong>其复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><msup><mi mathvariant="normal">∣</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|V|^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord"><span class="mord">∣</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></strong>。<br>
+显然，算法中贪心选择𝒅𝒊𝒔𝒕数组中最小的节点仍然可以借助优先队列实现，以此来降低算法复杂度：<br>
+<img src="https://mocuishle0.github.io//post-images/1590650766296.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590650813491.png" alt="" loading="lazy"><br>
+可见，通过优先队列实现Dijkstra算法，可将<strong>复杂度降至<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi><mi mathvariant="normal">.</mi><mi>l</mi><mi>o</mi><mi>g</mi><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|E|.log|V|)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mord">∣</span><span class="mord">.</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mclose">)</span></span></span></span></strong>。</p>
+<h2 id="5算法分析">5.算法分析</h2>
+<p>童咏昕老师在《算法设计与分析》课程中详细讲解了Dijkstra算法的正确性证明：<br>
+<img src="https://mocuishle0.github.io//post-images/1590651213094.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1590651261482.png" alt="" loading="lazy"><br>
+该证明使用反证法，巧妙地借助了逆否命题与原命题等价证得Dijkstra算法的正确性。反证法也是证明算法正确性时常用的方法之一。</p>
+<h2 id="6算法小结">6.算法小结</h2>
+<h3 id="61-dijkstra算法-prim算法">6.1 Dijkstra算法 &amp; Prim算法</h3>
+<p>Dijkstra算法与Prim算法有很多<strong>相似</strong>之处：</p>
+<ul>
+<li>均是基于贪心策略的算法；</li>
+<li>均使用𝒅𝒊𝒔𝒕数组；</li>
+<li>算法过程中，均需要不断更新𝒅𝒊𝒔𝒕数组；</li>
+</ul>
+<p>但同时，Dijkstra算法与Prim算法由于其处理问题不同，故仍存在差异：</p>
+<ul>
+<li>虽然均需要使用𝒅𝒊𝒔𝒕数组，但𝒅𝒊𝒔𝒕数组作用不同：
+<ul>
+<li>Prim算法中，𝒅𝒊𝒔𝒕数组用于记录横跨割的边的权重；</li>
+<li>Dijkstra算法中，𝒅𝒊𝒔𝒕数组用于记录距离上界（估计距离）；</li>
+<li>P.s：Prim算法需要维护候选轻边权重；Dijkstra算法需要维护源节点到任意节点间路径最短距离。</li>
+</ul>
+</li>
+<li>更新𝒅𝒊𝒔𝒕数组的方法不同：
+<ul>
+<li>Prim算法将一个节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>选入子树后，判断该节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>到邻居节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>v</mi></mrow><annotation encoding="application/x-tex">v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span></span></span></span>的距离是否小于𝒅𝒊𝒔𝒕[v]；</li>
+<li>Dijkstra算法确定源节点到一个节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>的最短距离后，判断利用源节点到节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>的最短路径能否将源节点到节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>的邻居节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>v</mi></mrow><annotation encoding="application/x-tex">v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span></span></span></span>的距离松弛，即：𝒅𝒊𝒔𝒕[u]+$w(u,v)\leq $𝒅𝒊𝒔𝒕[v]；</li>
+</ul>
+</li>
+</ul>
+<h3 id="62-dijkstra算法-bfs算法">6.2 Dijkstra算法 &amp; BFS算法</h3>
+<figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1590652128370.png" alt="" loading="lazy"></figure>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[图算法：最小生成树]]></title>
         <id>https://mocuishle0.github.io/post/tu-suan-fa-zui-xiao-sheng-cheng-shu/</id>
