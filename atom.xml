@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://mocuishle0.github.io/</id>
     <title>MoCuishle</title>
-    <updated>2020-05-29T02:50:29.310Z</updated>
+    <updated>2020-05-29T07:37:34.574Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://mocuishle0.github.io/"/>
     <link rel="self" href="https://mocuishle0.github.io/atom.xml"/>
@@ -204,8 +204,8 @@
 <li>输出：源点𝒔到所有其他顶点𝒕的<strong>最短距离</strong>𝜹(𝒔, 𝒕)和<strong>最短路径</strong>&lt; 𝒔, … , 𝒕 &gt;<br>
 P.s：需要强调的是，Dijkstra算法所能解决的是边权值权值均为正数的情况。对于权值为负数的情况，该算法并不能很好解决。</li>
 </ul>
-<p>##2. 算法思想<br>
-Dijkstra算法其算法思想与之前Prim算法求最小生成树有异曲同工之处，但由于其处理问题不同，故存在一定差异。<br>
+<h2 id="2-算法思想">2. 算法思想</h2>
+<p>Dijkstra算法其算法思想与之前Prim算法求最小生成树有异曲同工之处，但由于其处理问题不同，故存在一定差异。<br>
 Dijkstra算法的实现我们同样借助辅助数组来完成：</p>
 <ul>
 <li>𝒅𝒊𝒔𝒕表示距离上界（估计距离）：
@@ -248,11 +248,11 @@ Dijkstra算法的实现我们同样借助辅助数组来完成：</p>
 <p>通过上述实例演示，其实我们不难发现：Dijkstra算法整个算法流程与Prim算法的实现很类似。以下我们给出Dijkstra算法直观实现的伪代码：<br>
 <img src="https://mocuishle0.github.io//post-images/1590650064773.png" alt="" loading="lazy"><br>
 <img src="https://mocuishle0.github.io//post-images/1590650107560.png" alt="" loading="lazy"><br>
-以上对于Dijkstra算法朴素地实现，<strong>其复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><msup><mi mathvariant="normal">∣</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|V|^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord"><span class="mord">∣</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></strong>。<br>
+以上对于Dijkstra算法朴素地实现，其复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><msup><mi mathvariant="normal">∣</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|V|^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord"><span class="mord">∣</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>。<br>
 显然，算法中贪心选择𝒅𝒊𝒔𝒕数组中最小的节点仍然可以借助优先队列实现，以此来降低算法复杂度：<br>
 <img src="https://mocuishle0.github.io//post-images/1590650766296.png" alt="" loading="lazy"><br>
 <img src="https://mocuishle0.github.io//post-images/1590650813491.png" alt="" loading="lazy"><br>
-可见，通过优先队列实现Dijkstra算法，可将<strong>复杂度降至<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi><mi mathvariant="normal">.</mi><mi>l</mi><mi>o</mi><mi>g</mi><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|E|.log|V|)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mord">∣</span><span class="mord">.</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mclose">)</span></span></span></span></strong>。</p>
+可见，通过优先队列实现Dijkstra算法，可将复杂度降至<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi><mi mathvariant="normal">.</mi><mi>l</mi><mi>o</mi><mi>g</mi><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|E|.log|V|)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mord">∣</span><span class="mord">.</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mclose">)</span></span></span></span>。</p>
 <h2 id="5算法分析">5.算法分析</h2>
 <p>童咏昕老师在《算法设计与分析》课程中详细讲解了Dijkstra算法的正确性证明：<br>
 <img src="https://mocuishle0.github.io//post-images/1590651213094.png" alt="" loading="lazy"><br>
