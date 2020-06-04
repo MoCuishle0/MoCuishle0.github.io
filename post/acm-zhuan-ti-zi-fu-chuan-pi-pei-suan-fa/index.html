@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>ACM专题：字符串匹配算法 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591256439112">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="字符串匹配问题，无论是编程课还是算法课都会被提及，就连公司笔试、面试也都是热点问题之一。可是奈何当时学习时对于该问题的算法理解并不到位，特此进行总结归纳。
+P.s：以下内容主要是对公众号：“程序员小灰”中字符串匹配专题的整理加上自己的理解。..." />
+    <meta name="keywords" content="ACM" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591256439112" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">ACM专题：字符串匹配算法</h2>
+            <div class="post-date">2020-06-02</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/acm-zhuan-ti-zi-fu-chuan-pi-pei-suan-fa.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>字符串匹配问题，无论是编程课还是算法课都会被提及，就连公司笔试、面试也都是热点问题之一。可是奈何当时学习时对于该问题的算法理解并不到位，特此进行总结归纳。<br>
+P.s：以下内容主要是对公众号：“程序员小灰”中字符串匹配专题的整理加上自己的理解。<a href="https://mp.weixin.qq.com/s/67uf7pRxXh7Iwm7MMpqJoA">原文参考</a></p>
+<!-- more -->
+<p>本文概要：</p>
+<ul>
+<li>问题定义</li>
+<li>BF算法（暴力求解）</li>
+<li>RK算法</li>
+<li>BM算法</li>
+<li>KMP算法</li>
+</ul>
+<h2 id="1-问题定义">1. 问题定义</h2>
+<p>所谓字符串匹配问题，即给定一个字符串A（称：“主串”）和一个字符串B（称：“模式串”），我们需要找出模式串在主串中第一次出现的位置，若模式串未在主串中出现，则返回-1。<br>
+举一个例子：<br>
+<img src="https://mocuishle0.github.io//post-images/1591089180883.webp" alt="" loading="lazy"><br>
+在上图中，字符串B是A的子串，B第一次在A中出现的位置下标是2（字符串的首位下标是0），所以返回 2。<br>
+而在下面的例子中：<br>
+<img src="https://mocuishle0.github.io//post-images/1591089220552.png" alt="" loading="lazy"><br>
+字符串B在A中并不存在，所以返回 -1。</p>
+<h2 id="2-bf算法暴力求解">2. BF算法（暴力求解）</h2>
+<p>Brute Force（暴力算法）的想法其实无须多言，即：遍历主串每一位字符，尝试从头匹配模式串。若与当前主串字符与模式串字符匹配，则尝试用主串中下一位字符去匹配模式串的下一位字符；否则，用主串下一位字符尝试从头匹配模式串。<br>
+<strong>实例如下</strong>：<br>
+第一轮，我们从主串的首位开始，把主串和模式串的字符逐个比较。<br>
+<img src="https://mocuishle0.github.io//post-images/1591089560847.png" alt="" loading="lazy"><br>
+显然，主串的首位字符是a，模式串的首位字符是b，两者并不匹配。</p>
+<p>第二轮，我们把模式串后移一位，从主串的第二位开始，把主串和模式串的字符逐个比较<br>
+<img src="https://mocuishle0.github.io//post-images/1591089608610.png" alt="" loading="lazy"><br>
+主串的第二位字符是b，模式串的第二位字符也是b，两者匹配，继续比较：<br>
+<img src="https://mocuishle0.github.io//post-images/1591089629905.png" alt="" loading="lazy"><br>
+主串的第三位字符是b，模式串的第三位字符也是c，两者并不匹配。<br>
+...<br>
+重复上述过程，直到找到模式串第一次出现位置，或将主串遍历完毕。</p>
+<p>显然，BF算法最大的问题在于对于某些极端情况处理效率极低，如下：<br>
+<img src="https://mocuishle0.github.io//post-images/1591089744915.png" alt="" loading="lazy"><br>
+上图的情况，在每一轮进行字符匹配时，模式串的前三个字符a都和主串中的字符相匹配，一直检查到模式串最后一个字符b，才发现不匹配。这样一来，两个字符串在每一轮都需要白白比较4次，显然非常浪费。假设主串的长度是m，模式串的长度是n，那么在这种极端情况下，BF算法的最坏时间复杂度是<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>m</mi><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(mn)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">m</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>。</p>
+<h2 id="3-rk算法rabin-karp">3. RK算法（Rabin-Karp）</h2>
+<p>RK算法的核心在于<strong>使用哈希散列处理字符串，进而比较两个字符串的哈希值</strong>。其实质可看作是对于字符串的一个编码过程。<br>
+如果熟悉哈希表的话我们可知，每一个字符串都可以通过某种哈希算法，转换成一个整型数，这个整型数就是hashcode：<br>
+<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>h</mi><mi>a</mi><mi>s</mi><mi>h</mi><mi>c</mi><mi>o</mi><mi>d</mi><mi>e</mi><mo>=</mo><mi>h</mi><mi>a</mi><mi>s</mi><mi>h</mi><mo>(</mo><mi>s</mi><mi>t</mi><mi>r</mi><mi>i</mi><mi>n</mi><mi>g</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">hashcode = hash(string)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">h</span><span class="mord mathdefault">a</span><span class="mord mathdefault">s</span><span class="mord mathdefault">h</span><span class="mord mathdefault">c</span><span class="mord mathdefault">o</span><span class="mord mathdefault">d</span><span class="mord mathdefault">e</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">h</span><span class="mord mathdefault">a</span><span class="mord mathdefault">s</span><span class="mord mathdefault">h</span><span class="mopen">(</span><span class="mord mathdefault">s</span><span class="mord mathdefault">t</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mclose">)</span></span></span></span><br>
+<img src="https://mocuishle0.github.io//post-images/1591090031037.webp" alt="" loading="lazy"><br>
+显然，相对于逐个字符比较两个字符串，仅比较两个字符串的hashcode要容易得多。</p>
+<p>RK算法流程如下：<br>
+给定主串和模式串如下（假定字符串只包含26个小写字母）：<br>
+<img src="https://mocuishle0.github.io//post-images/1591090083179.png" alt="" loading="lazy"><br>
+第一步，<strong>我们需要生成模式串的hashcode</strong>。生成hashcode的算法多种多样，比如：按位相加——这是最简单的方法，我们可以把a当做1，b当做2，c当做3......然后把字符串的所有字符相加，相加结果就是它的hashcode。如：</p>
+<blockquote>
+<p><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>b</mi><mi>c</mi><mi>e</mi><mo>=</mo><mn>2</mn><mo>+</mo><mn>3</mn><mo>+</mo><mn>5</mn><mo>=</mo><mn>10</mn><mi mathvariant="normal">。</mi></mrow><annotation encoding="application/x-tex">bce =  2 + 3 + 5 = 10。</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">b</span><span class="mord mathdefault">c</span><span class="mord mathdefault">e</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">0</span><span class="mord cjk_fallback">。</span></span></span></span></p>
+</blockquote>
+<p>但是，这个算法虽然简单，却很可能产生hash冲突，比如bce、bec、cbe的hashcode是一样的。<br>
+因此，我们不妨考虑将字符串转换成26进制数，既然字符串只包含26个小写字母，那么我们可以把每一个字符串当成一个26进制数来计算。</p>
+<blockquote>
+<p><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>b</mi><mi>c</mi><mi>e</mi><mo>=</mo><mn>2</mn><mo>∗</mo><mo>(</mo><mn>2</mn><msup><mn>6</mn><mn>2</mn></msup><mo>)</mo><mo>+</mo><mn>3</mn><mo>∗</mo><mn>26</mn><mo>+</mo><mn>5</mn><mo>=</mo><mn>1435</mn></mrow><annotation encoding="application/x-tex">bce = 2*(26^2) + 3*26 + 5 = 1435</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">b</span><span class="mord mathdefault">c</span><span class="mord mathdefault">e</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">2</span><span class="mord"><span class="mord">6</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">2</span><span class="mord">6</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">4</span><span class="mord">3</span><span class="mord">5</span></span></span></span></p>
+</blockquote>
+<p>这样做的好处是大幅减少了hash冲突，缺点是计算量较大，而且有可能出现超出整型范围的情况，需要对计算结果进行取模。为了方便演示，后续我们采用的是按位相加的hash算法，所以bce的hashcode是10：<br>
+<img src="https://mocuishle0.github.io//post-images/1591090287246.png" alt="" loading="lazy"></p>
+<p>第二步，<strong>生成主串当中第一个等长子串的hashcode</strong>。由于主串通常要长于模式串，把整个主串转化成hashcode是没有意义的，只有比较主串当中和模式串等长的子串才有意义。因此，我们首先生成主串中第一个和模式串等长的子串hashcode，即abb = 1 + 2 + 2 = 5：<br>
+<img src="https://mocuishle0.github.io//post-images/1591090346395.webp" alt="" loading="lazy"></p>
+<p>第三步，<strong>比较两个hashcode</strong>。显然，5！=10，说明模式串和第一个子串不匹配，我们继续下一轮比较。</p>
+<p>第四步，<strong>生成主串当中第二个等长子串的hashcode</strong>。bbc = 2 + 2 + 3 = 7：<br>
+<img src="https://mocuishle0.github.io//post-images/1591090391409.png" alt="" loading="lazy"><br>
+...<br>
+重复以上过程。我们发现，当生成主串当中第三个等长子串的hashcode时，bce= 2 + 3 + 5 = 10：<br>
+<img src="https://mocuishle0.github.io//post-images/1591090454534.png" alt="" loading="lazy"><br>
+显然，10 ==10，两个hash值相等！这是否说明两个字符串也相等呢？别高兴的太早，<strong>由于存在hash冲突的可能，我们还需要进一步验证</strong>。<br>
+第五步，<strong>逐个字符比较两字符串</strong>。hashcode的比较只是初步验证，之后我们还需要像BF算法那样，对两个字符串逐个字符比较，最终判断出两个字符串匹配。最后得出结论，模式串bce是主串abbcefgh的子串，第一次出现的下标是2。</p>
+<p>通过以上过程，我们不难发现，RK算法本质类似于BF算法，只不过是将字符串的比较转化为先通过哈希值的比较，后进行验证的策略。可能我们会想：每次hash的时间复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>，若将全部子串进行hash，最终时间复杂度仍为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>m</mi><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(mn)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">m</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>，这与BF算法相同。<br>
+然而，需要注意的是，每次对主串中的子串进行hash的过程并不独立：我们可以根据前一子串的hashcode进行简单的加减运算即可得到后一子串的hashcode。<br>
+综上，由于RK算法计算单个子串hash时间复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>，后续子串是增量计算所以整体复杂度仍为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>。</p>
+<p>此外，我们不难想到，由于RK算法核心是使用哈希值，因此该算法的缺点在于哈希冲突。每次哈希冲突（即主串的子串哈希值与模式串相等）时，就需要逐个字符比对，这在极端情况下将退化为BF算法。</p>
+<h2 id="4-bm算法">4. BM算法</h2>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/UGnDZrrjy/" class="tag">
+                    ACM
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/acm-zhuan-ti-zui-chang-hui-wen-zi-chuan/">
+                  <h3 class="post-title">
+                    ACM专题：最长回文子串
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

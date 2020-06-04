@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>C++11 新特征：auto &amp; decltype类型推导 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591256439112">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="第一次接触到auto关键字是无意间看到一行代码简洁优雅地实现了STL容器的迭代器，再看看我写的一长串诸如vector&lt;int&gt;::iteratorit⋯vector&lt;int&gt;::iterator it\dotsbve..." />
+    <meta name="keywords" content="C++" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591256439112" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">C++11 新特征：auto &amp; decltype类型推导</h2>
+            <div class="post-date">2020-06-04</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/c11-xin-te-zheng-auto-and-decltype-lei-xing-tui-dao.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>第一次接触到<strong>auto</strong>关键字是无意间看到一行代码简洁优雅地实现了STL容器的迭代器，再看看我写的一长串诸如<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>v</mi><mi>e</mi><mi>c</mi><mi>t</mi><mi>o</mi><mi>r</mi><mo>&lt;</mo><mi>i</mi><mi>n</mi><mi>t</mi><mo>&gt;</mo><mo>:</mo><mo>:</mo><mi>i</mi><mi>t</mi><mi>e</mi><mi>r</mi><mi>a</mi><mi>t</mi><mi>o</mi><mi>r</mi><mi>i</mi><mi>t</mi><mo>⋯</mo></mrow><annotation encoding="application/x-tex">vector&lt;int&gt;::iterator it\dotsb</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65418em;vertical-align:-0.0391em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mord mathdefault">e</span><span class="mord mathdefault">c</span><span class="mord mathdefault">t</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.69862em;vertical-align:-0.0391em;"></span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mord mathdefault">t</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mrel">:</span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mrel">:</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span><span class="mord mathdefault">t</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">a</span><span class="mord mathdefault">t</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">i</span><span class="mord mathdefault">t</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">⋯</span></span></span></span>就默默流下了没有技术的眼泪😂。这次想到要整理C++11新特性，就先来谈谈这个<strong>auto</strong>关键字以及与其功能相似的<strong>decltype</strong>关键字：</p>
+<h2 id="1-auto关键字">1. auto关键字</h2>
+<h3 id="11-auto简介">1.1 auto简介</h3>
+<p>在C++11标准中，<strong>auto</strong>关键字的功能为自动类型推断。<strong>auto</strong>关键字的功能其实并不难理解，简而言之，就是<strong>让编译器根据变量的初值去自动推导这个变量的类型</strong>。<br>
+<strong>auto</strong>现在成了一个类型的占位符，通知编译器去根据初始化代码推断所声明变量的真实类型。各种作用域内声明变量都可以用到它。例如，名空间中，程序块中，或是for循环的初始化语句中。例如以下代码：</p>
+<pre><code>auto i = 42;        // i is an int
+auto d=23.3;        //d is a double
+auto l = 42LL;      // l is a long long
+</code></pre>
+<p>正如之前所说，auto最常见的用法是用来声明STL容器的迭代器。不得不说，正规的迭代器声明实在是太长了，例如：</p>
+<pre><code>using namespace std;
+//...
+vector&lt;int&gt; vec(3);
+vector&lt;int&gt;::iterator it;
+for(it=vec.begin();it!=vec.end();it++){
+    //...
+}
+</code></pre>
+<p>然而，如果我们使用auto关键字，代码会简洁很多：</p>
+<pre><code>using namespace std;
+//...
+vector&lt;int&gt; vec(3);
+for(auto it=vec.begin();it!=vec.end();it++){
+    //...
+}
+</code></pre>
+<h3 id="12-auto效率">1.2. auto效率</h3>
+<p>auto实际上实在编译时对变量进行了类型推导，所以不会对程序的运行效率造成不良影响。另外，auto并不会影响编译速度，因为编译时本来也要右侧推导然后判断与左侧是否匹配。</p>
+<h3 id="13-注意事项">1.3. 注意事项</h3>
+<p>auto关键字虽然很简单，使用也很方便，但其在使用中仍有以下几点事项需要注意：</p>
+<ul>
+<li>auto声明的变量必须要初始化，否则编译器不能判断变量的类型。</li>
+<li>auto不能被声明为返回值，auto不能作为形参，auto不能被修饰为模板参数。但是，<strong>如果函数有一个尾随的返回类型时，auto是可以出现在函数声明中返回值位置</strong>。这种情况下，auto并不是告诉编译器去推断返回类型，而是指引编译器去函数的末端寻找返回值类型。下面给出一个经典的例子，函数的返回值类型就是operator+操作符作用在T1、T2类型变量上的返回值类型：</li>
+</ul>
+<pre><code>template &lt;typename _Tx, typename _Ty&gt;
+auto multiply(_Tx x, _Ty y)-&gt;decltype(_Tx + _Ty)    //decltype用法见后文
+{
+    return x + y;
+}
+auto v = compose(2, 3.14);  // v's type is double
+</code></pre>
+<h2 id="2-decltype关键字">2. decltype关键字</h2>
+<p>其实我也是在查询auto关键字时，第一次接触到<strong>decltype</strong>关键字。编译时类型推导的出现主要是为了泛型编程，因为在非泛型编程中，我们的类型都是确定的，根本不需要再进行推导。而编译时类型推导，除了上面介绍的auto关键字，还有decltype关键字。以下对<strong>decltype</strong>的用法进行整理：</p>
+<h3 id="21-decltype用法">2.1 decltype用法</h3>
+<p>decltype与auto关键字一样，用于进行编译时类型推导，不过它与auto还是有一些区别的。decltype的类型推导并不是像auto一样是从变量声明的初始化表达式获得变量的类型，<strong>而是以一个普通表达式作为参数，返回该表达式的类型，而且decltype并不会对表达式进行求值</strong>。例如：</p>
+<pre><code>int i = 4;
+decltype(i) a;      //推导结果为int。a的类型为int。
+using size_t = decltype(sizeof(0));     //using此处用于定义别名,sizeof(a)的返回值为size_t类型
+</code></pre>
+<p>同样地，decltype也可以用于声明STL容器的迭代器：</p>
+<pre><code>vector&lt;int &gt;vec;
+    typedef decltype(vec.begin()) vectype;
+    for (vectype i = vec.begin; i != vec.end(); i++)
+    {
+        //...
+    }
+</code></pre>
+<p>此外，在C++中，我们有时候会遇上一些匿名类型，而借助decltype，我们可以重新使用这个匿名的结构体：</p>
+<pre><code>struct 
+{
+    int d ;
+    doubel b;
+}anon_s;
+
+decltype(anon_s) as ;//定义了一个上面匿名的结构体
+</code></pre>
+<p>而decltype最大的用途是在泛型编程中结合auto，用于追踪函数的返回值类型。（参考auto中最后一个示例代码）。</p>
+<h3 id="22-decltype推导四规则仅作了解">2.2 decltype推导四规则（仅作了解）</h3>
+<ol>
+<li>如果e是一个没有带括号的标记符表达式或者类成员访问表达式，那么的decltype（e）就是e所命名的实体的类型。此外，如果e是一个被重载的函数，则会导致编译错误。</li>
+<li>否则 ，假设e的类型是T，如果e是一个将亡值，那么decltype（e）为T&amp;&amp;</li>
+<li>否则，假设e的类型是T，如果e是一个左值（左值就是在赋值中可以放在赋值操作符两边的值，一切变量都是左值，但const变量是例外），那么decltype（e）为T&amp;。</li>
+<li>否则，假设e的类型是T，则decltype（e）为T。</li>
+</ol>
+<p>如下面的例子，仅仅为i加上了()，就导致类型推导结果的差异。这是因为，i是一个标记符表达式，根据推导规则1，类型被推导为int。而(i)为一个左值表达式，所以类型被推导为int&amp;。</p>
+<pre><code>int i=10;
+decltype(i) a; //a推导为int
+decltype((i))b=i;//b推导为int&amp;，必须为其初始化，否则编译错误
+</code></pre>
+<p>具体内容可参考：<a href="https://www.cnblogs.com/QG-whz/p/4952980.html">decltype用法</a></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/Yz3MZw1Sl/" class="tag">
+                    C++
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/acm-zhuan-ti-zi-fu-chuan-pi-pei-suan-fa/">
+                  <h3 class="post-title">
+                    ACM专题：字符串匹配算法
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

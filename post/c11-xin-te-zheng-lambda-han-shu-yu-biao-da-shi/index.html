@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>C++11 新特征：Lambda函数与表达式 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591256439112">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="其实，最开始接触到lambda函数是在关于python匿名函数的教程中。后来在一些资料上也看到了关于C++中匿名函数的用法的相关讲解。那么，借着这次整理C++11新特征的机会，就对C++中的lambda函数进行一下归纳：
+1. Lambda..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591256439112" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">C++11 新特征：Lambda函数与表达式</h2>
+            <div class="post-date">2020-06-04</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/c11-xin-te-zheng-lambda-han-shu-yu-biao-da-shi.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>其实，最开始接触到lambda函数是在关于python匿名函数的教程中。后来在一些资料上也看到了关于C++中匿名函数的用法的相关讲解。那么，借着这次整理C++11新特征的机会，就对C++中的lambda函数进行一下归纳：</p>
+<h2 id="1-lambda-函数与表达式">1. Lambda 函数与表达式</h2>
+<p>C++11 提供了对匿名函数的支持（即，没有函数名的函数）,称为** Lambda 函数(也叫 Lambda 表达式)**。其作用主要在于，如果代码里面存在大量的小函数，而这些函数一般只被一两处调用，那么不妨将它们重构成Lambda表达式，也就是匿名函数。作用就是当你想用一个函数，但是又不想费神去命名一个函数。</p>
+<p>Lambda 表达式本质上与函数声明非常类似，其通用表达形式——$[捕获区] (参数区)-&gt;返回类型 {代码区}：</p>
+<ul>
+<li><strong>[捕获区]</strong>，指定在可见域范围内lambda表达式代码内可见的参数，即（除了形参之外）它可以使用的变量列表。<strong>在Lambda表达式内可以访问当前作用域的变量</strong>，这是Lambda表达式的闭包（Closure）行为：
+<ul>
+<li>[]，沒有定义任何变量，即不捕获外部的任何变量。使用未定义变量会引发错误。</li>
+<li>[x, &amp;y]，x以传值方式传入（默认），y以引用方式传入。</li>
+<li>[&amp;]，任何被使用到的外部变量都隐式地以引用方式加以引用。</li>
+<li>[=]，任何被使用到的外部变量都隐式地以传值方式加以引用。</li>
+<li>[&amp;, x]，x显式地以传值方式加以引用。其余变量以引用方式加以引用。</li>
+<li>[=, &amp;z]，z显式地以引用方式加以引用。其余变量以传值方式加以引用。</li>
+<li>[this]，以值的方式捕获 this 指针。</li>
+</ul>
+</li>
+<li><strong>(参数区)</strong>，指定lambda表达式内部变量定义</li>
+<li><strong>-&gt;返回类型</strong>，是返回类型，如果 lambda 代码块中包含了 return 语句，则该 lambda 表达式的返回类型由 return 语句的返回类型确定。如果没有 return 语句，则类似 void f(…) 函数。</li>
+<li><strong>{代码区}</strong>，是Lambda表达式主题结构。</li>
+</ul>
+<p>例如：</p>
+<pre><code>//通用表达形式：[捕获区](参数区)-&gt;返回类型 {代码区};
+int n = [] (int x, int y) { return x + y; }(5, 4);      //n=9
+</code></pre>
+<p>P.s：Lambda函数通过“函数体”后面的‘()’传入参数，如上例中的（5,4）。</p>
+<h2 id="2-使用场景">2. 使用场景</h2>
+<p>Lambda 表达式把函数看作对象。Lambda 表达式可以像对象一样使用，比如可以将它们赋给变量和作为参数传递，还可以像函数一样对其求值。就目前来看，Lambda函数最常用的使用场景在于：sort、for_each等自定义比较函数。</p>
+<p>下面给出了一个非常具体且完整的Lambda表达式的使用样例，可帮助我们加深理解：</p>
+<pre><code>class CTest 
+{ 
+ public:  
+   CTest() : m_nData(20) { NULL; }  
+   void TestLambda()  
+   {   
+     vector&lt;int&gt; vctTemp;   
+     vctTemp.push_back(1);   
+     vctTemp.push_back(2);    
+
+   // 无函数对象参数，输出：1 2   
+   {    
+     for_each(vctTemp.begin(), vctTemp.end(), [](int v){ cout &lt;&lt; v &lt;&lt; endl; });   
+   }   
+
+   // 以值方式传递作用域内所有可见的局部变量（包括this），输出：11 12   
+   {    
+     int a = 10;    
+     for_each(vctTemp.begin(), vctTemp.end(), [=](int v){ cout &lt;&lt; v+a &lt;&lt; endl; });   
+   }    
+
+   // 以引用方式传递作用域内所有可见的局部变量（包括this），输出：11 13 12   
+   {    
+     int a = 10;   
+     for_each(vctTemp.begin(), vctTemp.end(), [&amp;](int v)mutable{ cout &lt;&lt; v+a &lt;&lt; endl; a++; });    
+     cout &lt;&lt; a &lt;&lt; endl;   
+   }    
+
+   // 以值方式传递局部变量a，输出：11 13 10   
+   {    
+     int a = 10;    
+     for_each(vctTemp.begin(), vctTemp.end(), [a](int v)mutable{ cout &lt;&lt; v+a &lt;&lt; endl; a++; });    
+     cout &lt;&lt; a &lt;&lt; endl;   
+   }    
+
+   // 以引用方式传递局部变量a，输出：11 13 12   
+   {    
+     int a = 10;    
+     for_each(vctTemp.begin(), vctTemp.end(), [&amp;a](int v){ cout &lt;&lt; v+a &lt;&lt; endl; a++; });    
+     cout &lt;&lt; a &lt;&lt; endl;  
+   }    
+
+   // 传递this，输出：21 22 
+   {  
+     for_each(vctTemp.begin(), vctTemp.end(), [this](int v){ cout &lt;&lt; v+m_nData &lt;&lt; endl; });   
+   }    
+
+   // 除b按引用传递外，其他均按值传递，输出：11 12 17   
+   {    
+     int a = 10;    
+     int b = 15;    
+     for_each(vctTemp.begin(), vctTemp.end(), [=, &amp;b](int v){ cout &lt;&lt; v+a &lt;&lt; endl; b++; });    
+     cout &lt;&lt; b &lt;&lt; endl;   
+   }     
+   // 操作符重载函数参数按引用传递，输出：2 3   
+   {    
+     for_each(vctTemp.begin(), vctTemp.end(), [](int &amp;v){ v++; });    
+     for_each(vctTemp.begin(), vctTemp.end(), [](int v){ cout &lt;&lt; v &lt;&lt; endl; });   
+   }    
+   // 空的Lambda表达式   
+   {    
+     [](){}();    []{}();   
+   }  
+ }  
+ private:  int m_nData; 
+};
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/c11-xin-te-zheng-nullptr-kong-zhi-zhen/">
+                  <h3 class="post-title">
+                    C++11 新特征：nullptr空指针
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

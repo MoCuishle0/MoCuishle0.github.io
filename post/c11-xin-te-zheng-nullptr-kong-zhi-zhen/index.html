@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>C++11 新特征：nullptr空指针 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591256439112">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="1. 空指针
+在谈nullptr之前，我们先聊聊C++中的空指针：
+在指针变量声明的时候，如果没有确切的地址可以赋值，为指针变量赋一个 NULL 值是一个良好的编程习惯。赋为 NULL 值的指针被称为空指针。NULL 指针是一个定义在标准库..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591256439112" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">C++11 新特征：nullptr空指针</h2>
+            <div class="post-date">2020-06-04</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/c11-xin-te-zheng-nullptr-kong-zhi-zhen.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h2 id="1-空指针">1. 空指针</h2>
+<p>在谈nullptr之前，我们先聊聊C++中的空指针：<br>
+在指针变量声明的时候，如果没有确切的地址可以赋值，为指针变量赋一个 NULL 值是一个良好的编程习惯。赋为 NULL 值的指针被称为空指针。<strong>NULL 指针是一个定义在标准库中的值为零的常量</strong>。例如：</p>
+<pre><code>#include &lt;iostream&gt;
+//程序将输出：ptr 的值是 0
+using namespace std;
+
+int main ()
+{
+   int  *ptr = NULL;
+   // int *ptr = 0; 
+
+   cout &lt;&lt; &quot;ptr 的值是 &quot; &lt;&lt; ptr ;
+ 
+   return 0;
+}
+</code></pre>
+<p>在大多数的操作系统上，程序不允许访问地址为 0 的内存，因为该内存是操作系统保留的。然而，内存地址 0 有特别重要的意义，它表明该指针不指向一个可访问的内存位置。但按照惯例，如果指针包含空值（零值），则假定它不指向任何东西。如需检查一个空指针，可以使用 if 语句，如下所示：</p>
+<pre><code>if(ptr)     /* 如果 ptr 非空，则完成 */
+if(!ptr)    /* 如果 ptr 为空，则完成 */
+//个人常用的方式：
+if(ptr!=NULL)       /* 如果 ptr 非空，则完成 */
+if(ptr==NULL)   /* 如果 ptr 为空，则完成 */
+</code></pre>
+<p>所以，综上所述，声明一个空指针可有两种方式：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi><mi>n</mi><mi>t</mi><mo>∗</mo><mi>p</mi><mo>=</mo><mi>N</mi><mi>U</mi><mi>L</mi><mi>L</mi><mi mathvariant="normal">或</mi><mi>i</mi><mi>n</mi><mi>t</mi><mo>∗</mo><mi>p</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">int* p = NULL 或 int* p = 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mord mathdefault">t</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">p</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mord mathdefault" style="margin-right:0.10903em;">U</span><span class="mord mathdefault">L</span><span class="mord mathdefault">L</span><span class="mord cjk_fallback">或</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mord mathdefault">t</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">p</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>。<br>
+此处对<strong>NULL</strong>和<strong>常数0</strong>进行一些整理：</p>
+<ul>
+<li>NULL到底是什么？NULL的实质是一个在标准库头文件&lt;stddef.h&gt;中定义的宏。</li>
+<li>它的值是多少？C/C++标准规定：它的值是一个空指针常量（null pointer constant），由实现定义。</li>
+<li>什么样的值才能称之为空指针常量？C语言中常数0和<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>v</mi><mi>o</mi><mi>i</mi><mi>d</mi><mo>∗</mo><mo>)</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">(void*)0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mord mathdefault">o</span><span class="mord mathdefault">i</span><span class="mord mathdefault">d</span><span class="mord">∗</span><span class="mclose">)</span><span class="mord">0</span></span></span></span>都是空指针常量；C++中（暂且忽略C++11）常数0是，而<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>v</mi><mi>o</mi><mi>i</mi><mi>d</mi><mo>∗</mo><mo>)</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">(void*)0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mord mathdefault">o</span><span class="mord mathdefault">i</span><span class="mord mathdefault">d</span><span class="mord">∗</span><span class="mclose">)</span><span class="mord">0</span></span></span></span>不是。</li>
+</ul>
+<p>其实我们查看对NULL的定义即可明白：</p>
+<pre><code>if defined(__cplusplus)
+define NULL 0    // C++中使用0作为NULL的值
+else
+define NULL ((void *)0)    // C中使用((void *)0)作为NULL的值
+endif
+</code></pre>
+<h2 id="2-nullptr">2. nullptr</h2>
+<p>通过上述介绍，我们不难看出，在编程的世界里0有双重的角色，可以表示整数零，也可以表示一个空指针。在C语言中，通过预编译宏NULL，可以区分0表示的是零还是(void*)0。但是，在C++的世界中，这样是不可以的。加之C++中允许函数重载，这便对空指针的声明产生了影响，例如：</p>
+<pre><code>void foo(char *);
+void foo(int);
+</code></pre>
+<p>如果把NULL定义为0，那么foo(NULL)将调用哪个函数呢？</p>
+<pre><code>#include &lt;stddef.h&gt;
+void foo(int) {}     // #1
+void foo(char*) {}   // #2
+int main() {
+    foo(NULL); // 调用#1还是#2？
+}
+</code></pre>
+<p>从字面上来讲，NULL是个空指针常量，我们可能会觉得：既然是个指针，那么应该调用#2。但事实上调用的却是#1，因为C++中NULL扩展为常数0，它是int型。<br>
+为了解决常数0既是整数常量，也是空指针常量这样的二义性问题，C++11引入了另一个关键字nullptr，作为一个空指针。例如：</p>
+<pre><code>char *pc = nullptr;     // OK
+int  *pi = nullptr;     // OK
+bool   b = nullptr;     // OK. b is false.
+int    i = nullptr;     // error
+
+foo(nullptr);           // calls foo(char *), not foo(int);
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/c11-xin-te-zheng-auto-and-decltype-lei-xing-tui-dao/">
+                  <h3 class="post-title">
+                    C++11 新特征：auto &amp; decltype类型推导
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

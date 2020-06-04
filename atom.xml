@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://mocuishle0.github.io/</id>
     <title>MoCuishle</title>
-    <updated>2020-05-29T07:37:34.574Z</updated>
+    <updated>2020-06-04T07:41:17.537Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://mocuishle0.github.io/"/>
     <link rel="self" href="https://mocuishle0.github.io/atom.xml"/>
@@ -11,6 +11,638 @@
     <logo>https://mocuishle0.github.io/images/avatar.png</logo>
     <icon>https://mocuishle0.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, MoCuishle</rights>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：Lambda函数与表达式]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-lambda-han-shu-yu-biao-da-shi/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-lambda-han-shu-yu-biao-da-shi/">
+        </link>
+        <updated>2020-06-04T06:47:21.000Z</updated>
+        <content type="html"><![CDATA[<p>其实，最开始接触到lambda函数是在关于python匿名函数的教程中。后来在一些资料上也看到了关于C++中匿名函数的用法的相关讲解。那么，借着这次整理C++11新特征的机会，就对C++中的lambda函数进行一下归纳：</p>
+<h2 id="1-lambda-函数与表达式">1. Lambda 函数与表达式</h2>
+<p>C++11 提供了对匿名函数的支持（即，没有函数名的函数）,称为** Lambda 函数(也叫 Lambda 表达式)**。其作用主要在于，如果代码里面存在大量的小函数，而这些函数一般只被一两处调用，那么不妨将它们重构成Lambda表达式，也就是匿名函数。作用就是当你想用一个函数，但是又不想费神去命名一个函数。</p>
+<p>Lambda 表达式本质上与函数声明非常类似，其通用表达形式——$[捕获区] (参数区)-&gt;返回类型 {代码区}：</p>
+<ul>
+<li><strong>[捕获区]</strong>，指定在可见域范围内lambda表达式代码内可见的参数，即（除了形参之外）它可以使用的变量列表。<strong>在Lambda表达式内可以访问当前作用域的变量</strong>，这是Lambda表达式的闭包（Closure）行为：
+<ul>
+<li>[]，沒有定义任何变量，即不捕获外部的任何变量。使用未定义变量会引发错误。</li>
+<li>[x, &amp;y]，x以传值方式传入（默认），y以引用方式传入。</li>
+<li>[&amp;]，任何被使用到的外部变量都隐式地以引用方式加以引用。</li>
+<li>[=]，任何被使用到的外部变量都隐式地以传值方式加以引用。</li>
+<li>[&amp;, x]，x显式地以传值方式加以引用。其余变量以引用方式加以引用。</li>
+<li>[=, &amp;z]，z显式地以引用方式加以引用。其余变量以传值方式加以引用。</li>
+<li>[this]，以值的方式捕获 this 指针。</li>
+</ul>
+</li>
+<li><strong>(参数区)</strong>，指定lambda表达式内部变量定义</li>
+<li><strong>-&gt;返回类型</strong>，是返回类型，如果 lambda 代码块中包含了 return 语句，则该 lambda 表达式的返回类型由 return 语句的返回类型确定。如果没有 return 语句，则类似 void f(…) 函数。</li>
+<li><strong>{代码区}</strong>，是Lambda表达式主题结构。</li>
+</ul>
+<p>例如：</p>
+<pre><code>//通用表达形式：[捕获区](参数区)-&gt;返回类型 {代码区};
+int n = [] (int x, int y) { return x + y; }(5, 4);      //n=9
+</code></pre>
+<p>P.s：Lambda函数通过“函数体”后面的‘()’传入参数，如上例中的（5,4）。</p>
+<h2 id="2-使用场景">2. 使用场景</h2>
+<p>Lambda 表达式把函数看作对象。Lambda 表达式可以像对象一样使用，比如可以将它们赋给变量和作为参数传递，还可以像函数一样对其求值。就目前来看，Lambda函数最常用的使用场景在于：sort、for_each等自定义比较函数。</p>
+<p>下面给出了一个非常具体且完整的Lambda表达式的使用样例，可帮助我们加深理解：</p>
+<pre><code>class CTest 
+{ 
+ public:  
+   CTest() : m_nData(20) { NULL; }  
+   void TestLambda()  
+   {   
+     vector&lt;int&gt; vctTemp;   
+     vctTemp.push_back(1);   
+     vctTemp.push_back(2);    
+
+   // 无函数对象参数，输出：1 2   
+   {    
+     for_each(vctTemp.begin(), vctTemp.end(), [](int v){ cout &lt;&lt; v &lt;&lt; endl; });   
+   }   
+
+   // 以值方式传递作用域内所有可见的局部变量（包括this），输出：11 12   
+   {    
+     int a = 10;    
+     for_each(vctTemp.begin(), vctTemp.end(), [=](int v){ cout &lt;&lt; v+a &lt;&lt; endl; });   
+   }    
+
+   // 以引用方式传递作用域内所有可见的局部变量（包括this），输出：11 13 12   
+   {    
+     int a = 10;   
+     for_each(vctTemp.begin(), vctTemp.end(), [&amp;](int v)mutable{ cout &lt;&lt; v+a &lt;&lt; endl; a++; });    
+     cout &lt;&lt; a &lt;&lt; endl;   
+   }    
+
+   // 以值方式传递局部变量a，输出：11 13 10   
+   {    
+     int a = 10;    
+     for_each(vctTemp.begin(), vctTemp.end(), [a](int v)mutable{ cout &lt;&lt; v+a &lt;&lt; endl; a++; });    
+     cout &lt;&lt; a &lt;&lt; endl;   
+   }    
+
+   // 以引用方式传递局部变量a，输出：11 13 12   
+   {    
+     int a = 10;    
+     for_each(vctTemp.begin(), vctTemp.end(), [&amp;a](int v){ cout &lt;&lt; v+a &lt;&lt; endl; a++; });    
+     cout &lt;&lt; a &lt;&lt; endl;  
+   }    
+
+   // 传递this，输出：21 22 
+   {  
+     for_each(vctTemp.begin(), vctTemp.end(), [this](int v){ cout &lt;&lt; v+m_nData &lt;&lt; endl; });   
+   }    
+
+   // 除b按引用传递外，其他均按值传递，输出：11 12 17   
+   {    
+     int a = 10;    
+     int b = 15;    
+     for_each(vctTemp.begin(), vctTemp.end(), [=, &amp;b](int v){ cout &lt;&lt; v+a &lt;&lt; endl; b++; });    
+     cout &lt;&lt; b &lt;&lt; endl;   
+   }     
+   // 操作符重载函数参数按引用传递，输出：2 3   
+   {    
+     for_each(vctTemp.begin(), vctTemp.end(), [](int &amp;v){ v++; });    
+     for_each(vctTemp.begin(), vctTemp.end(), [](int v){ cout &lt;&lt; v &lt;&lt; endl; });   
+   }    
+   // 空的Lambda表达式   
+   {    
+     [](){}();    []{}();   
+   }  
+ }  
+ private:  int m_nData; 
+};
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：nullptr空指针]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-nullptr-kong-zhi-zhen/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-nullptr-kong-zhi-zhen/">
+        </link>
+        <updated>2020-06-04T03:05:43.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="1-空指针">1. 空指针</h2>
+<p>在谈nullptr之前，我们先聊聊C++中的空指针：<br>
+在指针变量声明的时候，如果没有确切的地址可以赋值，为指针变量赋一个 NULL 值是一个良好的编程习惯。赋为 NULL 值的指针被称为空指针。<strong>NULL 指针是一个定义在标准库中的值为零的常量</strong>。例如：</p>
+<pre><code>#include &lt;iostream&gt;
+//程序将输出：ptr 的值是 0
+using namespace std;
+
+int main ()
+{
+   int  *ptr = NULL;
+   // int *ptr = 0; 
+
+   cout &lt;&lt; &quot;ptr 的值是 &quot; &lt;&lt; ptr ;
+ 
+   return 0;
+}
+</code></pre>
+<p>在大多数的操作系统上，程序不允许访问地址为 0 的内存，因为该内存是操作系统保留的。然而，内存地址 0 有特别重要的意义，它表明该指针不指向一个可访问的内存位置。但按照惯例，如果指针包含空值（零值），则假定它不指向任何东西。如需检查一个空指针，可以使用 if 语句，如下所示：</p>
+<pre><code>if(ptr)     /* 如果 ptr 非空，则完成 */
+if(!ptr)    /* 如果 ptr 为空，则完成 */
+//个人常用的方式：
+if(ptr!=NULL)       /* 如果 ptr 非空，则完成 */
+if(ptr==NULL)   /* 如果 ptr 为空，则完成 */
+</code></pre>
+<p>所以，综上所述，声明一个空指针可有两种方式：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi><mi>n</mi><mi>t</mi><mo>∗</mo><mi>p</mi><mo>=</mo><mi>N</mi><mi>U</mi><mi>L</mi><mi>L</mi><mi mathvariant="normal">或</mi><mi>i</mi><mi>n</mi><mi>t</mi><mo>∗</mo><mi>p</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">int* p = NULL 或 int* p = 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mord mathdefault">t</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">p</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mord mathdefault" style="margin-right:0.10903em;">U</span><span class="mord mathdefault">L</span><span class="mord mathdefault">L</span><span class="mord cjk_fallback">或</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mord mathdefault">t</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">p</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>。<br>
+此处对<strong>NULL</strong>和<strong>常数0</strong>进行一些整理：</p>
+<ul>
+<li>NULL到底是什么？NULL的实质是一个在标准库头文件&lt;stddef.h&gt;中定义的宏。</li>
+<li>它的值是多少？C/C++标准规定：它的值是一个空指针常量（null pointer constant），由实现定义。</li>
+<li>什么样的值才能称之为空指针常量？C语言中常数0和<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>v</mi><mi>o</mi><mi>i</mi><mi>d</mi><mo>∗</mo><mo>)</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">(void*)0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mord mathdefault">o</span><span class="mord mathdefault">i</span><span class="mord mathdefault">d</span><span class="mord">∗</span><span class="mclose">)</span><span class="mord">0</span></span></span></span>都是空指针常量；C++中（暂且忽略C++11）常数0是，而<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>v</mi><mi>o</mi><mi>i</mi><mi>d</mi><mo>∗</mo><mo>)</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">(void*)0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mord mathdefault">o</span><span class="mord mathdefault">i</span><span class="mord mathdefault">d</span><span class="mord">∗</span><span class="mclose">)</span><span class="mord">0</span></span></span></span>不是。</li>
+</ul>
+<p>其实我们查看对NULL的定义即可明白：</p>
+<pre><code>if defined(__cplusplus)
+define NULL 0    // C++中使用0作为NULL的值
+else
+define NULL ((void *)0)    // C中使用((void *)0)作为NULL的值
+endif
+</code></pre>
+<h2 id="2-nullptr">2. nullptr</h2>
+<p>通过上述介绍，我们不难看出，在编程的世界里0有双重的角色，可以表示整数零，也可以表示一个空指针。在C语言中，通过预编译宏NULL，可以区分0表示的是零还是(void*)0。但是，在C++的世界中，这样是不可以的。加之C++中允许函数重载，这便对空指针的声明产生了影响，例如：</p>
+<pre><code>void foo(char *);
+void foo(int);
+</code></pre>
+<p>如果把NULL定义为0，那么foo(NULL)将调用哪个函数呢？</p>
+<pre><code>#include &lt;stddef.h&gt;
+void foo(int) {}     // #1
+void foo(char*) {}   // #2
+int main() {
+    foo(NULL); // 调用#1还是#2？
+}
+</code></pre>
+<p>从字面上来讲，NULL是个空指针常量，我们可能会觉得：既然是个指针，那么应该调用#2。但事实上调用的却是#1，因为C++中NULL扩展为常数0，它是int型。<br>
+为了解决常数0既是整数常量，也是空指针常量这样的二义性问题，C++11引入了另一个关键字nullptr，作为一个空指针。例如：</p>
+<pre><code>char *pc = nullptr;     // OK
+int  *pi = nullptr;     // OK
+bool   b = nullptr;     // OK. b is false.
+int    i = nullptr;     // error
+
+foo(nullptr);           // calls foo(char *), not foo(int);
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：auto & decltype类型推导]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-auto-and-decltype-lei-xing-tui-dao/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-auto-and-decltype-lei-xing-tui-dao/">
+        </link>
+        <updated>2020-06-04T01:22:10.000Z</updated>
+        <content type="html"><![CDATA[<p>第一次接触到<strong>auto</strong>关键字是无意间看到一行代码简洁优雅地实现了STL容器的迭代器，再看看我写的一长串诸如<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>v</mi><mi>e</mi><mi>c</mi><mi>t</mi><mi>o</mi><mi>r</mi><mo>&lt;</mo><mi>i</mi><mi>n</mi><mi>t</mi><mo>&gt;</mo><mo>:</mo><mo>:</mo><mi>i</mi><mi>t</mi><mi>e</mi><mi>r</mi><mi>a</mi><mi>t</mi><mi>o</mi><mi>r</mi><mi>i</mi><mi>t</mi><mo>⋯</mo></mrow><annotation encoding="application/x-tex">vector&lt;int&gt;::iterator it\dotsb</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65418em;vertical-align:-0.0391em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mord mathdefault">e</span><span class="mord mathdefault">c</span><span class="mord mathdefault">t</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.69862em;vertical-align:-0.0391em;"></span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mord mathdefault">t</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mrel">:</span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mrel">:</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span><span class="mord mathdefault">t</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">a</span><span class="mord mathdefault">t</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">i</span><span class="mord mathdefault">t</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">⋯</span></span></span></span>就默默流下了没有技术的眼泪😂。这次想到要整理C++11新特性，就先来谈谈这个<strong>auto</strong>关键字以及与其功能相似的<strong>decltype</strong>关键字：</p>
+<h2 id="1-auto关键字">1. auto关键字</h2>
+<h3 id="11-auto简介">1.1 auto简介</h3>
+<p>在C++11标准中，<strong>auto</strong>关键字的功能为自动类型推断。<strong>auto</strong>关键字的功能其实并不难理解，简而言之，就是<strong>让编译器根据变量的初值去自动推导这个变量的类型</strong>。<br>
+<strong>auto</strong>现在成了一个类型的占位符，通知编译器去根据初始化代码推断所声明变量的真实类型。各种作用域内声明变量都可以用到它。例如，名空间中，程序块中，或是for循环的初始化语句中。例如以下代码：</p>
+<pre><code>auto i = 42;        // i is an int
+auto d=23.3;        //d is a double
+auto l = 42LL;      // l is a long long
+</code></pre>
+<p>正如之前所说，auto最常见的用法是用来声明STL容器的迭代器。不得不说，正规的迭代器声明实在是太长了，例如：</p>
+<pre><code>using namespace std;
+//...
+vector&lt;int&gt; vec(3);
+vector&lt;int&gt;::iterator it;
+for(it=vec.begin();it!=vec.end();it++){
+    //...
+}
+</code></pre>
+<p>然而，如果我们使用auto关键字，代码会简洁很多：</p>
+<pre><code>using namespace std;
+//...
+vector&lt;int&gt; vec(3);
+for(auto it=vec.begin();it!=vec.end();it++){
+    //...
+}
+</code></pre>
+<h3 id="12-auto效率">1.2. auto效率</h3>
+<p>auto实际上实在编译时对变量进行了类型推导，所以不会对程序的运行效率造成不良影响。另外，auto并不会影响编译速度，因为编译时本来也要右侧推导然后判断与左侧是否匹配。</p>
+<h3 id="13-注意事项">1.3. 注意事项</h3>
+<p>auto关键字虽然很简单，使用也很方便，但其在使用中仍有以下几点事项需要注意：</p>
+<ul>
+<li>auto声明的变量必须要初始化，否则编译器不能判断变量的类型。</li>
+<li>auto不能被声明为返回值，auto不能作为形参，auto不能被修饰为模板参数。但是，<strong>如果函数有一个尾随的返回类型时，auto是可以出现在函数声明中返回值位置</strong>。这种情况下，auto并不是告诉编译器去推断返回类型，而是指引编译器去函数的末端寻找返回值类型。下面给出一个经典的例子，函数的返回值类型就是operator+操作符作用在T1、T2类型变量上的返回值类型：</li>
+</ul>
+<pre><code>template &lt;typename _Tx, typename _Ty&gt;
+auto multiply(_Tx x, _Ty y)-&gt;decltype(_Tx + _Ty)    //decltype用法见后文
+{
+    return x + y;
+}
+auto v = compose(2, 3.14);  // v's type is double
+</code></pre>
+<h2 id="2-decltype关键字">2. decltype关键字</h2>
+<p>其实我也是在查询auto关键字时，第一次接触到<strong>decltype</strong>关键字。编译时类型推导的出现主要是为了泛型编程，因为在非泛型编程中，我们的类型都是确定的，根本不需要再进行推导。而编译时类型推导，除了上面介绍的auto关键字，还有decltype关键字。以下对<strong>decltype</strong>的用法进行整理：</p>
+<h3 id="21-decltype用法">2.1 decltype用法</h3>
+<p>decltype与auto关键字一样，用于进行编译时类型推导，不过它与auto还是有一些区别的。decltype的类型推导并不是像auto一样是从变量声明的初始化表达式获得变量的类型，<strong>而是以一个普通表达式作为参数，返回该表达式的类型，而且decltype并不会对表达式进行求值</strong>。例如：</p>
+<pre><code>int i = 4;
+decltype(i) a;      //推导结果为int。a的类型为int。
+using size_t = decltype(sizeof(0));     //using此处用于定义别名,sizeof(a)的返回值为size_t类型
+</code></pre>
+<p>同样地，decltype也可以用于声明STL容器的迭代器：</p>
+<pre><code>vector&lt;int &gt;vec;
+    typedef decltype(vec.begin()) vectype;
+    for (vectype i = vec.begin; i != vec.end(); i++)
+    {
+        //...
+    }
+</code></pre>
+<p>此外，在C++中，我们有时候会遇上一些匿名类型，而借助decltype，我们可以重新使用这个匿名的结构体：</p>
+<pre><code>struct 
+{
+    int d ;
+    doubel b;
+}anon_s;
+
+decltype(anon_s) as ;//定义了一个上面匿名的结构体
+</code></pre>
+<p>而decltype最大的用途是在泛型编程中结合auto，用于追踪函数的返回值类型。（参考auto中最后一个示例代码）。</p>
+<h3 id="22-decltype推导四规则仅作了解">2.2 decltype推导四规则（仅作了解）</h3>
+<ol>
+<li>如果e是一个没有带括号的标记符表达式或者类成员访问表达式，那么的decltype（e）就是e所命名的实体的类型。此外，如果e是一个被重载的函数，则会导致编译错误。</li>
+<li>否则 ，假设e的类型是T，如果e是一个将亡值，那么decltype（e）为T&amp;&amp;</li>
+<li>否则，假设e的类型是T，如果e是一个左值（左值就是在赋值中可以放在赋值操作符两边的值，一切变量都是左值，但const变量是例外），那么decltype（e）为T&amp;。</li>
+<li>否则，假设e的类型是T，则decltype（e）为T。</li>
+</ol>
+<p>如下面的例子，仅仅为i加上了()，就导致类型推导结果的差异。这是因为，i是一个标记符表达式，根据推导规则1，类型被推导为int。而(i)为一个左值表达式，所以类型被推导为int&amp;。</p>
+<pre><code>int i=10;
+decltype(i) a; //a推导为int
+decltype((i))b=i;//b推导为int&amp;，必须为其初始化，否则编译错误
+</code></pre>
+<p>具体内容可参考：<a href="https://www.cnblogs.com/QG-whz/p/4952980.html">decltype用法</a></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[ACM专题：字符串匹配算法]]></title>
+        <id>https://mocuishle0.github.io/post/acm-zhuan-ti-zi-fu-chuan-pi-pei-suan-fa/</id>
+        <link href="https://mocuishle0.github.io/post/acm-zhuan-ti-zi-fu-chuan-pi-pei-suan-fa/">
+        </link>
+        <updated>2020-06-02T09:01:26.000Z</updated>
+        <summary type="html"><![CDATA[<p>字符串匹配问题，无论是编程课还是算法课都会被提及，就连公司笔试、面试也都是热点问题之一。可是奈何当时学习时对于该问题的算法理解并不到位，特此进行总结归纳。<br>
+P.s：以下内容主要是对公众号：“程序员小灰”中字符串匹配专题的整理加上自己的理解。<a href="https://mp.weixin.qq.com/s/67uf7pRxXh7Iwm7MMpqJoA">原文参考</a></p>
+]]></summary>
+        <content type="html"><![CDATA[<p>字符串匹配问题，无论是编程课还是算法课都会被提及，就连公司笔试、面试也都是热点问题之一。可是奈何当时学习时对于该问题的算法理解并不到位，特此进行总结归纳。<br>
+P.s：以下内容主要是对公众号：“程序员小灰”中字符串匹配专题的整理加上自己的理解。<a href="https://mp.weixin.qq.com/s/67uf7pRxXh7Iwm7MMpqJoA">原文参考</a></p>
+<!-- more -->
+<p>本文概要：</p>
+<ul>
+<li>问题定义</li>
+<li>BF算法（暴力求解）</li>
+<li>RK算法</li>
+<li>BM算法</li>
+<li>KMP算法</li>
+</ul>
+<h2 id="1-问题定义">1. 问题定义</h2>
+<p>所谓字符串匹配问题，即给定一个字符串A（称：“主串”）和一个字符串B（称：“模式串”），我们需要找出模式串在主串中第一次出现的位置，若模式串未在主串中出现，则返回-1。<br>
+举一个例子：<br>
+<img src="https://mocuishle0.github.io//post-images/1591089180883.webp" alt="" loading="lazy"><br>
+在上图中，字符串B是A的子串，B第一次在A中出现的位置下标是2（字符串的首位下标是0），所以返回 2。<br>
+而在下面的例子中：<br>
+<img src="https://mocuishle0.github.io//post-images/1591089220552.png" alt="" loading="lazy"><br>
+字符串B在A中并不存在，所以返回 -1。</p>
+<h2 id="2-bf算法暴力求解">2. BF算法（暴力求解）</h2>
+<p>Brute Force（暴力算法）的想法其实无须多言，即：遍历主串每一位字符，尝试从头匹配模式串。若与当前主串字符与模式串字符匹配，则尝试用主串中下一位字符去匹配模式串的下一位字符；否则，用主串下一位字符尝试从头匹配模式串。<br>
+<strong>实例如下</strong>：<br>
+第一轮，我们从主串的首位开始，把主串和模式串的字符逐个比较。<br>
+<img src="https://mocuishle0.github.io//post-images/1591089560847.png" alt="" loading="lazy"><br>
+显然，主串的首位字符是a，模式串的首位字符是b，两者并不匹配。</p>
+<p>第二轮，我们把模式串后移一位，从主串的第二位开始，把主串和模式串的字符逐个比较<br>
+<img src="https://mocuishle0.github.io//post-images/1591089608610.png" alt="" loading="lazy"><br>
+主串的第二位字符是b，模式串的第二位字符也是b，两者匹配，继续比较：<br>
+<img src="https://mocuishle0.github.io//post-images/1591089629905.png" alt="" loading="lazy"><br>
+主串的第三位字符是b，模式串的第三位字符也是c，两者并不匹配。<br>
+...<br>
+重复上述过程，直到找到模式串第一次出现位置，或将主串遍历完毕。</p>
+<p>显然，BF算法最大的问题在于对于某些极端情况处理效率极低，如下：<br>
+<img src="https://mocuishle0.github.io//post-images/1591089744915.png" alt="" loading="lazy"><br>
+上图的情况，在每一轮进行字符匹配时，模式串的前三个字符a都和主串中的字符相匹配，一直检查到模式串最后一个字符b，才发现不匹配。这样一来，两个字符串在每一轮都需要白白比较4次，显然非常浪费。假设主串的长度是m，模式串的长度是n，那么在这种极端情况下，BF算法的最坏时间复杂度是<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>m</mi><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(mn)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">m</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>。</p>
+<h2 id="3-rk算法rabin-karp">3. RK算法（Rabin-Karp）</h2>
+<p>RK算法的核心在于<strong>使用哈希散列处理字符串，进而比较两个字符串的哈希值</strong>。其实质可看作是对于字符串的一个编码过程。<br>
+如果熟悉哈希表的话我们可知，每一个字符串都可以通过某种哈希算法，转换成一个整型数，这个整型数就是hashcode：<br>
+<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>h</mi><mi>a</mi><mi>s</mi><mi>h</mi><mi>c</mi><mi>o</mi><mi>d</mi><mi>e</mi><mo>=</mo><mi>h</mi><mi>a</mi><mi>s</mi><mi>h</mi><mo>(</mo><mi>s</mi><mi>t</mi><mi>r</mi><mi>i</mi><mi>n</mi><mi>g</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">hashcode = hash(string)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">h</span><span class="mord mathdefault">a</span><span class="mord mathdefault">s</span><span class="mord mathdefault">h</span><span class="mord mathdefault">c</span><span class="mord mathdefault">o</span><span class="mord mathdefault">d</span><span class="mord mathdefault">e</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">h</span><span class="mord mathdefault">a</span><span class="mord mathdefault">s</span><span class="mord mathdefault">h</span><span class="mopen">(</span><span class="mord mathdefault">s</span><span class="mord mathdefault">t</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mclose">)</span></span></span></span><br>
+<img src="https://mocuishle0.github.io//post-images/1591090031037.webp" alt="" loading="lazy"><br>
+显然，相对于逐个字符比较两个字符串，仅比较两个字符串的hashcode要容易得多。</p>
+<p>RK算法流程如下：<br>
+给定主串和模式串如下（假定字符串只包含26个小写字母）：<br>
+<img src="https://mocuishle0.github.io//post-images/1591090083179.png" alt="" loading="lazy"><br>
+第一步，<strong>我们需要生成模式串的hashcode</strong>。生成hashcode的算法多种多样，比如：按位相加——这是最简单的方法，我们可以把a当做1，b当做2，c当做3......然后把字符串的所有字符相加，相加结果就是它的hashcode。如：</p>
+<blockquote>
+<p><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>b</mi><mi>c</mi><mi>e</mi><mo>=</mo><mn>2</mn><mo>+</mo><mn>3</mn><mo>+</mo><mn>5</mn><mo>=</mo><mn>10</mn><mi mathvariant="normal">。</mi></mrow><annotation encoding="application/x-tex">bce =  2 + 3 + 5 = 10。</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">b</span><span class="mord mathdefault">c</span><span class="mord mathdefault">e</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">0</span><span class="mord cjk_fallback">。</span></span></span></span></p>
+</blockquote>
+<p>但是，这个算法虽然简单，却很可能产生hash冲突，比如bce、bec、cbe的hashcode是一样的。<br>
+因此，我们不妨考虑将字符串转换成26进制数，既然字符串只包含26个小写字母，那么我们可以把每一个字符串当成一个26进制数来计算。</p>
+<blockquote>
+<p><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>b</mi><mi>c</mi><mi>e</mi><mo>=</mo><mn>2</mn><mo>∗</mo><mo>(</mo><mn>2</mn><msup><mn>6</mn><mn>2</mn></msup><mo>)</mo><mo>+</mo><mn>3</mn><mo>∗</mo><mn>26</mn><mo>+</mo><mn>5</mn><mo>=</mo><mn>1435</mn></mrow><annotation encoding="application/x-tex">bce = 2*(26^2) + 3*26 + 5 = 1435</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">b</span><span class="mord mathdefault">c</span><span class="mord mathdefault">e</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">2</span><span class="mord"><span class="mord">6</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">2</span><span class="mord">6</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">4</span><span class="mord">3</span><span class="mord">5</span></span></span></span></p>
+</blockquote>
+<p>这样做的好处是大幅减少了hash冲突，缺点是计算量较大，而且有可能出现超出整型范围的情况，需要对计算结果进行取模。为了方便演示，后续我们采用的是按位相加的hash算法，所以bce的hashcode是10：<br>
+<img src="https://mocuishle0.github.io//post-images/1591090287246.png" alt="" loading="lazy"></p>
+<p>第二步，<strong>生成主串当中第一个等长子串的hashcode</strong>。由于主串通常要长于模式串，把整个主串转化成hashcode是没有意义的，只有比较主串当中和模式串等长的子串才有意义。因此，我们首先生成主串中第一个和模式串等长的子串hashcode，即abb = 1 + 2 + 2 = 5：<br>
+<img src="https://mocuishle0.github.io//post-images/1591090346395.webp" alt="" loading="lazy"></p>
+<p>第三步，<strong>比较两个hashcode</strong>。显然，5！=10，说明模式串和第一个子串不匹配，我们继续下一轮比较。</p>
+<p>第四步，<strong>生成主串当中第二个等长子串的hashcode</strong>。bbc = 2 + 2 + 3 = 7：<br>
+<img src="https://mocuishle0.github.io//post-images/1591090391409.png" alt="" loading="lazy"><br>
+...<br>
+重复以上过程。我们发现，当生成主串当中第三个等长子串的hashcode时，bce= 2 + 3 + 5 = 10：<br>
+<img src="https://mocuishle0.github.io//post-images/1591090454534.png" alt="" loading="lazy"><br>
+显然，10 ==10，两个hash值相等！这是否说明两个字符串也相等呢？别高兴的太早，<strong>由于存在hash冲突的可能，我们还需要进一步验证</strong>。<br>
+第五步，<strong>逐个字符比较两字符串</strong>。hashcode的比较只是初步验证，之后我们还需要像BF算法那样，对两个字符串逐个字符比较，最终判断出两个字符串匹配。最后得出结论，模式串bce是主串abbcefgh的子串，第一次出现的下标是2。</p>
+<p>通过以上过程，我们不难发现，RK算法本质类似于BF算法，只不过是将字符串的比较转化为先通过哈希值的比较，后进行验证的策略。可能我们会想：每次hash的时间复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>，若将全部子串进行hash，最终时间复杂度仍为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>m</mi><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(mn)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">m</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>，这与BF算法相同。<br>
+然而，需要注意的是，每次对主串中的子串进行hash的过程并不独立：我们可以根据前一子串的hashcode进行简单的加减运算即可得到后一子串的hashcode。<br>
+综上，由于RK算法计算单个子串hash时间复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>，后续子串是增量计算所以整体复杂度仍为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>。</p>
+<p>此外，我们不难想到，由于RK算法核心是使用哈希值，因此该算法的缺点在于哈希冲突。每次哈希冲突（即主串的子串哈希值与模式串相等）时，就需要逐个字符比对，这在极端情况下将退化为BF算法。</p>
+<h2 id="4-bm算法">4. BM算法</h2>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[ACM专题：最长回文子串]]></title>
+        <id>https://mocuishle0.github.io/post/acm-zhuan-ti-zui-chang-hui-wen-zi-chuan/</id>
+        <link href="https://mocuishle0.github.io/post/acm-zhuan-ti-zui-chang-hui-wen-zi-chuan/">
+        </link>
+        <updated>2020-06-02T02:33:57.000Z</updated>
+        <summary type="html"><![CDATA[<p>最长回文子串问题，是ACM题库或各大公司笔试/面试中一类经典的问题。该问题在本科阶段的学习中就屡次被提及，但当时并未完全理解。此次对该问题进行一次整理与归纳。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>最长回文子串问题，是ACM题库或各大公司笔试/面试中一类经典的问题。该问题在本科阶段的学习中就屡次被提及，但当时并未完全理解。此次对该问题进行一次整理与归纳。</p>
+<!-- more -->
+<p>本文概要：</p>
+<ul>
+<li>问题定义</li>
+<li>求解思路：
+<ul>
+<li>暴力求解</li>
+<li>动态规划求解</li>
+<li>中心扩散法</li>
+<li>Manacher 算法</li>
+</ul>
+</li>
+</ul>
+<h2 id="1-问题定义">1. 问题定义：</h2>
+<p><strong>定义 1.1 回文串：</strong> 是一个正读和反读都一样的字符串，比如“level”或者“noon”等等就是回文串。（百度百科）<br>
+<strong>定义 1.2 最长回文子串：</strong> 最长回文子串或最长对称因子问题是在一个字符串中查找一个最长的连续的回文的子串，例如“banana”最长回文子串是“anana”。最长回文子串并不一定是唯一的，比如“abracadabra”，没有超过3的回文子串，但是有两个回文字串长度都是3：“ada”和“aca”。</p>
+<p><strong>示例 1：</strong><br>
+输入: &quot;babad&quot;<br>
+输出: &quot;bab&quot;<br>
+注意: &quot;aba&quot; 也是一个有效答案。</p>
+<p><strong>示例 2:</strong><br>
+输入: &quot;cbbd&quot;<br>
+输出: &quot;bb&quot;</p>
+<h2 id="2-求解思路">2. 求解思路：</h2>
+<h3 id="21-暴力求解brute-force">2.1 暴力求解（Brute Force）</h3>
+<p>直观地，我们可以穷举给定字符串s中全部子串，继而判断当前子串是否符合回文串定义。在所有回文串中找到长度最长的即可。<br>
+值得注意的是，在具体实现过程中，我们通过以下技巧来提高算法的效率：</p>
+<ul>
+<li>在具体实现时，可以只针对长度大于“当前得到的最长回文子串长度”的子串进行“回文验证”；</li>
+<li>在记录最长回文子串的时候，可以只记录“当前子串的起始位置”和“子串长度”，不必做截取。</li>
+</ul>
+<p>参考代码如下：</p>
+<pre><code>//暴力求解法：
+int maxL = 0;
+string resStr;
+for (int i = 0; i &lt; s.length(); i++)
+{
+    string str;
+    for (int j = i; j &lt; s.length(); j++)
+    {
+        str += s[j];
+        string rstr = str;
+
+        if (maxL &lt; str.length())
+        {
+            reverse(rstr.begin(), rstr.end());
+            if (str == rstr){
+                maxL = str.length();
+                resStr = str;
+            }
+        }
+
+    }
+}
+
+cout &lt;&lt; resStr &lt;&lt; endl;
+</code></pre>
+<p><strong>复杂性分析：</strong></p>
+<ul>
+<li>时间复杂度：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>3</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^3)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，其中N表示给定字符串s的长度。（两重循环+字符串逆序）</li>
+<li>空间复杂度：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span>。（只记录“当前子串的起始位置”和“子串长度”）</li>
+</ul>
+<blockquote>
+<p>暴力解法时间复杂度高，但是思路清晰、编写简单。因此，可以使用暴力匹配算法检验我们编写的其它算法是否正确。优化的解法在很多时候，是基于“暴力解法”，以空间换时间得到的，因此思考清楚暴力解法，分析其缺点，很多时候能为我们打开思路。</p>
+</blockquote>
+<h3 id="22-动态规划dynamic-programming">2.2 动态规划（Dynamic programming）</h3>
+<p>动态规划是算法中一类最基础，同时也是最重要的解题思路之一。判断一个问题是否可以通过动态规划方法求解的核心在于：<strong>判读问题是否具有最优子结构性质，即问题的最优解由相关子问题的最优解组合而成，且子问题可单独求解</strong>。此处推荐算法领域的经典书籍《算法导论》以及北京航空航天大学童咏昕教授的《算法设计与分析》课程（中国大学MOOC）。<br>
+就我本人的理解而言，动态规划方法其本质类似于自动机，即后一状态需参考前一状态（或前多个状态）进行状态转移。在这一过程中，问题核心在于发现状态间转换关系，以及如何实现状态转移。LeetCode中的大神也对动态规划进行了总结（<a href="https://leetcode-cn.com/problems/longest-palindromic-substring/solution/zhong-xin-kuo-san-dong-tai-gui-hua-by-liweiwei1419/">参考文献</a>），见下图：<br>
+<img src="https://mocuishle0.github.io//post-images/1591067828997.png" alt="" loading="lazy"></p>
+<p>就最长回文子串问题而言，我们不难发现，对于给定字符串s的任意长度大于2的子串s[i][j]（从位置i到位置j构成的子串），其是否为回文子串存在以下关系：</p>
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>[</mo><mi>i</mi><mo>]</mo><mo>[</mo><mi>j</mi><mo>]</mo></mrow><annotation encoding="application/x-tex">s[i][j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault">i</span><span class="mclose">]</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span>是回文串 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mtext>  </mtext><mo>⟺</mo><mtext>  </mtext></mrow><annotation encoding="application/x-tex">\iff</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.549em;vertical-align:-0.024em;"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⟺</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span></span></span> 字符<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>[</mo><mi>i</mi><mo>]</mo><mo>=</mo><mi>s</mi><mo>[</mo><mi>j</mi><mo>]</mo></mrow><annotation encoding="application/x-tex">s[i]=s[j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault">i</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span>且子串<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>[</mo><mi>i</mi><mo>+</mo><mn>1</mn><mo>]</mo><mo>[</mo><mi>j</mi><mo>−</mo><mn>1</mn><mo>]</mo></mrow><annotation encoding="application/x-tex">s[i+1][j-1]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">]</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span>是回文串；</li>
+</ul>
+<p>因此，我们不难得出该问题的动态规划方法：</p>
+<ul>
+<li>
+<p><strong>1）初始化</strong>：初始化一个N*N的矩阵（二维数组）用于表示子串s[i][j]是否为回文串，其中：由于<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi><mo>≤</mo><mi>j</mi></mrow><annotation encoding="application/x-tex">i\leq j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.79549em;vertical-align:-0.13597em;"></span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span></span></span></span>，因此该矩阵为上三角矩阵，且对角线元素均为<strong>true</strong>。</p>
+</li>
+<li>
+<p><strong>2）递推公式</strong>：</p>
+<ul>
+<li>首先，如果子串s[i][j]中的首末字符<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>[</mo><mi>i</mi><mo>]</mo><mi mathvariant="normal">≠</mi><mi>s</mi><mo>[</mo><mi>j</mi><mo>]</mo></mrow><annotation encoding="application/x-tex">s[i]\neq s[j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault">i</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel"><span class="mrel"><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.69444em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="rlap"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="inner"><span class="mrel"></span></span><span class="fix"></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span></span><span class="mrel">=</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span>，则s[i][j]可直接判定为<strong>false</strong>；</li>
+<li>之后，需要判断子串s[i][j]除去首末字符<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>[</mo><mi>i</mi><mo>]</mo><mi mathvariant="normal">、</mi><mi>s</mi><mo>[</mo><mi>j</mi><mo>]</mo></mrow><annotation encoding="application/x-tex">s[i]、s[j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault">i</span><span class="mclose">]</span><span class="mord cjk_fallback">、</span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span>后是否构成区间：
+<ul>
+<li>若不构成区间，即：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>j</mi><mo>−</mo><mn>1</mn><mo>)</mo><mo>−</mo><mo>(</mo><mi>i</mi><mo>+</mo><mn>1</mn><mo>)</mo><mo>+</mo><mn>1</mn><mo>&lt;</mo><mn>2</mn><mo>←</mo><mi>j</mi><mo>−</mo><mi>i</mi><mo>&lt;</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">(j-1)-(i+1)+1 &lt; 2\leftarrow j-i &lt; 3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68354em;vertical-align:-0.0391em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">←</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.69862em;vertical-align:-0.0391em;"></span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span></span></span></span>：则s[i][j]可判定为<strong>true</strong>；</li>
+<li>若构成区间，即$ j-i \geq 3$：则s[i][j]的结果取决于则s[i+1][j-1]。</li>
+<li>注意：每次判定子串s[i][j]是否为回文串后，需再次判断该回文串长度是否大于当前最长回文串长度。若超过当前最长则需要更新。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>3）计算顺序</strong>：<br>
+该问题的计算顺序是又一难点。不同于一般的动态规划问题：从左至右、从上至下依次根据前一状态计算后一状态，根据该问题的递推公式可知：当前状态（s[i][j]）取决于矩阵中其左下角状态（s[i+1][j-1]）。因此，我们给出该问题两种错误的计算顺序和四种正确的计算顺序：<br>
+<img src="https://mocuishle0.github.io//post-images/1591069534676.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1591069540322.png" alt="" loading="lazy"></p>
+</li>
+</ul>
+<p>参考代码如下：</p>
+<pre><code>int slen = s.length();
+int maxLen = 1;
+int begin = 0;
+
+if (slen &lt; 2)
+{
+    cout &lt;&lt; s &lt;&lt; endl;
+}
+
+bool dp[slen][slen];
+
+memset(dp, 0, sizeof(dp));
+
+for (int i = 0; i &lt; slen; i++)
+{
+    dp[i][i] = true;
+}
+
+for (int j = 1; j &lt; slen; j++)
+{
+    for (int i = 0; i &lt; j; i++)
+    {
+        if (s[i] != s[j])
+        {
+            dp[i][j] = false;
+        }
+        else
+        {
+            if (j - i &lt; 3) //区间判断：(j-1)-(i+1)+1&lt;2 =&gt; j-i&lt;3
+            {
+                dp[i][j] = true;
+            }
+            else
+            {
+                dp[i][j] = dp[i + 1][j - 1];
+            }
+        }
+
+        if (dp[i][j] &amp;&amp; j - i + 1 &gt; maxLen)
+        {
+            maxLen = j - i + 1;
+            begin = i;
+        }
+    }
+}
+
+cout &lt;&lt; s.substr(begin, maxLen) &lt;&lt; endl;
+</code></pre>
+<p><strong>复杂性分析：</strong></p>
+<ul>
+<li>时间复杂度：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>;</li>
+<li>空间复杂度：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>（二维数组）;</li>
+</ul>
+<p><strong>小结（<a href="https://leetcode-cn.com/problems/longest-palindromic-substring/solution/zhong-xin-kuo-san-dong-tai-gui-hua-by-liweiwei1419/">参考</a>）：</strong></p>
+<ul>
+<li>我们看到，用「动态规划」方法解决问题，有的时候并不是直接面向问题的。</li>
+<li>「动态规划」依然是「空间换时间」思想的体现，并且本身「动态规划」作为一种打表格法，就是在用「空间」换「时间」。</li>
+<li>关于「动态规划」方法执行时间慢的说明：
+<ul>
+<li>动态规划本质上还是「暴力解法」，因为需要枚举左右边界，有 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>这么多；</li>
+<li>以下提供的「中心扩散法」枚举了所有可能的回文子串的中心，有 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mn>2</mn><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(2N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">2</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>这么多，不在一个级别上。</li>
+</ul>
+</li>
+</ul>
+<h3 id="23-中心扩散法">2.3 中心扩散法</h3>
+<p>中心扩散法其实质是对于朴素的暴力求解法的一种优化：朴素的暴力求解是对于子串左右边界的枚举，而根据回文子串的特性我们不难想到，<strong>可对回文“中心位置”进行枚举，并以“中心位置”为中心尝试向左右扩散以得到最长回文子串</strong>。</p>
+<p>综上，中心扩散法的思路是：遍历每一个可能的中心位置，利用“回文串”中心对称的特点，往两边扩散，看最多能扩散多远。枚举“中心位置”时间复杂度为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>，从“中心位置”扩散得到“回文子串”的时间复杂度为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>。因此，中心扩散法时间复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>。</p>
+<p>该方法理解起来并不困难，然而该方法的核心在于如何有效遍历两类回文中心：</p>
+<ul>
+<li><strong>奇数回文串</strong>的“中心”是一个具体的字符，例如：回文串 &quot;aba&quot; 的中心是字符 &quot;b&quot;；</li>
+<li><strong>偶数回文串</strong>的“中心”是位于中间的两个字符的“空隙”，例如：回文串串 &quot;abba&quot; 的中心是两个 &quot;b&quot; 中间的那个“空隙”。<br>
+如下图所示：<br>
+<img src="https://mocuishle0.github.io//post-images/1591085916365.png" alt="" loading="lazy"><br>
+因此，可能成为“中心位置”的候选位置如下所示：<br>
+<img src="https://mocuishle0.github.io//post-images/1591085971415.png" alt="" loading="lazy"></li>
+</ul>
+<p>考虑以上情况，参考代码实现如下（<a href="https://leetcode-cn.com/problems/longest-palindromic-substring/solution/zhong-xin-kuo-san-dong-tai-gui-hua-by-liweiwei1419/">原文</a>）：</p>
+<pre><code>string centerSpread(string s, int left, int right) {
+        // left = right 的时候，此时回文中心是一个空隙，向两边扩散得到的回文子串的长度是奇数
+        // right = left + 1 的时候，此时回文中心是一个字符，向两边扩散得到的回文子串的长度是偶数
+        int size = s.size();
+        int i = left;
+        int j = right;
+        while (i &gt;= 0 &amp;&amp; j &lt; size) {
+            if (s[i] == s[j]) {
+                i--;
+                j++;
+            } else {
+                break;
+            }
+        }
+        // 这里要小心，跳出 while 循环时，恰好满足 s.charAt(i) != s.charAt(j)，因此不能取 i，不能取 j
+        return s.substr(i + 1, j - i - 1);
+    }
+
+string longestPalindrome(string s) {
+        // 特判
+        int size = s.size();
+        if (size &lt; 2) {
+            return s;
+        }
+
+        int maxLen = 1;
+        string res = s.substr(0, 1);
+
+        // 中心位置枚举到 len - 2 即可
+        for (int i = 0; i &lt; size - 1; i++) {
+            string oddStr = centerSpread(s, i, i);
+            string evenStr = centerSpread(s, i, i + 1);
+            string maxLenStr = oddStr.size() &gt; evenStr.size() ? oddStr : evenStr;
+            if (maxLenStr.length() &gt; maxLen) {
+                maxLen = maxLenStr.size();
+                res = maxLenStr;
+            }
+        }
+        return res;
+    }
+
+</code></pre>
+<h3 id="24-manacher-算法">2.4 Manacher 算法</h3>
+<p>Manacher 算法其时间复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>，然而其本身较为复杂。以下仅是自己的理解综合<a href="https://leetcode-cn.com/problems/longest-palindromic-substring/solution/zui-chang-hui-wen-zi-chuan-by-leetcode-solution/">参考文献</a>进行的归纳。</p>
+<p>Manacher 算法其核心类似于著名的字符串匹配问题中的KMP算法：<strong>基于中心扩展算法，在下一次扩展时充分利用上一次扩展中的可用信息</strong>。<br>
+在介绍Manacher 算法具体流程之前，需要引入<strong>臂长</strong>的概念。所谓臂长，即表示中心扩展算法向外扩展的长度。如果一个位置的最大回文字符串长度为 2 * L + 1 ，其臂长为 L。以Leetcode中的示例为例：给定字符串s=&quot;ebabababe&quot;，对于位置j=4（s[j]=s[4]='a'）而言，其臂长L=4:<br>
+<img src="https://mocuishle0.github.io//post-images/1591087759158.png" alt="" loading="lazy"></p>
+<p>Manacher 算法其出发点在于，从位置为i的位置进行中心扩展，能否借助之前得到的位置为j的中心扩展中的信息。答案是肯定的。具体来说，如果位置 j 的臂长为L，并且有 j + L &gt; i，如下图所示：<br>
+<img src="https://mocuishle0.github.io//post-images/1591087888404.png" alt="" loading="lazy"><br>
+当在位置 i 开始进行中心拓展时，我们可以先找到 i 关于 j 的对称点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>i</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mn>2</mn><mo>∗</mo><mi>j</mi><mo>−</mo><mi>i</mi></mrow><annotation encoding="application/x-tex">i&#x27;=2 * j - i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">i</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span></span></span></span>。那么如果点 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>i</mi><mo mathvariant="normal">′</mo></msup></mrow><annotation encoding="application/x-tex">i&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">i</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>的臂长等于 n，我们就可以知道，点 i 的臂长至少为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>m</mi><mi>i</mi><mi>n</mi><mo>(</mo><mi>j</mi><mo>+</mo><mi>L</mi><mo>−</mo><mi>i</mi><mo separator="true">,</mo><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">min(j + L - i, n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">m</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathdefault">L</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">i</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>。那么我们就可以直接跳过 i 到 i + min(j + L - i, n) 这部分，从 i + min(j + L - i, n) + 1 开始拓展。</p>
+<p>以上图为例，j=4,L=4：<br>
+若i=6，可知<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>i</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">i&#x27;=2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">i</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span></span></span></span>，且<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>i</mi><mo mathvariant="normal">′</mo></msup></mrow><annotation encoding="application/x-tex">i&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">i</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>的臂长n=1。由于<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>m</mi><mi>i</mi><mi>n</mi><mo>(</mo><mi>j</mi><mo>+</mo><mi>L</mi><mo>−</mo><mi>i</mi><mo separator="true">,</mo><mi>n</mi><mo>)</mo><mo>=</mo><mi>m</mi><mi>i</mi><mi>n</mi><mo>(</mo><mn>2</mn><mo separator="true">,</mo><mn>1</mn><mo>)</mo><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">min(j + L - i, n)=min(2,1)=1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">m</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathdefault">L</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">i</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">m</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mopen">(</span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>，所以我们就可以直接跳过 i=6 到 i + min(j + L - i, n) =7 这部分，从位置 i + min(j + L - i, n) + 1 =8 开始拓展。</p>
+<p>显然，以上的处理仅针对字符串长度为奇数。而对于字符串长度为偶数的情况，我们可以通过一个简单的小技巧即可完成两种情况的统一：我们向字符串的头尾以及每两个字符中间添加一个特殊字符 #，比如字符串 aaba 处理后会变成 #a#a#b#a#。那么原先长度为偶数的回文字符串 aa 会变成长度为奇数的回文字符串 #a#a#，而长度为奇数的回文字符串 aba 会变成长度仍然为奇数的回文字符串 #a#b#a#，我们就不需要再考虑长度为偶数的回文字符串了。</p>
+<p>参考代码如下：</p>
+<pre><code>int expand(const string&amp; s, int left, int right) {
+        while (left &gt;= 0 &amp;&amp; right &lt; s.size() &amp;&amp; s[left] == s[right]) {
+            --left;
+            ++right;
+        }
+        return (right - left - 2) / 2;
+    }
+
+    string longestPalindrome(string s) {
+        int start = 0, end = -1;
+        string t = &quot;#&quot;;
+        for (char c: s) {
+            t += c;
+            t += '#';
+        }
+        t += '#';
+        s = t;
+
+        vector&lt;int&gt; arm_len;
+        int right = -1, j = -1;
+        for (int i = 0; i &lt; s.size(); ++i) {
+            int cur_arm_len;
+            if (right &gt;= i) {
+                int i_sym = j * 2 - i;
+                int min_arm_len = min(arm_len[i_sym], right - i);
+                cur_arm_len = expand(s, i - min_arm_len, i + min_arm_len);
+            }
+            else {
+                cur_arm_len = expand(s, i, i);
+            }
+            arm_len.push_back(cur_arm_len);
+            if (i + cur_arm_len &gt; right) {
+                j = i;
+                right = i + cur_arm_len;
+            }
+            if (cur_arm_len * 2 + 1 &gt; end - start) {
+                start = i - cur_arm_len;
+                end = i + cur_arm_len;
+            }
+        }
+
+        string ans;
+        for (int i = start; i &lt;= end; ++i) {
+            if (s[i] != '#') {
+                ans += s[i];
+            }
+        }
+        return ans;
+    }
+
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[图算法：多源最短路径问题——Floyd算法]]></title>
         <id>https://mocuishle0.github.io/post/tu-suan-fa-duo-yuan-zui-duan-lu-jing-wen-ti-floyd-suan-fa/</id>
@@ -583,306 +1215,6 @@ P.s：括号化定理是基于区间标记解决可达性查询的核心思想�
 <figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1590478105052.png" alt="" loading="lazy"></figure>
 <h3 id="42-深度优先搜索边的分类">4.2 深度优先搜索边的分类:</h3>
 <figure data-type="image" tabindex="2"><img src="https://mocuishle0.github.io//post-images/1590478140887.png" alt="" loading="lazy"></figure>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[图算法：图搜索应用——拓扑排序、环路检验和强连通分量（上）]]></title>
-        <id>https://mocuishle0.github.io/post/tu-suan-fa-tu-sou-suo-ying-yong-tuo-bu-pai-xu-huan-lu-jian-yan-he-qiang-lian-tong-fen-liang-shang/</id>
-        <link href="https://mocuishle0.github.io/post/tu-suan-fa-tu-sou-suo-ying-yong-tuo-bu-pai-xu-huan-lu-jian-yan-he-qiang-lian-tong-fen-liang-shang/">
-        </link>
-        <updated>2020-05-26T01:37:23.000Z</updated>
-        <summary type="html"><![CDATA[<p>本文主要介绍图搜索算法（DFS &amp; BFS）的应用实例，其包括：拓扑排序、环路检验和强连通分量计算。<br>
-P.s：考虑到强连通分量算法是一个较为难以理解的算法，故将强连通分量问题放在下章单独介绍。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>本文主要介绍图搜索算法（DFS &amp; BFS）的应用实例，其包括：拓扑排序、环路检验和强连通分量计算。<br>
-P.s：考虑到强连通分量算法是一个较为难以理解的算法，故将强连通分量问题放在下章单独介绍。</p>
-<!-- more -->
-<p><strong>本文内容提纲</strong>：</p>
-<ul>
-<li>拓扑排序</li>
-<li>环路检验</li>
-<li>强连通分量计算（见下章）</li>
-</ul>
-<h2 id="1-拓扑排序">1. 拓扑排序：</h2>
-<p>首先需要明确的是，拓扑排序主要用于确定事件间流程顺序，而有向图则是对事件间依赖关系的一种准确的建模。因此，本文对拓扑排序的讨论主要基于<strong>有向无环图</strong>（<strong>Directed Acyclic Graph，DAG</strong>）。此处强调无环图是因为，一旦图中出现环路，说明事件之间存在相互依赖关系，即难以确定事件间的流程顺序。这也引发出对于图中环路检验的一种方法，我们将在环路检验部分进行介绍。</p>
-<blockquote>
-<p><strong>定义：拓扑排序</strong>：</p>
-<ul>
-<li>输入：有向无环图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi><mo>=</mo><mo>(</mo><mi>V</mi><mo separator="true">,</mo><mi>E</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">G=(V,E)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mclose">)</span></span></span></span>；</li>
-<li>输出：图顶点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span></span></span></span>的拓扑序<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi></mrow><annotation encoding="application/x-tex">S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">S</span></span></span></span>，满足：对图中任意有向边<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>u</mi><mo separator="true">,</mo><mi>v</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">(u,v)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">u</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mclose">)</span></span></span></span>，在<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi></mrow><annotation encoding="application/x-tex">S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">S</span></span></span></span>中<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>在<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>v</mi></mrow><annotation encoding="application/x-tex">v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span></span></span></span>之前。</li>
-<li>拓扑序不唯一</li>
-</ul>
-</blockquote>
-<h3 id="11-基于广度优先bfs策略">1.1. 基于广度优先（BFS）策略：</h3>
-<h4 id="1算法思想">1）算法思想：</h4>
-<p>从节点度数入手——若顶点入度为0，说明所对应事件无制约条件，可直接完成。因此算法思想如下：</p>
-<ul>
-<li>完成入度为0的节点所对应的事件；</li>
-<li>删除完成事件，产生新的入度为0节点，继续完成。</li>
-</ul>
-<p>具体而言，借助<strong>队列</strong>这一数据结构，进行实现：<br>
-（1）将图中入度为0的节点全部压入队列；<br>
-（2）若队列非空，则将队首元素出队列，视为完成该节点对应事件。同时，删除图中该节点对应节点及其出边；<br>
-（3）将图中新产生入度为0的节点，压入队列。<br>
-（4）反复执行（2）、（3）直至队列为空。</p>
-<h4 id="2算法伪代码">2）算法伪代码：</h4>
-<figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1590460039571.png" alt="" loading="lazy"></figure>
-<h4 id="3算法复杂度分析">3）算法复杂度分析：</h4>
-<figure data-type="image" tabindex="2"><img src="https://mocuishle0.github.io//post-images/1590460092651.png" alt="" loading="lazy"></figure>
-<h3 id="12-基于深度优先dfs策略">1.2 基于深度优先（DFS）策略：</h3>
-<h4 id="1算法思想-2">1）算法思想：</h4>
-<p>根据DFS算法我们可：搜索深度越深，顺序越靠后；而对于深度越深的节点：发现时刻越晚，完成时刻越早（参考DFS中对节点标记<strong>发现时刻</strong>与<strong>完成时刻</strong>标记）。若我们依据发现时刻顺序得到拓扑序，很容易得到反例，因此，依据发现时刻顺序的思路并不可行；因而，我们考虑能否按照完成时刻的逆序进行拓扑排序。以下给出一个实例：<br>
-<img src="https://mocuishle0.github.io//post-images/1590460422331.png" alt="" loading="lazy"><br>
-所得拓扑序：手表、衬衫、领带、短裤、长裤、腰带、外套、袜子、鞋</p>
-<h4 id="2算法分析">2）算法分析：</h4>
-<p>下图给出了该方法的正确性证明：<br>
-<img src="https://mocuishle0.github.io//post-images/1590460556415.png" alt="" loading="lazy"></p>
-<h4 id="3算法伪代码">3）算法伪代码：</h4>
-<p><img src="https://mocuishle0.github.io//post-images/1590460873027.png" alt="" loading="lazy"><br>
-为了在搜索过程中得到按完成时刻顺序排列的顶点，可参考如下伪代码：<br>
-<img src="https://mocuishle0.github.io//post-images/1590461043449.png" alt="" loading="lazy"><br>
-之所以引入<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>L</mi><mo mathvariant="normal">′</mo></msup></mrow><annotation encoding="application/x-tex">L&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>是因为，对于有向图DFS，得到的可能是一个深度优先森林，因此引入<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>L</mi><mo mathvariant="normal">′</mo></msup></mrow><annotation encoding="application/x-tex">L&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>。</p>
-<h4 id="4算法复杂度分析">4）算法复杂度分析：</h4>
-<p>显然，基于DFS策略的拓扑排序其复杂度与DFS算法一致：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>+</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|V|+|E|)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mord">∣</span><span class="mclose">)</span></span></span></span></p>
-<h3 id="13-小结">1.3 小结：</h3>
-<figure data-type="image" tabindex="3"><img src="https://mocuishle0.github.io//post-images/1590461187123.png" alt="" loading="lazy"></figure>
-<h2 id="2-环路检验">2. 环路检验：</h2>
-<blockquote>
-<p><strong>定义：有向图中环路的存在性判断</strong>：</p>
-<ul>
-<li>输入：有向图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi><mo>=</mo><mo>(</mo><mi>V</mi><mo separator="true">,</mo><mi>E</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">G=(V,E)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mclose">)</span></span></span></span>；</li>
-<li>输出：图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi></mrow><annotation encoding="application/x-tex">G</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span></span></span></span>中是否存在环。<br>
-目前，有向图中环路的存在性判断问题主要存在两种解决思路：1）基于深度优先搜索边的性质；2）利用拓扑排序的性质。</li>
-</ul>
-</blockquote>
-<h3 id="21-基于深度优先搜索边的性质">2.1 基于深度优先搜索边的性质：</h3>
-<h4 id="1算法思路">1）算法思路</h4>
-<p>对于有向图，深度优先搜索时存在以下边的种类：</p>
-<ul>
-<li>树边：在深度优先树中的边；</li>
-<li>前向边：不在深度优先树中，从祖先指向后代的边</li>
-<li>后向边：从后代指向祖先的边</li>
-<li>横向边：顶点不具有祖先后代关系的边<br>
-<img src="https://mocuishle0.github.io//post-images/1590461447043.png" alt="" loading="lazy"></li>
-</ul>
-<p>经过证明，我们不难得到：<strong>有向图存在环路</strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mtext>  </mtext><mo>⟺</mo><mtext>  </mtext></mrow><annotation encoding="application/x-tex">\iff</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.549em;vertical-align:-0.024em;"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⟺</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span></span></span><strong>搜索时出现后向边</strong></p>
-<h4 id="2算法伪代码-2">2）算法伪代码：</h4>
-<p><img src="https://mocuishle0.github.io//post-images/1590461784330.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590461870292.png" alt="" loading="lazy"></p>
-<h4 id="3算法复杂性分析">3）算法复杂性分析：</h4>
-<p>显然，基于DFS策略的环路检验其复杂度与DFS算法一致：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>+</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|V|+|E|)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mord">∣</span><span class="mclose">)</span></span></span></span></p>
-<h3 id="22-利用拓扑排序的性质">2.2 利用拓扑排序的性质：</h3>
-<p>根据之前拓扑排序算法的介绍（基于BFS）：算法首先寻找一个入度为0的顶点，将该顶点从图中删除（即放进一个队列里存着，这个队列的顺序就是最后的拓扑排序）；并将该结点及其所有的出边从图中删除（即该结点指向的结点的入度减1）；最终若图中节点<strong>非空</strong>且<strong>当前图中不存在无前驱的顶点</strong>，则说明该有向图中必然存在环</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[图算法：图搜索应用——拓扑排序、环路检验和强连通分量（下）]]></title>
-        <id>https://mocuishle0.github.io/post/tu-suan-fa-tu-sou-suo-ying-yong-tuo-bu-pai-xu-huan-lu-jian-yan-he-qiang-lian-tong-fen-liang/</id>
-        <link href="https://mocuishle0.github.io/post/tu-suan-fa-tu-sou-suo-ying-yong-tuo-bu-pai-xu-huan-lu-jian-yan-he-qiang-lian-tong-fen-liang/">
-        </link>
-        <updated>2020-05-26T01:37:23.000Z</updated>
-        <summary type="html"><![CDATA[<p>本文主要介绍图搜索算法（DFS &amp; BFS）的应用实例，其包括：拓扑排序、环路检验和强连通分量计算。<br>
-本章主要介绍强连通分量计算问题～</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>本文主要介绍图搜索算法（DFS &amp; BFS）的应用实例，其包括：拓扑排序、环路检验和强连通分量计算。<br>
-本章主要介绍强连通分量计算问题～</p>
-<!-- more -->
-<p><strong>本文内容提纲</strong>：</p>
-<ul>
-<li>拓扑排序</li>
-<li>环路检验</li>
-<li>强连通分量计算</li>
-</ul>
-<h2 id="1-概念连通分量-强连通分量">1. 概念：连通分量 &amp; 强连通分量：</h2>
-<p>在之前的文章中介绍了连通分量的定义，如下：</p>
-<blockquote>
-<p><strong>连通分量</strong>：根据是否连通（任意对顶点互相可达）将顶点进行分组，相互可达的顶点集称为连通分量。</p>
-</blockquote>
-<p>相较于连通分量，强连通分量（<strong>Strongly Connected Components，SCC</strong>）有如下特点：</p>
-<blockquote>
-<p><strong>强连通分量</strong>：1）有向图中，一个强连通分量是顶点的子集；2）强连通分量中任意两点相互可达；3）满足<strong>最大性</strong>：加入新顶点，不保证相互可达。</p>
-</blockquote>
-<h2 id="2-应用背景">2. 应用背景：</h2>
-<p>强连通分量是图算法中一个重要的概念，在众多实际应用中也有大量的实际应用，例如：社交圈子的划分、可达性查询时对于原始图数据的简化等。在此，我们并不详细展开介绍。</p>
-<h2 id="3-问题定义">3. 问题定义：</h2>
-<blockquote>
-<p><strong>定义：强连通分量问题</strong></p>
-<ul>
-<li>输入：有向图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi><mo>=</mo><mo>(</mo><mi>V</mi><mo separator="true">,</mo><mi>E</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">G=(V,E)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mclose">)</span></span></span></span>；</li>
-<li>输出：图的所有强连通分量<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>C</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>C</mi><mn>2</mn></msub><mo separator="true">,</mo><mo>⋯</mo><msub><mi>C</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">C_1,C_2,\dotsb C_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>；<br>
-<img src="https://mocuishle0.github.io//post-images/1590464776419.png" alt="" loading="lazy"></li>
-</ul>
-</blockquote>
-<h2 id="4-算法框架与实例">4. 算法框架与实例：</h2>
-<p>由于该问题较难理解，我们首先介绍算法的整体框架——运行过程，以及一个实例演示：</p>
-<ul>
-<li>把原图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi></mrow><annotation encoding="application/x-tex">G</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span></span></span></span>中各条边反向，得到反向图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mi>R</mi></msup></mrow><annotation encoding="application/x-tex">G^R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413309999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.00773em;">R</span></span></span></span></span></span></span></span></span></span></span><br>
-<img src="https://mocuishle0.github.io//post-images/1590465002980.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590465012286.png" alt="" loading="lazy"></li>
-<li>在反向图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mi>R</mi></msup></mrow><annotation encoding="application/x-tex">G^R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413309999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.00773em;">R</span></span></span></span></span></span></span></span></span></span></span>上执行DFS，得到顶点<strong>完成时刻顺序</strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>L</mi></mrow><annotation encoding="application/x-tex">L</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">L</span></span></span></span>；<br>
-（实例中根据节点编号顺序开始执行DFS，即首先从1节点开始，之后2节点，最后7节点）<br>
-<img src="https://mocuishle0.github.io//post-images/1590465112302.png" alt="" loading="lazy"></li>
-<li>：在原图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi></mrow><annotation encoding="application/x-tex">G</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span></span></span></span>上按<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>L</mi></mrow><annotation encoding="application/x-tex">L</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">L</span></span></span></span>逆序执行DFS，得到强连通分量。<br>
-<img src="https://mocuishle0.github.io//post-images/1590465214451.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590465260852.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590465282753.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590465302100.png" alt="" loading="lazy"></li>
-</ul>
-<h2 id="5-算法伪代码">5. 算法伪代码：</h2>
-<p><img src="https://mocuishle0.github.io//post-images/1590466764733.png" alt="" loading="lazy"><br>
-在搜索过程中得到<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>L</mi></mrow><annotation encoding="application/x-tex">L</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">L</span></span></span></span>可参考基于深度优先策略解决拓扑排序问题中的方法：<br>
-<img src="https://mocuishle0.github.io//post-images/1590466816829.png" alt="" loading="lazy"></p>
-<p>显然，该算法复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>+</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|V|+|E|)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mord">∣</span><span class="mclose">)</span></span></span></span></p>
-<h2 id="6-算法分析">6. 算法分析：</h2>
-<p>在介绍算法正确性之前，我们先引入强连通分量图的概念及其性质：<br>
-<strong>强连通分量图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mrow><mi>S</mi><mi>C</mi><mi>C</mi></mrow></msup></mrow><annotation encoding="application/x-tex">G^{SCC}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413309999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05764em;">S</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span></span></span></span></span></span></span></span></span></span></span></span></strong>：把强连通分量看作一个点，得到的有向图。<br>
-<img src="https://mocuishle0.github.io//post-images/1590467108423.png" alt="" loading="lazy"></p>
-<ul>
-<li>性质：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mrow><mi>S</mi><mi>C</mi><mi>C</mi></mrow></msup></mrow><annotation encoding="application/x-tex">G^{SCC}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413309999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05764em;">S</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span></span></span></span></span></span></span></span></span></span></span></span>一定是有向无环图——由“最大性”易证得。</li>
-</ul>
-<p><strong><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi><mi>C</mi><msub><mi>C</mi><mrow><mi>s</mi><mi>i</mi><mi>n</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">SCC_{sink}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">S</span><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></strong>：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mrow><mi>S</mi><mi>C</mi><mi>C</mi></mrow></msup></mrow><annotation encoding="application/x-tex">G^{SCC}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413309999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05764em;">S</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span></span></span></span></span></span></span></span></span></span></span></span>中出度为0的点，我们称之为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi><mi>C</mi><msub><mi>C</mi><mrow><mi>s</mi><mi>i</mi><mi>n</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">SCC_{sink}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">S</span><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>。<br>
-<img src="https://mocuishle0.github.io//post-images/1590467154930.png" alt="" loading="lazy"></p>
-<ul>
-<li>性质1：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mrow><mi>S</mi><mi>C</mi><mi>C</mi></mrow></msup></mrow><annotation encoding="application/x-tex">G^{SCC}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413309999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05764em;">S</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span></span></span></span></span></span></span></span></span></span></span></span>中至少存在一个<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi><mi>C</mi><msub><mi>C</mi><mrow><mi>s</mi><mi>i</mi><mi>n</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">SCC_{sink}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">S</span><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>；</li>
-<li>性质2：删除<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi><mi>C</mi><msub><mi>C</mi><mrow><mi>s</mi><mi>i</mi><mi>n</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">SCC_{sink}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">S</span><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，会产生新的<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi><mi>C</mi><msub><mi>C</mi><mrow><mi>s</mi><mi>i</mi><mi>n</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">SCC_{sink}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">S</span><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>；</li>
-</ul>
-<p>结合以上性质观察算法第2次DFS，可知：第2次DFS按照<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>S</mi><mi>C</mi><msub><mi>C</mi><mrow><mi>s</mi><mi>i</mi><mi>n</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">SCC_{sink}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">S</span><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.07153em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">s</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight">n</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>的顺序搜索，并且每次搜索恰好访问该SCC的所有点。<br>
-<img src="https://mocuishle0.github.io//post-images/1590467577732.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590467950487.png" alt="" loading="lazy"></p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[图算法概论]]></title>
-        <id>https://mocuishle0.github.io/post/tu-suan-fa/</id>
-        <link href="https://mocuishle0.github.io/post/tu-suan-fa/">
-        </link>
-        <updated>2020-05-24T03:51:07.000Z</updated>
-        <summary type="html"><![CDATA[<p>本文从“柯尼斯堡七桥问题”作为引入，介绍“图”这一重要数据类型上的相关的一些定义、定理。<br>
-&lt;本文涉及的概念均采用目前公认的定义、及描述方法&gt;</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>本文从“柯尼斯堡七桥问题”作为引入，介绍“图”这一重要数据类型上的相关的一些定义、定理。<br>
-&lt;本文涉及的概念均采用目前公认的定义、及描述方法&gt;</p>
-<!-- more -->
-<p>本文涉及知识点：</p>
-<ul>
-<li>图的概念：
-<ul>
-<li>图的定义、相邻与关联；</li>
-<li>顶点的度与图的度、握手定理；</li>
-<li>路径与环路；</li>
-<li>连通、连通分量；</li>
-<li>子图、生成子图、树</li>
-</ul>
-</li>
-<li>图的表示：
-<ul>
-<li>邻接链表</li>
-<li>邻接矩阵</li>
-</ul>
-</li>
-</ul>
-<h2 id="1-引入柯尼斯堡七桥问题">1. 引入——柯尼斯堡七桥问题</h2>
-<p>1.1. <strong>问题描述</strong>：七座桥连接河岸和两个小岛，步行者怎样才能<strong>不重复、不遗漏</strong>地一次走完七座桥?<br>
-<img src="https://mocuishle0.github.io//post-images/1590307844161.png" alt="" loading="lazy"><br>
-柯尼斯堡七桥问题被认为是图论问题的起源，该问题经过抽象后，可得到仅保留<strong>节点</strong>和<strong>边</strong>的结构，该结构被称之为“<strong>图</strong>”。<br>
-<img src="https://mocuishle0.github.io//post-images/1590308079044.png" alt="" loading="lazy"><br>
-1.2. <strong>图的应用</strong>：</p>
-<ul>
-<li>计算机网络：因特网，万维网...<br>
-<img src="https://mocuishle0.github.io//post-images/1590308164930.png" alt="" loading="lazy"></li>
-<li>交通出行：地铁交通网，道路交通网...<br>
-<img src="https://mocuishle0.github.io//post-images/1590308172921.png" alt="" loading="lazy"></li>
-<li>社交网络：微博、微信...<br>
-<img src="https://mocuishle0.github.io//post-images/1590308180460.png" alt="" loading="lazy"></li>
-</ul>
-<h2 id="2-概念图的定义">2. 概念——图的定义</h2>
-<p>2.1. <strong>图</strong>：<br>
-图可以表示为一个二元组<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi><mo>=</mo><mo>&lt;</mo><mi>V</mi><mo separator="true">,</mo><mi>E</mi><mo>&gt;</mo></mrow><annotation encoding="application/x-tex">G=&lt;V,E&gt;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span></span><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span></span></span></span>，其中：<br>
-* <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span></span></span></span>表示非空顶点集，其元素称为顶点(Vertex)；<br>
-* <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>E</mi></mrow><annotation encoding="application/x-tex">E</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span></span></span></span>表示边集，其元素称为(Edge)。其中，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>e</mi><mo>=</mo><mo>(</mo><mi>u</mi><mo separator="true">,</mo><mi>v</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">e=(u,v)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">e</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">u</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mclose">)</span></span></span></span>表示一条边，其中𝒖∈𝑽, 𝒗∈𝑽, 𝒆∈𝑬。</p>
-<p>2.2. <strong>无向图 &amp; 有向图</strong>：</p>
-<ul>
-<li>
-<p>无向图（Undirected Graph）：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>G</mi><mi>u</mi></msub><mo>=</mo><mo>&lt;</mo><msub><mi>V</mi><mi>u</mi></msub><mo separator="true">,</mo><msub><mi>E</mi><mi>u</mi></msub><mo>&gt;</mo></mrow><annotation encoding="application/x-tex">G_u=&lt;V_u,E_u&gt;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">u</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span></span><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">u</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">u</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span></span></span></span><br>
-<img src="https://mocuishle0.github.io//post-images/1590308561969.png" alt="" loading="lazy"></p>
-</li>
-<li>
-<p>有向图（Directed Graph）：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>G</mi><mi>d</mi></msub><mo>=</mo><mo>&lt;</mo><msub><mi>V</mi><mi>d</mi></msub><mo separator="true">,</mo><msub><mi>E</mi><mi>d</mi></msub><mo>&gt;</mo></mrow><annotation encoding="application/x-tex">G_d=&lt;V_d,E_d&gt;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">d</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span></span><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">d</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">d</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span></span></span></span><br>
-<img src="https://mocuishle0.github.io//post-images/1590308617647.png" alt="" loading="lazy"><br>
-2.3. <strong>相邻 &amp; 关联</strong>：<br>
-<img src="https://mocuishle0.github.io//post-images/1590308797873.png" alt="" loading="lazy"></p>
-</li>
-<li>
-<p>相邻（Adjacent）：边(𝒖, 𝒗)连接的顶点𝒖和𝒗相邻；</p>
-</li>
-<li>
-<p>关联（Incident）：边(𝒖, 𝒗)和其连接的顶点𝒖(或𝒗)相互关联<br>
-2.4. <strong>度</strong>：</p>
-</li>
-<li>
-<p>顶点的度（Degree of a Vertex）：</p>
-<ul>
-<li>顶点𝒗的度：𝒅𝒆𝒈(𝒗)是𝒗关联的边数；</li>
-</ul>
-</li>
-<li>
-<p>图的度（Degree of a Graph）：</p>
-<ul>
-<li>图𝑮 =&lt; 𝑽, 𝑬 &gt;的度，是图各顶点的度之和——𝒅𝒆𝒈(𝑮) =<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mo>∑</mo><mrow><mi>v</mi><mo>∈</mo><mi>V</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\sum_{v\in V}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.07708em;vertical-align:-0.32708000000000004em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.17862099999999992em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">v</span><span class="mrel mtight">∈</span><span class="mord mathdefault mtight" style="margin-right:0.22222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.32708000000000004em;"><span></span></span></span></span></span></span></span></span></span>𝒅𝒆𝒈(𝒗)<br>
-<img src="https://mocuishle0.github.io//post-images/1590309064983.png" alt="" loading="lazy"></li>
-</ul>
-</li>
-<li>
-<p>握手定理（Handshaking Lemma）：无向图的度是边数的两倍，𝒅𝒆𝒈(𝑮) = 𝟐|𝑬|</p>
-<ul>
-<li>利用握手定理解柯尼斯堡七桥问题：根据问题可知，从起点出发，经过图中所有边，最终到达终点：
-<ul>
-<li>起点：第一步需要从一条边离开；</li>
-<li>终点：最后一步需要从一条边到达；</li>
-<li>其他顶点：从一条边到达后，需要从另一条边离开。因此，<strong>其他顶点的度为必须为偶数，否则无法离开</strong>。<br>
-<img src="https://mocuishle0.github.io//post-images/1590309486538.png" alt="" loading="lazy"><br>
-<strong>综上，柯尼斯堡七桥问题无解</strong><br>
-2.5. <strong>路径</strong>（Path）：</li>
-</ul>
-</li>
-<li>图中一个的顶点序列<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>&lt;</mo><msub><mi>v</mi><mn>0</mn></msub><mo separator="true">,</mo><msub><mi>v</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>⋯</mo><mtext> </mtext><mo separator="true">,</mo><msub><mi>v</mi><mi>k</mi></msub><mo>&gt;</mo></mrow><annotation encoding="application/x-tex">&lt; v_0,v_1 ,\dotsb, v_k&gt;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.7335400000000001em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span></span></span></span>，称为从<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>v</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">v_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>到<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>v</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">v_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>的路径；</li>
-<li>路径包含顶点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>v</mi><mn>0</mn></msub><mo separator="true">,</mo><msub><mi>v</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>⋯</mo><mtext> </mtext><mo separator="true">,</mo><msub><mi>v</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">v_0,v_1 ,\dotsb, v_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>,和边<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><msub><mi>v</mi><mn>0</mn></msub><mo separator="true">,</mo><msub><mi>v</mi><mn>1</mn></msub><mo>)</mo><mo separator="true">,</mo><mo>(</mo><msub><mi>v</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>v</mi><mn>2</mn></msub><mo>)</mo><mo>⋯</mo><mtext> </mtext><mo separator="true">,</mo><mo>(</mo><msub><mi>v</mi><mrow><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub><mo separator="true">,</mo><msub><mi>v</mi><mi>k</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">(v_0,v_1), (v_1,v_2) \dotsb, (v_{k-1},v_k)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>；</li>
-<li>存在路径<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>&lt;</mo><msub><mi>v</mi><mn>0</mn></msub><mo separator="true">,</mo><msub><mi>v</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>⋯</mo><mtext> </mtext><mo separator="true">,</mo><msub><mi>v</mi><mi>k</mi></msub><mo>&gt;</mo></mrow><annotation encoding="application/x-tex">&lt; v_0,v_1 ,\dotsb, v_k&gt;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.7335400000000001em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span></span></span></span>，则节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>v</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">v_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>与<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>v</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">v_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><strong>可达</strong>（reachability）；</li>
-<li>如果<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>v</mi><mn>0</mn></msub><mo separator="true">,</mo><msub><mi>v</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>⋯</mo><mtext> </mtext><mo separator="true">,</mo><msub><mi>v</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">v_0,v_1 ,\dotsb, v_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>互不相同，则该路径是<strong>简单</strong>的。<br>
-2.6. <strong>环路（Cycle）&amp; 无环图（Acyclic Graph）</strong>：</li>
-<li>如果路径<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>&lt;</mo><msub><mi>v</mi><mn>0</mn></msub><mo separator="true">,</mo><msub><mi>v</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>⋯</mo><mtext> </mtext><mo separator="true">,</mo><msub><mi>v</mi><mi>k</mi></msub><mo>&gt;</mo></mrow><annotation encoding="application/x-tex">&lt; v_0,v_1 ,\dotsb, v_k&gt;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.7335400000000001em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span></span></span></span>中<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>v</mi><mn>0</mn></msub><mo>=</mo><msub><mi>v</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">v_0=v_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，且至少包含一条边，则该路径构成<strong>环路</strong>；</li>
-<li>如果<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>v</mi><mn>0</mn></msub><mo separator="true">,</mo><msub><mi>v</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>⋯</mo><mtext> </mtext><mo separator="true">,</mo><msub><mi>v</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">v_0,v_1 ,\dotsb, v_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>互不相同，则该环路是简单的；</li>
-<li>无环图——图中不存在环路。<br>
-2.7. <strong>连通（Connectivity）&amp; 连通分量（Connected Components）</strong>：</li>
-<li>如果图的任意对顶点互相可达，则称该图是连通的，反之称为非连通<br>
-<img src="https://mocuishle0.github.io//post-images/1590310489510.png" alt="" loading="lazy"></li>
-<li>根据是否连通将顶点进行分组，相互可达的顶点集称为连通分量<br>
-<img src="https://mocuishle0.github.io//post-images/1590310564023.png" alt="" loading="lazy"><br>
-2.8. <strong>子图（Subgraph）&amp; 生成子图（Spanning Subgraph）</strong>：</li>
-<li>子图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mo>(</mo><msup><mi>V</mi><mo mathvariant="normal">′</mo></msup><mo separator="true">,</mo><msup><mi>E</mi><mo mathvariant="normal">′</mo></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">G&#x27;=(V&#x27;,E&#x27;)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.001892em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>：如果𝑽 ′ ⊆ 𝑽, 𝑬′ ⊆ 𝐄，则称图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mo mathvariant="normal">′</mo></msup></mrow><annotation encoding="application/x-tex">G&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>是图的一个子图；</li>
-<li>生成子图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mo>(</mo><msup><mi>V</mi><mo mathvariant="normal">′</mo></msup><mo separator="true">,</mo><msup><mi>E</mi><mo mathvariant="normal">′</mo></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">G&#x27;=(V&#x27;,E&#x27;)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.001892em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>：如果𝑽 ′ = 𝑽, 𝑬′ ⊆ 𝐄，则称图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mo mathvariant="normal">′</mo></msup></mrow><annotation encoding="application/x-tex">G&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>是图的一个生成子图；<br>
-<img src="https://mocuishle0.github.io//post-images/1590310896349.png" alt="" loading="lazy"><br>
-2.9. <strong>树（Tree）&amp; 森林（Forest）</strong>：</li>
-<li><strong>树</strong>——可以看作是一种特殊的<strong>连通、无环图</strong>——<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>T</mi><mo>=</mo><mo>&lt;</mo><msub><mi>V</mi><mi>T</mi></msub><mo separator="true">,</mo><msub><mi>E</mi><mi>T</mi></msub><mo>&gt;</mo></mrow><annotation encoding="application/x-tex">T=&lt;V_T,E_T&gt;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">T</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span></span><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span></span></span></span>，其中<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="normal">∣</mi><msub><mi>E</mi><mi>T</mi></msub><mi mathvariant="normal">∣</mi><mo>=</mo><mi mathvariant="normal">∣</mi><msub><mi>V</mi><mi>T</mi></msub><mi mathvariant="normal">∣</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">|E_T|=|V_T|-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span></li>
-<li><strong>森林</strong>——一至多棵树组成的无环图。<br>
-<img src="https://mocuishle0.github.io//post-images/1590311462318.png" alt="" loading="lazy"></li>
-</ul>
-<h2 id="3-表示常用的表示方式">3. 表示——常用的表示方式</h2>
-<p>3.1. <strong>邻接链表</strong>：</p>
-<ul>
-<li>图𝑮 =&lt; 𝑽, 𝑬 &gt;，其邻接链表由<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">|V|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span></span></span></span>条链表的数组构成；</li>
-<li>每个顶点有一条链表，包含所有与其相邻的顶点；</li>
-<li>空间大小𝑶(<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>+</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">|V|+|E|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mord">∣</span></span></span></span>);<br>
-<img src="https://mocuishle0.github.io//post-images/1590311790076.png" alt="" loading="lazy"></li>
-</ul>
-</li>
-</ul>
-<p>3.2. <strong>邻接矩阵</strong>：</p>
-<ul>
-<li>图𝑮 =&lt; 𝑽, 𝑬 &gt;的邻接矩阵由<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>∗</mo><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">|V|*|V|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span></span></span></span>的二维数组构成；</li>
-<li>空间大小为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><msup><mi mathvariant="normal">∣</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|V|^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord"><span class="mord">∣</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，判断节点间是否有边需要<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span>时间。<br>
-<img src="https://mocuishle0.github.io//post-images/1590311938367.png" alt="" loading="lazy"></li>
-</ul>
 ]]></content>
     </entry>
 </feed>

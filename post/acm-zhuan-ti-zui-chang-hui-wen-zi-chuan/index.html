@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>ACM专题：最长回文子串 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591256439112">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="最长回文子串问题，是ACM题库或各大公司笔试/面试中一类经典的问题。该问题在本科阶段的学习中就屡次被提及，但当时并未完全理解。此次对该问题进行一次整理与归纳。
+
+本文概要：
+
+问题定义
+求解思路：
+
+暴力求解
+动态规划求解
+中心扩散法
+Ma..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591256439112" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">ACM专题：最长回文子串</h2>
+            <div class="post-date">2020-06-02</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/acm-zhuan-ti-zui-chang-hui-wen-zi-chuan.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>最长回文子串问题，是ACM题库或各大公司笔试/面试中一类经典的问题。该问题在本科阶段的学习中就屡次被提及，但当时并未完全理解。此次对该问题进行一次整理与归纳。</p>
+<!-- more -->
+<p>本文概要：</p>
+<ul>
+<li>问题定义</li>
+<li>求解思路：
+<ul>
+<li>暴力求解</li>
+<li>动态规划求解</li>
+<li>中心扩散法</li>
+<li>Manacher 算法</li>
+</ul>
+</li>
+</ul>
+<h2 id="1-问题定义">1. 问题定义：</h2>
+<p><strong>定义 1.1 回文串：</strong> 是一个正读和反读都一样的字符串，比如“level”或者“noon”等等就是回文串。（百度百科）<br>
+<strong>定义 1.2 最长回文子串：</strong> 最长回文子串或最长对称因子问题是在一个字符串中查找一个最长的连续的回文的子串，例如“banana”最长回文子串是“anana”。最长回文子串并不一定是唯一的，比如“abracadabra”，没有超过3的回文子串，但是有两个回文字串长度都是3：“ada”和“aca”。</p>
+<p><strong>示例 1：</strong><br>
+输入: &quot;babad&quot;<br>
+输出: &quot;bab&quot;<br>
+注意: &quot;aba&quot; 也是一个有效答案。</p>
+<p><strong>示例 2:</strong><br>
+输入: &quot;cbbd&quot;<br>
+输出: &quot;bb&quot;</p>
+<h2 id="2-求解思路">2. 求解思路：</h2>
+<h3 id="21-暴力求解brute-force">2.1 暴力求解（Brute Force）</h3>
+<p>直观地，我们可以穷举给定字符串s中全部子串，继而判断当前子串是否符合回文串定义。在所有回文串中找到长度最长的即可。<br>
+值得注意的是，在具体实现过程中，我们通过以下技巧来提高算法的效率：</p>
+<ul>
+<li>在具体实现时，可以只针对长度大于“当前得到的最长回文子串长度”的子串进行“回文验证”；</li>
+<li>在记录最长回文子串的时候，可以只记录“当前子串的起始位置”和“子串长度”，不必做截取。</li>
+</ul>
+<p>参考代码如下：</p>
+<pre><code>//暴力求解法：
+int maxL = 0;
+string resStr;
+for (int i = 0; i &lt; s.length(); i++)
+{
+    string str;
+    for (int j = i; j &lt; s.length(); j++)
+    {
+        str += s[j];
+        string rstr = str;
+
+        if (maxL &lt; str.length())
+        {
+            reverse(rstr.begin(), rstr.end());
+            if (str == rstr){
+                maxL = str.length();
+                resStr = str;
+            }
+        }
+
+    }
+}
+
+cout &lt;&lt; resStr &lt;&lt; endl;
+</code></pre>
+<p><strong>复杂性分析：</strong></p>
+<ul>
+<li>时间复杂度：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>3</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^3)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，其中N表示给定字符串s的长度。（两重循环+字符串逆序）</li>
+<li>空间复杂度：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span>。（只记录“当前子串的起始位置”和“子串长度”）</li>
+</ul>
+<blockquote>
+<p>暴力解法时间复杂度高，但是思路清晰、编写简单。因此，可以使用暴力匹配算法检验我们编写的其它算法是否正确。优化的解法在很多时候，是基于“暴力解法”，以空间换时间得到的，因此思考清楚暴力解法，分析其缺点，很多时候能为我们打开思路。</p>
+</blockquote>
+<h3 id="22-动态规划dynamic-programming">2.2 动态规划（Dynamic programming）</h3>
+<p>动态规划是算法中一类最基础，同时也是最重要的解题思路之一。判断一个问题是否可以通过动态规划方法求解的核心在于：<strong>判读问题是否具有最优子结构性质，即问题的最优解由相关子问题的最优解组合而成，且子问题可单独求解</strong>。此处推荐算法领域的经典书籍《算法导论》以及北京航空航天大学童咏昕教授的《算法设计与分析》课程（中国大学MOOC）。<br>
+就我本人的理解而言，动态规划方法其本质类似于自动机，即后一状态需参考前一状态（或前多个状态）进行状态转移。在这一过程中，问题核心在于发现状态间转换关系，以及如何实现状态转移。LeetCode中的大神也对动态规划进行了总结（<a href="https://leetcode-cn.com/problems/longest-palindromic-substring/solution/zhong-xin-kuo-san-dong-tai-gui-hua-by-liweiwei1419/">参考文献</a>），见下图：<br>
+<img src="https://mocuishle0.github.io//post-images/1591067828997.png" alt="" loading="lazy"></p>
+<p>就最长回文子串问题而言，我们不难发现，对于给定字符串s的任意长度大于2的子串s[i][j]（从位置i到位置j构成的子串），其是否为回文子串存在以下关系：</p>
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>[</mo><mi>i</mi><mo>]</mo><mo>[</mo><mi>j</mi><mo>]</mo></mrow><annotation encoding="application/x-tex">s[i][j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault">i</span><span class="mclose">]</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span>是回文串 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mtext>  </mtext><mo>⟺</mo><mtext>  </mtext></mrow><annotation encoding="application/x-tex">\iff</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.549em;vertical-align:-0.024em;"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⟺</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span></span></span> 字符<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>[</mo><mi>i</mi><mo>]</mo><mo>=</mo><mi>s</mi><mo>[</mo><mi>j</mi><mo>]</mo></mrow><annotation encoding="application/x-tex">s[i]=s[j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault">i</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span>且子串<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>[</mo><mi>i</mi><mo>+</mo><mn>1</mn><mo>]</mo><mo>[</mo><mi>j</mi><mo>−</mo><mn>1</mn><mo>]</mo></mrow><annotation encoding="application/x-tex">s[i+1][j-1]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">]</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span>是回文串；</li>
+</ul>
+<p>因此，我们不难得出该问题的动态规划方法：</p>
+<ul>
+<li>
+<p><strong>1）初始化</strong>：初始化一个N*N的矩阵（二维数组）用于表示子串s[i][j]是否为回文串，其中：由于<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi><mo>≤</mo><mi>j</mi></mrow><annotation encoding="application/x-tex">i\leq j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.79549em;vertical-align:-0.13597em;"></span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span></span></span></span>，因此该矩阵为上三角矩阵，且对角线元素均为<strong>true</strong>。</p>
+</li>
+<li>
+<p><strong>2）递推公式</strong>：</p>
+<ul>
+<li>首先，如果子串s[i][j]中的首末字符<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>[</mo><mi>i</mi><mo>]</mo><mi mathvariant="normal">≠</mi><mi>s</mi><mo>[</mo><mi>j</mi><mo>]</mo></mrow><annotation encoding="application/x-tex">s[i]\neq s[j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault">i</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel"><span class="mrel"><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.69444em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="rlap"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="inner"><span class="mrel"></span></span><span class="fix"></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span></span><span class="mrel">=</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span>，则s[i][j]可直接判定为<strong>false</strong>；</li>
+<li>之后，需要判断子串s[i][j]除去首末字符<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>[</mo><mi>i</mi><mo>]</mo><mi mathvariant="normal">、</mi><mi>s</mi><mo>[</mo><mi>j</mi><mo>]</mo></mrow><annotation encoding="application/x-tex">s[i]、s[j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault">i</span><span class="mclose">]</span><span class="mord cjk_fallback">、</span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span>后是否构成区间：
+<ul>
+<li>若不构成区间，即：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>j</mi><mo>−</mo><mn>1</mn><mo>)</mo><mo>−</mo><mo>(</mo><mi>i</mi><mo>+</mo><mn>1</mn><mo>)</mo><mo>+</mo><mn>1</mn><mo>&lt;</mo><mn>2</mn><mo>←</mo><mi>j</mi><mo>−</mo><mi>i</mi><mo>&lt;</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">(j-1)-(i+1)+1 &lt; 2\leftarrow j-i &lt; 3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68354em;vertical-align:-0.0391em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">←</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.69862em;vertical-align:-0.0391em;"></span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span></span></span></span>：则s[i][j]可判定为<strong>true</strong>；</li>
+<li>若构成区间，即$ j-i \geq 3$：则s[i][j]的结果取决于则s[i+1][j-1]。</li>
+<li>注意：每次判定子串s[i][j]是否为回文串后，需再次判断该回文串长度是否大于当前最长回文串长度。若超过当前最长则需要更新。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>3）计算顺序</strong>：<br>
+该问题的计算顺序是又一难点。不同于一般的动态规划问题：从左至右、从上至下依次根据前一状态计算后一状态，根据该问题的递推公式可知：当前状态（s[i][j]）取决于矩阵中其左下角状态（s[i+1][j-1]）。因此，我们给出该问题两种错误的计算顺序和四种正确的计算顺序：<br>
+<img src="https://mocuishle0.github.io//post-images/1591069534676.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1591069540322.png" alt="" loading="lazy"></p>
+</li>
+</ul>
+<p>参考代码如下：</p>
+<pre><code>int slen = s.length();
+int maxLen = 1;
+int begin = 0;
+
+if (slen &lt; 2)
+{
+    cout &lt;&lt; s &lt;&lt; endl;
+}
+
+bool dp[slen][slen];
+
+memset(dp, 0, sizeof(dp));
+
+for (int i = 0; i &lt; slen; i++)
+{
+    dp[i][i] = true;
+}
+
+for (int j = 1; j &lt; slen; j++)
+{
+    for (int i = 0; i &lt; j; i++)
+    {
+        if (s[i] != s[j])
+        {
+            dp[i][j] = false;
+        }
+        else
+        {
+            if (j - i &lt; 3) //区间判断：(j-1)-(i+1)+1&lt;2 =&gt; j-i&lt;3
+            {
+                dp[i][j] = true;
+            }
+            else
+            {
+                dp[i][j] = dp[i + 1][j - 1];
+            }
+        }
+
+        if (dp[i][j] &amp;&amp; j - i + 1 &gt; maxLen)
+        {
+            maxLen = j - i + 1;
+            begin = i;
+        }
+    }
+}
+
+cout &lt;&lt; s.substr(begin, maxLen) &lt;&lt; endl;
+</code></pre>
+<p><strong>复杂性分析：</strong></p>
+<ul>
+<li>时间复杂度：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>;</li>
+<li>空间复杂度：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>（二维数组）;</li>
+</ul>
+<p><strong>小结（<a href="https://leetcode-cn.com/problems/longest-palindromic-substring/solution/zhong-xin-kuo-san-dong-tai-gui-hua-by-liweiwei1419/">参考</a>）：</strong></p>
+<ul>
+<li>我们看到，用「动态规划」方法解决问题，有的时候并不是直接面向问题的。</li>
+<li>「动态规划」依然是「空间换时间」思想的体现，并且本身「动态规划」作为一种打表格法，就是在用「空间」换「时间」。</li>
+<li>关于「动态规划」方法执行时间慢的说明：
+<ul>
+<li>动态规划本质上还是「暴力解法」，因为需要枚举左右边界，有 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>这么多；</li>
+<li>以下提供的「中心扩散法」枚举了所有可能的回文子串的中心，有 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mn>2</mn><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(2N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">2</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>这么多，不在一个级别上。</li>
+</ul>
+</li>
+</ul>
+<h3 id="23-中心扩散法">2.3 中心扩散法</h3>
+<p>中心扩散法其实质是对于朴素的暴力求解法的一种优化：朴素的暴力求解是对于子串左右边界的枚举，而根据回文子串的特性我们不难想到，<strong>可对回文“中心位置”进行枚举，并以“中心位置”为中心尝试向左右扩散以得到最长回文子串</strong>。</p>
+<p>综上，中心扩散法的思路是：遍历每一个可能的中心位置，利用“回文串”中心对称的特点，往两边扩散，看最多能扩散多远。枚举“中心位置”时间复杂度为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>，从“中心位置”扩散得到“回文子串”的时间复杂度为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>。因此，中心扩散法时间复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>。</p>
+<p>该方法理解起来并不困难，然而该方法的核心在于如何有效遍历两类回文中心：</p>
+<ul>
+<li><strong>奇数回文串</strong>的“中心”是一个具体的字符，例如：回文串 &quot;aba&quot; 的中心是字符 &quot;b&quot;；</li>
+<li><strong>偶数回文串</strong>的“中心”是位于中间的两个字符的“空隙”，例如：回文串串 &quot;abba&quot; 的中心是两个 &quot;b&quot; 中间的那个“空隙”。<br>
+如下图所示：<br>
+<img src="https://mocuishle0.github.io//post-images/1591085916365.png" alt="" loading="lazy"><br>
+因此，可能成为“中心位置”的候选位置如下所示：<br>
+<img src="https://mocuishle0.github.io//post-images/1591085971415.png" alt="" loading="lazy"></li>
+</ul>
+<p>考虑以上情况，参考代码实现如下（<a href="https://leetcode-cn.com/problems/longest-palindromic-substring/solution/zhong-xin-kuo-san-dong-tai-gui-hua-by-liweiwei1419/">原文</a>）：</p>
+<pre><code>string centerSpread(string s, int left, int right) {
+        // left = right 的时候，此时回文中心是一个空隙，向两边扩散得到的回文子串的长度是奇数
+        // right = left + 1 的时候，此时回文中心是一个字符，向两边扩散得到的回文子串的长度是偶数
+        int size = s.size();
+        int i = left;
+        int j = right;
+        while (i &gt;= 0 &amp;&amp; j &lt; size) {
+            if (s[i] == s[j]) {
+                i--;
+                j++;
+            } else {
+                break;
+            }
+        }
+        // 这里要小心，跳出 while 循环时，恰好满足 s.charAt(i) != s.charAt(j)，因此不能取 i，不能取 j
+        return s.substr(i + 1, j - i - 1);
+    }
+
+string longestPalindrome(string s) {
+        // 特判
+        int size = s.size();
+        if (size &lt; 2) {
+            return s;
+        }
+
+        int maxLen = 1;
+        string res = s.substr(0, 1);
+
+        // 中心位置枚举到 len - 2 即可
+        for (int i = 0; i &lt; size - 1; i++) {
+            string oddStr = centerSpread(s, i, i);
+            string evenStr = centerSpread(s, i, i + 1);
+            string maxLenStr = oddStr.size() &gt; evenStr.size() ? oddStr : evenStr;
+            if (maxLenStr.length() &gt; maxLen) {
+                maxLen = maxLenStr.size();
+                res = maxLenStr;
+            }
+        }
+        return res;
+    }
+
+</code></pre>
+<h3 id="24-manacher-算法">2.4 Manacher 算法</h3>
+<p>Manacher 算法其时间复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>，然而其本身较为复杂。以下仅是自己的理解综合<a href="https://leetcode-cn.com/problems/longest-palindromic-substring/solution/zui-chang-hui-wen-zi-chuan-by-leetcode-solution/">参考文献</a>进行的归纳。</p>
+<p>Manacher 算法其核心类似于著名的字符串匹配问题中的KMP算法：<strong>基于中心扩展算法，在下一次扩展时充分利用上一次扩展中的可用信息</strong>。<br>
+在介绍Manacher 算法具体流程之前，需要引入<strong>臂长</strong>的概念。所谓臂长，即表示中心扩展算法向外扩展的长度。如果一个位置的最大回文字符串长度为 2 * L + 1 ，其臂长为 L。以Leetcode中的示例为例：给定字符串s=&quot;ebabababe&quot;，对于位置j=4（s[j]=s[4]='a'）而言，其臂长L=4:<br>
+<img src="https://mocuishle0.github.io//post-images/1591087759158.png" alt="" loading="lazy"></p>
+<p>Manacher 算法其出发点在于，从位置为i的位置进行中心扩展，能否借助之前得到的位置为j的中心扩展中的信息。答案是肯定的。具体来说，如果位置 j 的臂长为L，并且有 j + L &gt; i，如下图所示：<br>
+<img src="https://mocuishle0.github.io//post-images/1591087888404.png" alt="" loading="lazy"><br>
+当在位置 i 开始进行中心拓展时，我们可以先找到 i 关于 j 的对称点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>i</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mn>2</mn><mo>∗</mo><mi>j</mi><mo>−</mo><mi>i</mi></mrow><annotation encoding="application/x-tex">i&#x27;=2 * j - i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">i</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span></span></span></span>。那么如果点 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>i</mi><mo mathvariant="normal">′</mo></msup></mrow><annotation encoding="application/x-tex">i&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">i</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>的臂长等于 n，我们就可以知道，点 i 的臂长至少为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>m</mi><mi>i</mi><mi>n</mi><mo>(</mo><mi>j</mi><mo>+</mo><mi>L</mi><mo>−</mo><mi>i</mi><mo separator="true">,</mo><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">min(j + L - i, n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">m</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathdefault">L</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">i</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>。那么我们就可以直接跳过 i 到 i + min(j + L - i, n) 这部分，从 i + min(j + L - i, n) + 1 开始拓展。</p>
+<p>以上图为例，j=4,L=4：<br>
+若i=6，可知<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>i</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">i&#x27;=2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">i</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span></span></span></span>，且<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>i</mi><mo mathvariant="normal">′</mo></msup></mrow><annotation encoding="application/x-tex">i&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">i</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>的臂长n=1。由于<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>m</mi><mi>i</mi><mi>n</mi><mo>(</mo><mi>j</mi><mo>+</mo><mi>L</mi><mo>−</mo><mi>i</mi><mo separator="true">,</mo><mi>n</mi><mo>)</mo><mo>=</mo><mi>m</mi><mi>i</mi><mi>n</mi><mo>(</mo><mn>2</mn><mo separator="true">,</mo><mn>1</mn><mo>)</mo><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">min(j + L - i, n)=min(2,1)=1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">m</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathdefault">L</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">i</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">m</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mopen">(</span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>，所以我们就可以直接跳过 i=6 到 i + min(j + L - i, n) =7 这部分，从位置 i + min(j + L - i, n) + 1 =8 开始拓展。</p>
+<p>显然，以上的处理仅针对字符串长度为奇数。而对于字符串长度为偶数的情况，我们可以通过一个简单的小技巧即可完成两种情况的统一：我们向字符串的头尾以及每两个字符中间添加一个特殊字符 #，比如字符串 aaba 处理后会变成 #a#a#b#a#。那么原先长度为偶数的回文字符串 aa 会变成长度为奇数的回文字符串 #a#a#，而长度为奇数的回文字符串 aba 会变成长度仍然为奇数的回文字符串 #a#b#a#，我们就不需要再考虑长度为偶数的回文字符串了。</p>
+<p>参考代码如下：</p>
+<pre><code>int expand(const string&amp; s, int left, int right) {
+        while (left &gt;= 0 &amp;&amp; right &lt; s.size() &amp;&amp; s[left] == s[right]) {
+            --left;
+            ++right;
+        }
+        return (right - left - 2) / 2;
+    }
+
+    string longestPalindrome(string s) {
+        int start = 0, end = -1;
+        string t = &quot;#&quot;;
+        for (char c: s) {
+            t += c;
+            t += '#';
+        }
+        t += '#';
+        s = t;
+
+        vector&lt;int&gt; arm_len;
+        int right = -1, j = -1;
+        for (int i = 0; i &lt; s.size(); ++i) {
+            int cur_arm_len;
+            if (right &gt;= i) {
+                int i_sym = j * 2 - i;
+                int min_arm_len = min(arm_len[i_sym], right - i);
+                cur_arm_len = expand(s, i - min_arm_len, i + min_arm_len);
+            }
+            else {
+                cur_arm_len = expand(s, i, i);
+            }
+            arm_len.push_back(cur_arm_len);
+            if (i + cur_arm_len &gt; right) {
+                j = i;
+                right = i + cur_arm_len;
+            }
+            if (cur_arm_len * 2 + 1 &gt; end - start) {
+                start = i - cur_arm_len;
+                end = i + cur_arm_len;
+            }
+        }
+
+        string ans;
+        for (int i = start; i &lt;= end; ++i) {
+            if (s[i] != '#') {
+                ans += s[i];
+            }
+        }
+        return ans;
+    }
+
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/tu-suan-fa-duo-yuan-zui-duan-lu-jing-wen-ti-floyd-suan-fa/">
+                  <h3 class="post-title">
+                    图算法：多源最短路径问题——Floyd算法
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>
