@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>C++11 新特征：基于范围的for循环 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591344675765">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="像python一样，优雅地简化对数组、容器的遍历代码。
+
+其实很多时候还是很羡慕python中for循环的写法的，直到发现...原来C++11原来也有这么优雅的循环写法，真香！
+为了在遍历容器时支持“foreach”用法，C++11扩展了f..." />
+    <meta name="keywords" content="C++" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591344675765" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">C++11 新特征：基于范围的for循环</h2>
+            <div class="post-date">2020-06-04</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/c11-xin-te-zheng-ji-yu-fan-wei-de-for-xun-huan.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>像python一样，优雅地简化对数组、容器的遍历代码。</p>
+<!-- more -->
+<p>其实很多时候还是很羡慕python中for循环的写法的，直到发现...原来C++11原来也有这么优雅的循环写法，真香！<br>
+为了在遍历容器时支持“foreach”用法，C++11扩展了for语句的语法。用这个新的写法，<strong>可以遍历C类型的数组、初始化列表以及任何重载了非成员的begin()和end()函数的类型</strong>。 如果你只是想对集合或数组的每个元素做一些操作，而不关心下标、迭代器位置或者元素个数，那么这种foreach的for循环将会非常有用。</p>
+<h2 id="1-基于范围的for循环">1. 基于范围的for循环</h2>
+<p>循环最常见的的场景就是对数据集合的每一个元素进行某种操作。C++11之前，大致是这样的程序：</p>
+<pre><code>int a[] = {1, 2, 3, 4};
+
+int sum = 0;
+
+for(int i = 0 ; i &lt; sizeof(a)/sizeof(a[0]); ++i)｛
+
+        sum += a[i];
+
+｝
+
+vector&lt;int&gt; v{1, 2, 3,4};
+
+int sum = 0;
+
+for(auto it = v.begin(); it != v.end(); it++){
+
+    sum += *it;
+
+}
+</code></pre>
+<p>而在C++11 引入基于范围的for循环后，循环可以优雅地写成下面这样：</p>
+<pre><code>int array[]{1, 2, 3, 4};
+
+int sum = 0;
+
+ for(int a : array){
+
+     sum += a;
+
+}
+
+vector&lt;int&gt; vect{1, 2, 3, 4};
+
+int sum = 0;
+
+for(int v: vect){
+
+    sum += v;
+
+}
+</code></pre>
+<p>for(int v : vect)可以理解为“对于vect中的每一个v”。</p>
+<h2 id="2-应用条件">2. 应用条件</h2>
+<p>正如之前所说，数据v被范围for遍历的条件是，该<strong>数据支持v.begin()/v.end()或者是begin(v)/end(v)并返回一个迭代器</strong>。STL中的容器都满足上述条件。对于内置类型的数组来讲C++编译器提供了等同于上述接口的机制，因此也可以在范围for中使用。</p>
+<h2 id="3-完整示例">3. 完整示例</h2>
+<pre><code>#include &lt;iostream&gt;
+#include &lt;vector&gt;
+ 
+int main() {
+    std::vector&lt;int&gt; v = {0, 1, 2, 3, 4, 5};
+ 
+    for (const int&amp; i : v) // 以 const 引用访问
+        std::cout &lt;&lt; i &lt;&lt; ' ';
+    std::cout &lt;&lt; '\n';
+ 
+    for (auto i : v) // 以值访问，i 的类型是 int
+        std::cout &lt;&lt; i &lt;&lt; ' ';
+    std::cout &lt;&lt; '\n';
+ 
+    for (auto&amp; i : v) // 以引用访问，i 的类型是 int&amp;
+        std::cout &lt;&lt; i &lt;&lt; ' ';
+    std::cout &lt;&lt; '\n';
+ 
+    for (int n : {0, 1, 2, 3, 4, 5}) // 初始化器可以是花括号初始化器列表
+        std::cout &lt;&lt; n &lt;&lt; ' ';
+    std::cout &lt;&lt; '\n';
+ 
+    int a[] = {0, 1, 2, 3, 4, 5};
+    for (int n : a) // 初始化器可以是数组
+        std::cout &lt;&lt; n &lt;&lt; ' ';
+    std::cout &lt;&lt; '\n';
+ 
+    for (int n : a)  
+        std::cout &lt;&lt; 1 &lt;&lt; ' '; // 不必使用循环变量
+    std::cout &lt;&lt; '\n';
+ 
+}
+
+//输出为
+// 0 1 2 3 4 5
+// 0 1 2 3 4 5
+// 0 1 2 3 4 
+// 0 1 2 3 4 5
+// 0 1 2 3 4 5
+// 1 1 1 1 1 1
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/Yz3MZw1Sl/" class="tag">
+                    C++
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/c11-xin-te-zheng-lambda-han-shu-yu-biao-da-shi/">
+                  <h3 class="post-title">
+                    C++11 新特征：Lambda函数与表达式
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

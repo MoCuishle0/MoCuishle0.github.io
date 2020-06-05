@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591256439112">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591344675765">
 <link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
 
 
@@ -28,7 +28,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://mocuishle0.github.io/">
-        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591256439112" class="site-logo">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591344675765" class="site-logo">
         <h1 class="site-title">MoCuishle</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -133,7 +133,7 @@ for(auto it=vec.begin();it!=vec.end();it++){
 <li>auto不能被声明为返回值，auto不能作为形参，auto不能被修饰为模板参数。但是，<strong>如果函数有一个尾随的返回类型时，auto是可以出现在函数声明中返回值位置</strong>。这种情况下，auto并不是告诉编译器去推断返回类型，而是指引编译器去函数的末端寻找返回值类型。下面给出一个经典的例子，函数的返回值类型就是operator+操作符作用在T1、T2类型变量上的返回值类型：</li>
 </ul>
 <pre><code>template &lt;typename _Tx, typename _Ty&gt;
-auto multiply(_Tx x, _Ty y)-&gt;decltype(_Tx + _Ty)    //decltype用法见后文
+auto compose(_Tx x, _Ty y)-&gt;decltype(_Tx + _Ty)    //decltype用法见后文
 {
     return x + y;
 }

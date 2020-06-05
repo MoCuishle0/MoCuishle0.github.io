@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://mocuishle0.github.io/</id>
     <title>MoCuishle</title>
-    <updated>2020-06-04T07:41:17.537Z</updated>
+    <updated>2020-06-05T10:22:45.782Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://mocuishle0.github.io/"/>
     <link rel="self" href="https://mocuishle0.github.io/atom.xml"/>
@@ -11,6 +11,410 @@
     <logo>https://mocuishle0.github.io/images/avatar.png</logo>
     <icon>https://mocuishle0.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, MoCuishle</rights>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：返回类型后置]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-fan-hui-lei-xing-hou-zhi/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-fan-hui-lei-xing-hou-zhi/">
+        </link>
+        <updated>2020-06-05T07:46:07.000Z</updated>
+        <summary type="html"><![CDATA[<p>利用返回类型后置可以令一个函数返回值为“auto”</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>利用返回类型后置可以令一个函数返回值为“auto”</p>
+<!-- more -->
+<p>除了构造函数和析构函数以外，函数声明都需要明确函数的返回类型，在传统的C或者C++中，函数声明大致是这个样子：</p>
+<pre><code>int getSum(int a, int b);
+</code></pre>
+<p>第一个int就是函数的返回类型，它表明函数的返回值类型为整数。在新的C++11以后，我们也可以这样声明：</p>
+<pre><code>auto getSum(int a, int b)-&gt;int;
+</code></pre>
+<p>在原来放返回值类型的位置写auto，在函数声明结束以后接一个'-&gt;'再跟着写函数的返回值类型。两种方式的效果是一样的。</p>
+<hr>
+<p><strong>更优雅的用法：</strong></p>
+<p>在介绍返回类型后置之前，我们先来再谈一组令人头大的概念：<strong>数组指针</strong>和<strong>指针数组</strong>......（回想起了被指针常量和常量指针支配的恐惧 -_-）</p>
+<ul>
+<li><strong>数组指针</strong>：可以理解为**“数组的指针”<strong>，即首先这个变量是一个</strong>指针**，其次，“数组”修饰这个指针，意思是说这个指针存放着一个数组的首地址，或者说这个指针指向一个数组的首地址。
+<ul>
+<li>e.g：*<em>char (<em>pa)[4];</em></em></li>
+<li>pa是一个指针指向一个char [4]的数组，每个数组元素是一个char类型的变量，所以我们不妨可以写成：char[4] (*pa);这样就可以直观的看出pa的指向的类型。（不过在编辑器中不要这么写，因为编译器根本不认识，这样写只是帮助我们理解。）</li>
+</ul>
+</li>
+<li><strong>指针数组</strong>：可以理解为**“指针的数组”<strong>，首先这个变量是一个</strong>数组**，其次，“指针”修饰这个数组，意思是说这个数组的所有元素都是指针类型。
+<ul>
+<li>e.g：*<em>char <em>arr[4] = {&quot;hello&quot;, &quot;world&quot;, &quot;shannxi&quot;, &quot;xian&quot;};</em></em></li>
+<li>arr就是定义的一个指针数组，它有四个元素，每个元素是一个char *类型的指针，这些指针存放着其对应字符串的首地址。</li>
+</ul>
+</li>
+</ul>
+<p>P.s：<strong>指针数组和数组指针的形成的根本原因就是运算符的优先级问题</strong>，所以定义变量是一定要注意这个问题，否则定义变量会有根本性差别！</p>
+<p>在明白了<strong>数组指针</strong>和<strong>指针数组</strong>的概念后，我们来聊聊返回类型后置的一种优雅的用法：</p>
+<p>一般情况下，当函数要返回多个数据时，会选择将数据封装在类（或结构体）中返回，或者直接返回一个指针。这两种方式要么麻烦，要么没有办法取得数据的数量。其实我们真正的需求就是返回一个数组（可以计算维度的）指针。这种方法是存在的：</p>
+<blockquote>
+<p>e.g:int (*getResultArray(int mode))[10];</p>
+</blockquote>
+<p>结合数组指针和指针数组的定义，上面的是数组指针还是指针数组呢？应该是<strong>数组指针</strong>。通过上面的形式，声明了一个返回包含10个整数的数组的指针。对于这样一个指针，我们可以像数组一样使用：</p>
+<pre><code>auto arr = getResultArray(1);
+cout &lt;&lt; sizeof(*arr)/sizeof(**arr) &lt;&lt; endl; //可以正确计算维度。
+</code></pre>
+<p>我们其实也可以这样做：</p>
+<pre><code>typedef int arr10[10];
+arr10* getResultArray(int mode)
+</code></pre>
+<p>C++11增加了返回类型后置以后，我们有了新的选择：</p>
+<pre><code>auto getResultArray(int mode)-&gt;int(*)[10]；
+</code></pre>
+<p>比第一种形式容易理解很多。也不需要自定义类型。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：容器的cbegin和cend函数 ]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-rong-qi-de-cbegin-he-cend-han-shu/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-rong-qi-de-cbegin-he-cend-han-shu/">
+        </link>
+        <updated>2020-06-05T03:41:53.000Z</updated>
+        <summary type="html"><![CDATA[<p>小众的常量迭代器</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>小众的常量迭代器</p>
+<!-- more -->
+<p>这个新特征其实是偶尔在别人的总结中看到的，但觉得确实很有趣，就做个记录：</p>
+<h2 id="1-需求">1. 需求</h2>
+<p>我们一般在使用STL容器时，下面代码是非常常见的：</p>
+<pre><code>int sum = 0;
+vector&lt;int&gt; v{1, 2, 3, 4, 5, 6};
+vector&lt;int&gt;::iterator it = v.begin();
+while(it != v.end()){
+       sum += *it;
+       it++;
+ }
+</code></pre>
+<p>但是，如果我们一旦定义容器为常量，就必须注意迭代器也需要声明为常量：</p>
+<pre><code>int sum = 0;
+
+//编译错误：原因是定义的vector是const类型，所以迭代器必须也是const类型
+const vector&lt;int&gt; cv{1, 2, 3, 4, 5, 6};
+vector&lt;int&gt;::iterator cit = cv.begin();
+while(cit != v.end()){
+       sum += *cit;
+       cit++;
+ }
+
+//正确写法：
+const vector&lt;int&gt; cv{1, 2, 3, 4, 5, 6};
+vector&lt;int&gt;::const_iterator cit = cv.begin();
+while(cit != v.end()){
+       sum += *cit;
+       cit++;
+}
+</code></pre>
+<p>这显然很麻烦，一个简单的方法是直接使用auto来自动推断迭代器类型（想必大家都更倾向于这样，毕竟...有了auto还要啥自行车）：</p>
+<pre><code>auto ait = cv.begin();
+while(ait != cv.end()){ 
+       sum += *ait;
+       ait++;
+ }
+</code></pre>
+<h2 id="2-优势">2. 优势</h2>
+<p>但我们也不难想到存在这样一种情形：<strong>数据本身不是const类型，但是从设计的角度来讲有些处理不应该修改该数据</strong>。这时也应该要求const类型的迭代器，以避免数据被意外修改。所以，C++11为此提供了cbegin和cend方法。</p>
+<pre><code>vector&lt;int&gt; v{1, 2, 3, 4, 5, 6};
+auto ait = v.cbegin();
+while(ait != v.cend()){
+           sum += *ait;
+           *ait = sum;  //编译错误
+           ait++;
+}
+</code></pre>
+<p>cbegin()/cend()决定了返回的迭代器类型为const。这时即使vector的类型不是const，也可以防止对该数据的误操作。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：常量表达式]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-chang-liang-biao-da-shi/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-chang-liang-biao-da-shi/">
+        </link>
+        <updated>2020-06-05T02:05:16.000Z</updated>
+        <summary type="html"><![CDATA[<p>常量+指针......可真是太难了</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>常量+指针......可真是太难了</p>
+<!-- more -->
+<p>总体而言，常量本身并不难理解：使用<strong>const</strong>关键词限定的量被认为是常量；常量一旦初始化便不允许修改。然而，C++中最让人头疼的概念莫过于指针了，因此常量一旦结合指针......极致的快乐就来了。单单脑补一下这两个名词：指针常量、常量指针......就够头大了。因此，在正式开始之前，我还是得复习一下C++中指针的概念。</p>
+<h2 id="1-指针">1. 指针</h2>
+<p>首先，所谓指针，其本质仍然是一个变量，但其值为另一个变量的地址，即，内存位置的直接地址。<br>
+提到指针，其实理解的关键在于理解两个运算符——<strong>“*”和“&amp;”</strong>：</p>
+<ul>
+<li>** “*”**：被称为间接值或解除引用运算符，将其用于指针，<strong>可得到该地址处所存储的值</strong>。（由于指针<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>p</mi></mrow><annotation encoding="application/x-tex">p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">p</span></span></span></span>的值就是一个变量的地址，因此，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>∗</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">*p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6597200000000001em;vertical-align:-0.19444em;"></span><span class="mord">∗</span><span class="mord mathdefault">p</span></span></span></span>就是该指针所指向变量的值）。</li>
+<li><strong>“&amp;”</strong>：地址运算符，用于访问变量的地址。</li>
+</ul>
+<p>所以，根据指针的定义以及“*”和“&amp;”的用法，我们可以更好地理解C++中指针的声明和初始化：</p>
+<pre><code>//初始化方式1：先声明，后初始化——更好理解
+int a = 25;
+int *ptr_a;
+ptr_a = &amp;a;
+
+//初始化方式2：声明同时初始化——更常用，也更安全
+int b = 20;
+int *ptr_b = &amp;b;        /P.s:是将ptr_b初始化，即：将ptr_b（而不是*ptr_b）的值设置为&amp;b。
+
+//初始化方式3：数组初始化
+int c[10];
+int *ptr_c1 = c;  
+int *ptr_c2 = &amp;c[0];
+</code></pre>
+<p>为了加深理解，再给几个例子，你品，你细品：</p>
+<pre><code>//错误示例：p仅声明了而没有初始化，所以p所指向的内存位置是随机的。
+int  *p;
+*p = 7;
+
+//正确示例：
+int k = 1, m = 3;
+
+int *p;
+p = &amp;k; //给p赋值
+cout &lt;&lt; &amp;k &lt;&lt; &quot; &quot; &lt;&lt; p &lt;&lt; &quot; &quot; &lt;&lt; &amp;m &lt;&lt; endl;
+cout &lt;&lt; k &lt;&lt; &quot; &quot; &lt;&lt; *p &lt;&lt; &quot; &quot; &lt;&lt; m &lt;&lt; endl;
+
+*p = 7; //给p所指向的内存赋值，即k= 7
+cout &lt;&lt; &amp;k &lt;&lt; &quot; &quot; &lt;&lt; p &lt;&lt; &quot; &quot; &lt;&lt; &amp;m &lt;&lt; endl;
+cout &lt;&lt; k &lt;&lt; &quot; &quot; &lt;&lt; *p &lt;&lt; &quot; &quot; &lt;&lt; m &lt;&lt; endl;
+
+p = &amp;m;
+cout &lt;&lt; &amp;k &lt;&lt; &quot; &quot; &lt;&lt; p &lt;&lt; &quot; &quot; &lt;&lt; &amp;m &lt;&lt; endl;
+cout &lt;&lt; k &lt;&lt; &quot; &quot; &lt;&lt; *p &lt;&lt; &quot; &quot; &lt;&lt; m &lt;&lt; endl;
+
+/*
+最终输出：
+0x7ffee6e7974c 0x7ffee6e7974c 0x7ffee6e79748
+1 1 3
+0x7ffee6e7974c 0x7ffee6e7974c 0x7ffee6e79748
+7 7 3
+0x7ffee6e7974c 0x7ffee6e79748 0x7ffee6e79748
+7 3 3
+*/
+</code></pre>
+<h2 id="2-指针常量-常量指针">2. “指针常量” &amp; “常量指针”</h2>
+<p>如果，到这里还顶得住，那我们来谈谈一开始我们说的“指针常量”和“常量指针”：<br>
+这两个概念其实从本科一直到研究生我都一直在“懂了”-“晕了”之间反复横跳～直到在<a href="https://www.zhihu.com/question/19829354">知乎</a>看到一个非常有趣的解释，突然之间———我觉得我又可以了：<br>
+其实，常量和指针的结合方式共有6种：<br>
+①const int p;<br>
+②const int* p;<br>
+③int const* p<br>
+④int * const p;<br>
+⑤const int * const p;<br>
+⑥int const * const p;</p>
+<p>①其实没什么好说的，平平无奇的一个常量整数。然而，后面几个，emmm...老千层饼了，直接劝退。<br>
+先别怕，这里其实有一套实用的技巧：</p>
+<ul>
+<li>从右往左读；</li>
+<li>遇到p就替换成“p is a ”；</li>
+<li>遇到*就替换成“point to”。</li>
+</ul>
+<p>例如：<br>
+②读作：“p is a point to int const.”--这说明p是一个指向整型常量的指针。<br>
+③读作：“p is a point to const int.” --意思跟②相同。<br>
+④读作：“p is a const point to int.”--p是一个常量指针，指向整型。<br>
+⑤读作：“p is a const point to int const.”<br>
+⑥读作：“p is a const point to const int.”--⑤和⑥的意思相同，p都是常量指针，指向整型常量。<br>
+这里再说明一下：如果p是一个指针，指向常量，说明指向的常量的值是不能更改的；如果p是一个常量指针，指向整型，说明p的值（存的地址）是不能更改的（老千层饼*2）。可以再给一个例子：</p>
+<pre><code>const double pi = 3.14;
+const double  *cptr = &amp;pi;    //指向常量的指针
+*cptr = 4;            //cptr存的是常量pi的地址，所以*cptr常量pi的地址所指向的值。因此，该语句其实是企图更改常量的值——编译错误
+
+
+double var1 = 45, var2=50;
+double *const  pvar = &amp;var1;  //常量指针，指向double变量。
+*pvar = 40;       //与上一个例子相同，这里是企图改变var1的值，而不是改变常量指针存储的值——正确
+
+pvar = &amp;var2;   //该语句实质是想改变常量指针里面存储的地址——编译错误
+</code></pre>
+<p>到这里，应该说清楚了吧......</p>
+<h2 id="3-常量表达式">3. 常量表达式</h2>
+<h3 id="31-什么是常量表达式">3.1 什么是常量表达式</h3>
+<p>常量表达式是指值不会改变并且在<strong>编译过程</strong>就能够得到计算结果的表达式。显然，字面值属于常量表达式，用常量表达式初始化的 const 对象也是常量表达式。如下：</p>
+<pre><code>const int max_num = 20;           // max_num是常量表达式
+const int limit = max_num + 1;    // limit 是常量表达式
+int staff_size = 2;               // staff_size 不是常量表达式，因为staff_size没有用const修饰
+const int zs = get_size();        // sz 不是常量表达式，虽然sz是个常量，但它的值在运行时才能确定
+</code></pre>
+<p>可见：<strong>一个对象（或表达式）是不是常量表达式由它的数据类型（是否const）和初始值共同决定。</strong></p>
+<h3 id="32-constexprconst-expression">3.2 constexpr(const expression)：</h3>
+<p>const可以用来修饰常量，可是只有当其初始值是个常量表达式时，const修饰的对象才是个常量表达式。一般来说，在日益复杂的系统中确定变量的初始值到底是不是常量表达式并不是一件容易的事。为了解决这个问题C++11允许将变量声明为<strong>constexpr</strong>类型以便由编译器验证变量的值是否是一个常量表达式。一般而言，<strong>如果你认定变量是一个常量表达式，那就把它声明成 constexpr 类型。constexpr 变量在定义时必须初始化</strong>。</p>
+<pre><code>constexpr int mf = 20;		// mf是常量表达式
+constexpr int limit = mf + 1;	// limit 是常量表达式
+constexpr int sz = get_sz();	// 只有当 get_sz() 是一个 constexpr 函数时才是一条正确的声明语句
+</code></pre>
+<h3 id="33-指针和constexpr">3.3 指针和constexpr</h3>
+<p>从上面的介绍不难看出，变量声明为constexpr类型，就意味着<strong>一方面变量本身是常量，也意味着它必须用常量表达式来初始化</strong>。所以，当 constexpr 修饰指针时，constexpr 仅对指针有效，与指针所指的对象无关：</p>
+<pre><code>const int *p = nullptr;		// p 是指向常量的指针
+constexpr int *q = nullptr;	// q 是常指针，constexpr 仅对指针有效
+</code></pre>
+<p>当然，const 和 constptr 可以一起来修饰一个指针，用于表明指向常量的常指针:</p>
+<pre><code>constexpr const int *p = &amp;i;	
+// 指向常量的常指针，注意 &amp;i 必须是常量表达式，i可以是全局变量或静态变量等等。。这些变量的地址在编译时就确定了
+</code></pre>
+<h3 id="34-constexpr函数">3.4 constexpr函数</h3>
+<p>除了能用常量表达式初始化constexpr变量以外，还可以使用constexpr函数。它是指<strong>能用于常量表达式的函数，也就是说它的计算结果可以在编译时确定</strong>。定义的方法就是在<strong>返回值类型前加constexpr关键字</strong>。但是为了保证计算结果可以在编译是确定，必须满足以下条件：</p>
+<ul>
+<li>返回值和形参必须都是字面值类型。</li>
+<li>函数中只能有一条return语句。</li>
+</ul>
+<pre><code>constexpr long long factorial(int n){
+
+   return n &lt;= 1? 1 : (n * factorial(n - 1));
+
+}
+
+constexpr long long f18 = factorial(20);
+</code></pre>
+<h3 id="35-总结">3.5 总结</h3>
+<p>constexpr可以：</p>
+<ul>
+<li>加强初始值的检查</li>
+<li>计算的时机从运行时提前到编译时，比宏定义效率更高。</li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特性：列表初始化]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-xing-lie-biao-chu-shi-hua/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-xing-lie-biao-chu-shi-hua/">
+        </link>
+        <updated>2020-06-04T09:13:03.000Z</updated>
+        <summary type="html"><![CDATA[<p>优雅的初始化方式</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>优雅的初始化方式</p>
+<!-- more -->
+<p>回想一下，之前C或者C++在初始化数组时，可以使用下面的花括号加初始值的形式：</p>
+<pre><code>int int_array[] = {1, 2, 3, 4, 5};
+</code></pre>
+<p>这对于常使用C++的程序员而言，是一种司空见惯的写法。然而，这种方法的运用范围很窄，许多场景都用不了。最典型的例子莫过于vector：可以像数组一样使用，可以自己管理数据长度，还提供各种操作数组的方法。声明的方法也很简单：</p>
+<pre><code>vector&lt;int&gt; int_vector;
+</code></pre>
+<p>但是有一个问题，当需要指定元素初始化vector时就不那么方便了，传统的初始化方法有以下几类：</p>
+<pre><code>//方法1:逐一压入
+int_vector.push_back(5);
+int_vector.push_back(4);
+int_vector.push_back(3);
+int_vector.push_back(2);
+int_vector.push_back(1);
+//方法2:统一赋值——int_vector共有10个元素，每个元素都是8
+vector&lt;int&gt; int_vector(10,8)；
+</code></pre>
+<h2 id="列表初始化">列表初始化</h2>
+<p>C++11中扩展了使用<strong>花括号</strong>初始化变量的应用范围，称这种初始化方式为列表初始化。例如，可以像下面这样初始化vector、list、map:</p>
+<pre><code>vector&lt;int&gt; int_vector = {5, 4, 3, 2, 1};
+list&lt;int&gt; int_list = {5, 4, 3, 2, 1};
+map&lt;int, const char*&gt; id2Name = {{1,&quot;Zhang&quot;},{2, &quot;Wang&quot;},{3, &quot;Li&quot;}};
+</code></pre>
+<p>更简单的还有以下写法：</p>
+<pre><code>vector&lt;int&gt; int_vector{5, 4, 3, 2, 1};
+
+list&lt;int&gt; int_list {5, 4, 3, 2, 1};
+
+map&lt;int, const char*&gt; id2Name{{1,&quot;Zhang&quot;},{2, &quot;Wang&quot;},{3, &quot;Li&quot;}};
+</code></pre>
+<p>舒服了～</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：基于范围的for循环]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-ji-yu-fan-wei-de-for-xun-huan/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-ji-yu-fan-wei-de-for-xun-huan/">
+        </link>
+        <updated>2020-06-04T08:13:10.000Z</updated>
+        <summary type="html"><![CDATA[<p>像python一样，优雅地简化对数组、容器的遍历代码。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>像python一样，优雅地简化对数组、容器的遍历代码。</p>
+<!-- more -->
+<p>其实很多时候还是很羡慕python中for循环的写法的，直到发现...原来C++11原来也有这么优雅的循环写法，真香！<br>
+为了在遍历容器时支持“foreach”用法，C++11扩展了for语句的语法。用这个新的写法，<strong>可以遍历C类型的数组、初始化列表以及任何重载了非成员的begin()和end()函数的类型</strong>。 如果你只是想对集合或数组的每个元素做一些操作，而不关心下标、迭代器位置或者元素个数，那么这种foreach的for循环将会非常有用。</p>
+<h2 id="1-基于范围的for循环">1. 基于范围的for循环</h2>
+<p>循环最常见的的场景就是对数据集合的每一个元素进行某种操作。C++11之前，大致是这样的程序：</p>
+<pre><code>int a[] = {1, 2, 3, 4};
+
+int sum = 0;
+
+for(int i = 0 ; i &lt; sizeof(a)/sizeof(a[0]); ++i)｛
+
+        sum += a[i];
+
+｝
+
+vector&lt;int&gt; v{1, 2, 3,4};
+
+int sum = 0;
+
+for(auto it = v.begin(); it != v.end(); it++){
+
+    sum += *it;
+
+}
+</code></pre>
+<p>而在C++11 引入基于范围的for循环后，循环可以优雅地写成下面这样：</p>
+<pre><code>int array[]{1, 2, 3, 4};
+
+int sum = 0;
+
+ for(int a : array){
+
+     sum += a;
+
+}
+
+vector&lt;int&gt; vect{1, 2, 3, 4};
+
+int sum = 0;
+
+for(int v: vect){
+
+    sum += v;
+
+}
+</code></pre>
+<p>for(int v : vect)可以理解为“对于vect中的每一个v”。</p>
+<h2 id="2-应用条件">2. 应用条件</h2>
+<p>正如之前所说，数据v被范围for遍历的条件是，该<strong>数据支持v.begin()/v.end()或者是begin(v)/end(v)并返回一个迭代器</strong>。STL中的容器都满足上述条件。对于内置类型的数组来讲C++编译器提供了等同于上述接口的机制，因此也可以在范围for中使用。</p>
+<h2 id="3-完整示例">3. 完整示例</h2>
+<pre><code>#include &lt;iostream&gt;
+#include &lt;vector&gt;
+ 
+int main() {
+    std::vector&lt;int&gt; v = {0, 1, 2, 3, 4, 5};
+ 
+    for (const int&amp; i : v) // 以 const 引用访问
+        std::cout &lt;&lt; i &lt;&lt; ' ';
+    std::cout &lt;&lt; '\n';
+ 
+    for (auto i : v) // 以值访问，i 的类型是 int
+        std::cout &lt;&lt; i &lt;&lt; ' ';
+    std::cout &lt;&lt; '\n';
+ 
+    for (auto&amp; i : v) // 以引用访问，i 的类型是 int&amp;
+        std::cout &lt;&lt; i &lt;&lt; ' ';
+    std::cout &lt;&lt; '\n';
+ 
+    for (int n : {0, 1, 2, 3, 4, 5}) // 初始化器可以是花括号初始化器列表
+        std::cout &lt;&lt; n &lt;&lt; ' ';
+    std::cout &lt;&lt; '\n';
+ 
+    int a[] = {0, 1, 2, 3, 4, 5};
+    for (int n : a) // 初始化器可以是数组
+        std::cout &lt;&lt; n &lt;&lt; ' ';
+    std::cout &lt;&lt; '\n';
+ 
+    for (int n : a)  
+        std::cout &lt;&lt; 1 &lt;&lt; ' '; // 不必使用循环变量
+    std::cout &lt;&lt; '\n';
+ 
+}
+
+//输出为
+// 0 1 2 3 4 5
+// 0 1 2 3 4 5
+// 0 1 2 3 4 
+// 0 1 2 3 4 5
+// 0 1 2 3 4 5
+// 1 1 1 1 1 1
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[C++11 新特征：Lambda函数与表达式]]></title>
         <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-lambda-han-shu-yu-biao-da-shi/</id>
@@ -223,7 +627,7 @@ for(auto it=vec.begin();it!=vec.end();it++){
 <li>auto不能被声明为返回值，auto不能作为形参，auto不能被修饰为模板参数。但是，<strong>如果函数有一个尾随的返回类型时，auto是可以出现在函数声明中返回值位置</strong>。这种情况下，auto并不是告诉编译器去推断返回类型，而是指引编译器去函数的末端寻找返回值类型。下面给出一个经典的例子，函数的返回值类型就是operator+操作符作用在T1、T2类型变量上的返回值类型：</li>
 </ul>
 <pre><code>template &lt;typename _Tx, typename _Ty&gt;
-auto multiply(_Tx x, _Ty y)-&gt;decltype(_Tx + _Ty)    //decltype用法见后文
+auto compose(_Tx x, _Ty y)-&gt;decltype(_Tx + _Ty)    //decltype用法见后文
 {
     return x + y;
 }
@@ -641,580 +1045,6 @@ string longestPalindrome(string s) {
     }
 
 </code></pre>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[图算法：多源最短路径问题——Floyd算法]]></title>
-        <id>https://mocuishle0.github.io/post/tu-suan-fa-duo-yuan-zui-duan-lu-jing-wen-ti-floyd-suan-fa/</id>
-        <link href="https://mocuishle0.github.io/post/tu-suan-fa-duo-yuan-zui-duan-lu-jing-wen-ti-floyd-suan-fa/">
-        </link>
-        <updated>2020-05-29T01:53:16.000Z</updated>
-        <summary type="html"><![CDATA[<p>之前，我们介绍了单源最短路径问题：Dijkstra算法——解决正权边图上的单源最短路径；Bellman-Ford算法——解决图上带负权边的单源最短路径问题。而今天，我们将主要介绍一种解决图上多元最短路径的算法——Floyd算法。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>之前，我们介绍了单源最短路径问题：Dijkstra算法——解决正权边图上的单源最短路径；Bellman-Ford算法——解决图上带负权边的单源最短路径问题。而今天，我们将主要介绍一种解决图上多元最短路径的算法——Floyd算法。</p>
-<!-- more -->
-<p>本文概要：</p>
-<ul>
-<li>算法背景</li>
-<li>算法思想</li>
-<li>算法实例</li>
-<li>算法实现</li>
-</ul>
-<p>P.s：本文图例参考：<a href="https://juejin.im/post/5d8ede95e51d457824771d27">原文链接</a></p>
-<h2 id="1-算法背景">1. 算法背景</h2>
-<p>现实生活中，我们的需求时常不仅仅是求得某地到其他各地的最短距离，更常见的情况是我们需要知道各地之间的最短距离。一种朴素且可行的想法是：对于图中每个节点使用解决单源最短路径问题的算法（Dijkstra算法 或 Bellman-Ford算法）。然而，在现实环境中图数据规模庞大，该方法的时间复杂度显然是我们所难以接受的。因此，我们需要一种高效的方法解决这样一个多源最短路径问题。</p>
-<p>解决多源最短路径问题的众多算法中，最为人们所熟知的是Floyd算法。该算法凭借其明了的思想、简洁的代码实现，被大家称之为一个短小精悍的算法。本文将在后续部分主要介绍该算法的核心思想。</p>
-<h2 id="2-算法思想">2. 算法思想</h2>
-<p>之前在介绍Dijkstra算法时，我们首次提出了**“松弛”**的思想，并强调这一思想是大多数最短路算法的核心思想。因此，Floyd算法也不例外，其核心思想概括而言是——<strong>动态规划策略+松弛</strong>。<br>
-在正式介绍算法之前，我们对下图进行观察：<br>
-<img src="https://mocuishle0.github.io//post-images/1590718757078.png" alt="" loading="lazy"><br>
-不难发现，在不考虑其他节点/路径的情况下，节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn><mo>→</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">1\to 4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">4</span></span></span></span>之间的最短距离即为边<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mn>1</mn><mo separator="true">,</mo><mn>4</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">(1,4)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">4</span><span class="mclose">)</span></span></span></span>的权值6。然而，如果我们引入节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>3</mn></mrow><annotation encoding="application/x-tex">3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span></span></span></span>，并利用边<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mn>1</mn><mo separator="true">,</mo><mn>3</mn><mo>)</mo><mo separator="true">,</mo><mo>(</mo><mn>3</mn><mo separator="true">,</mo><mn>4</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">(1,3),(3,4)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">3</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mopen">(</span><span class="mord">3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">4</span><span class="mclose">)</span></span></span></span>可将节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn><mo>→</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">1\to 4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">4</span></span></span></span>之间的最短距离更新为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>5</mn></mrow><annotation encoding="application/x-tex">5</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">5</span></span></span></span>，即松弛成功。<br>
-因此，我们不难想到——对图中所有点均进行试探，判断每一个点对间的距离是否因为加入的点而更新，即可得到任意两点间的最短距离。这便是Floyd算法的核心思想。总结如下：<br>
-1）利用邻接矩阵dist[i][j]储存节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi><mo separator="true">,</mo><mi>j</mi></mrow><annotation encoding="application/x-tex">i,j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">i</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span></span></span></span>间的最短距离。如果没有直接相连的两点那么默认为一个很大的值，并且其到自己的长度为0；<br>
-2）从第1个到第<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">|V|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span></span></span></span>个点依次加入图中。每个点加入进行试探是否有路径长度被更新；<br>
-3）上述试探具体方法为遍历图中每一个点(i,j双重循环)，判断每一个点对距离是否因为加入的点而发生最小距离变化。如果发生改变，那么两点(i,j)距离就更新；<br>
-4）重复上述直到最后插点试探完成。</p>
-<h2 id="3-算法实例">3. 算法实例</h2>
-<p>依然沿用我们上述的图例：<br>
-<img src="https://mocuishle0.github.io//post-images/1590720071412.png" alt="" loading="lazy"><br>
-利用邻接矩阵dist[i][j]储存节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi><mo separator="true">,</mo><mi>j</mi></mrow><annotation encoding="application/x-tex">i,j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">i</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span></span></span></span>间的最短距离，上述dist[i][j]矩阵展示了初始阶段的内容。之后我们对图中每个节点进行试探：</p>
-<p>对于节点1进行试探：由于1的加入，使得本来不连通的2，3点对和2，4点对变得联通，并且加入1后距离为当前最小。同时，我们发现加入1其中也使得产生路径3$\to<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>\to<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>4</mn><mi mathvariant="normal">，</mi><mi mathvariant="normal">但</mi><mi mathvariant="normal">是</mi><mi mathvariant="normal">路</mi><mi mathvariant="normal">径</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">4，但是路径3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">4</span><span class="mord cjk_fallback">，</span><span class="mord cjk_fallback">但</span><span class="mord cjk_fallback">是</span><span class="mord cjk_fallback">路</span><span class="mord cjk_fallback">径</span><span class="mord">3</span></span></span></span>\to<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>\to$4的距离为9远远大于本来的(3,4)为2，所以不进行更新。<br>
-<img src="https://mocuishle0.github.io//post-images/1590720145062.png" alt="" loading="lazy"></p>
-<p>对于节点2进行试探：<br>
-<img src="https://mocuishle0.github.io//post-images/1590720406969.png" alt="" loading="lazy"><br>
-后续同理。</p>
-<h2 id="4-算法实现">4. 算法实现</h2>
-<p>Floyd算法的实现非常简洁，其核心代码仅需要三层循环即可：</p>
-<pre><code>for(int i = 1; i &lt;= n; i++)
-{
-    for(int j = 1; j &lt;= n; j++)
-    {
-        for(int k = 1; k &lt;= n; k++)
-        {
-            if(dis[j][k] &gt; dis[j][i] + dis[i][k])
-            {
-                dis[j][k] = dis[j][i] + dis[i][k];
-            }
-        }
-    }
-}
-</code></pre>
-<p>显然，该算法复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><msup><mi mathvariant="normal">∣</mi><mn>3</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|V|^3)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord"><span class="mord">∣</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[图算法：单源最短路径问题——Bellman-Ford算法]]></title>
-        <id>https://mocuishle0.github.io/post/tu-suan-fa-dan-yuan-zui-duan-lu-jing-wen-ti-bellman-ford-suan-fa/</id>
-        <link href="https://mocuishle0.github.io/post/tu-suan-fa-dan-yuan-zui-duan-lu-jing-wen-ti-bellman-ford-suan-fa/">
-        </link>
-        <updated>2020-05-28T09:00:30.000Z</updated>
-        <summary type="html"><![CDATA[<p>在前一篇文章中，主要介绍了如何利用Dijkstra算法解决正权图上的单源最短路径问题。然而，在现实生活中的许多图模型中，其权值并不一定全部为正。因此，本文将讨论带负权图上的单源最短路径问题。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>在前一篇文章中，主要介绍了如何利用Dijkstra算法解决正权图上的单源最短路径问题。然而，在现实生活中的许多图模型中，其权值并不一定全部为正。因此，本文将讨论带负权图上的单源最短路径问题。</p>
-<!-- more -->
-<p>本文概要：</p>
-<ul>
-<li>算法背景</li>
-<li>算法思想</li>
-<li>算法实例</li>
-<li>算法分析</li>
-<li>算法性质</li>
-</ul>
-<h2 id="1-算法背景dijkstra算法的局限性">1. 算法背景——Dijkstra算法的局限性</h2>
-<p>考虑以下实例：<br>
-<img src="https://mocuishle0.github.io//post-images/1590657049468.png" alt="" loading="lazy"><br>
-根据Dijkstra算法的思想，一旦确定源节点与任意节点最短距离后，在后续的过程中该距离将不会被松弛。然而，由于负权边的存在将与该情况发生冲突，因此Dijkstra算法无法适用于负权图上的单源最短路径问题。</p>
-<p>根据上述情况随之需要思考：图中存在负权边时，是否一定存在单源最短路径?——<strong>不一定</strong>。考虑以下情况：<br>
-<img src="https://mocuishle0.github.io//post-images/1590657737868.png" alt="" loading="lazy"><br>
-所以，<strong>若源点𝒔无可达负环，则存在源点𝒔的单源最短路径</strong>。</p>
-<p>综上，我们给出图中允许出现负权边时的单源最短路径问题的定义：<br>
-<strong>定义. 单源最短路径问题（可含负权边）：</strong></p>
-<ul>
-<li>输入：
-<ul>
-<li>带权图𝑮 =(𝑽, 𝑬, 𝑾 )</li>
-<li>源点编号𝒔</li>
-</ul>
-</li>
-<li>输出：
-<ul>
-<li>源点𝒔到所有其他顶点𝒕的最短距离𝜹(𝒔, 𝒕)和最短路径&lt; 𝒔, … , 𝒕 &gt;</li>
-<li>或存在源点𝒔可达的负环</li>
-</ul>
-</li>
-</ul>
-<p>根据问题定义可知，该问题存在以下两点挑战：</p>
-<ul>
-<li>挑战𝟏：图中存在负权边时，如何求解单源最短路径?</li>
-<li>挑战𝟐：图中存在负权边时，如何发现源点可达负环?</li>
-</ul>
-<h2 id="2-算法思想多轮松弛">2. 算法思想——多轮松弛</h2>
-<p>在Dijkstra算法中，我们主要通过<strong>松弛操作</strong>迭代更新最短距离：<br>
-<img src="https://mocuishle0.github.io//post-images/1590658201059.png" alt="" loading="lazy"><br>
-直观地，存在负权边时，需要比Dijkstra算法更多次数的松弛操作：<br>
-<img src="https://mocuishle0.github.io//post-images/1590658320213.png" alt="" loading="lazy"></p>
-<p><strong>Bellman-Ford算法</strong></p>
-<ul>
-<li>解决挑战1：图中存在负权边时，如何求解单源最短路径?
-<ul>
-<li>每轮对<strong>所有边</strong>进行松弛，持续迭代|𝑽 |-1轮</li>
-</ul>
-</li>
-<li>解决挑战2：图中存在负权边时，如何发现源点可达负环?
-<ul>
-<li>进行第|𝑽 |轮松弛，若仍松弛成功，存在源点𝒔可达的负环</li>
-</ul>
-</li>
-</ul>
-<h2 id="3-算法实例">3. 算法实例</h2>
-<p>初始时，我们任意给定一个松弛边的顺序：<br>
-<img src="https://mocuishle0.github.io//post-images/1590658636753.png" alt="" loading="lazy"><br>
-第一轮松弛后，结果如图：<br>
-<img src="https://mocuishle0.github.io//post-images/1590658718748.png" alt="" loading="lazy"><br>
-第二轮松弛后，结果如图：<br>
-<img src="https://mocuishle0.github.io//post-images/1590658764758.png" alt="" loading="lazy"><br>
-第三轮松弛后，结果如图：<br>
-<img src="https://mocuishle0.github.io//post-images/1590658797977.png" alt="" loading="lazy"><br>
-第四轮松弛后，结果如图：<br>
-<img src="https://mocuishle0.github.io//post-images/1590658840317.png" alt="" loading="lazy"></p>
-<p>可见，第四轮后已经无法继续松弛，因此后续必然无法继续松弛，可得到最终结果。</p>
-<h2 id="4-算法分析">4. 算法分析</h2>
-<p><img src="https://mocuishle0.github.io//post-images/1590660153675.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590660173506.png" alt="" loading="lazy"><br>
-显然，该算法的复杂度为𝑶(|𝑬 | ⋅ |𝑽 |)</p>
-<h2 id="5-算法性质正确性证明">5. 算法性质——正确性证明：</h2>
-<ul>
-<li>挑战𝟏：图中存在负权边时，如何求解单源最短路径?——最坏情况分析<br>
-<img src="https://mocuishle0.github.io//post-images/1590660327820.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590660352404.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590660406572.png" alt="" loading="lazy"></li>
-<li>挑战𝟐：图中存在负权边时，如何发现源点可达负环?<br>
-<img src="https://mocuishle0.github.io//post-images/1590660507814.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590660565463.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590660582971.png" alt="" loading="lazy"></li>
-</ul>
-<h2 id="6-小结">6. 小结</h2>
-<figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1590660611474.png" alt="" loading="lazy"></figure>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[图算法：单源最短路径问题——Dijkstra算法]]></title>
-        <id>https://mocuishle0.github.io/post/tu-suan-fa-dan-yuan-zui-duan-lu-jing-wen-ti-dijkstra-suan-fa/</id>
-        <link href="https://mocuishle0.github.io/post/tu-suan-fa-dan-yuan-zui-duan-lu-jing-wen-ti-dijkstra-suan-fa/">
-        </link>
-        <updated>2020-05-28T03:01:54.000Z</updated>
-        <summary type="html"><![CDATA[<p>最短路径问题始终是图算法中一类重要的研究问题，目前也有众多工作提出了一些高效的解决策略。然而，就单源最短路径问题而言，Dijkstra算法和Bellman-Ford算法历经多年仍然是最经典的算法。本文将重点介绍Dijkstra算法。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>最短路径问题始终是图算法中一类重要的研究问题，目前也有众多工作提出了一些高效的解决策略。然而，就单源最短路径问题而言，Dijkstra算法和Bellman-Ford算法历经多年仍然是最经典的算法。本文将重点介绍Dijkstra算法。</p>
-<!-- more -->
-<p>本文概要：</p>
-<ul>
-<li>算法背景</li>
-<li>算法思想</li>
-<li>算法实例</li>
-<li>算法实现</li>
-<li>算法分析</li>
-<li>算法小结</li>
-</ul>
-<h2 id="1-算法背景">1. 算法背景</h2>
-<p>最短路径问题的应用背景极其广泛，例如：查询从某地A到达目的地B的最短路径/时耗，查询社交网络中用户A和用户B之间最短的社交代价等等。其实，以上问题其实质均可建模为一类带权值的图模型。在本文中，我们重点讨论单源最短路径问题，即源节点确定的最短路径查询问题。回想一下，我们之前也说到：BFS搜素也可以解决一些最短路径，此处进行一些解释：<br>
-下图所示是一张地铁线路图，如果我们的问题是：需要求从地点A到地点B，如何规划路径可使得地铁<strong>经停最少车站</strong>。<br>
-<img src="https://mocuishle0.github.io//post-images/1590636050661.png" alt="" loading="lazy"><br>
-我们可以使用BFS算法即可求的相应结果，因为该问题其实可建模为在无权图（或所有边权值均为1的带权图）上的最短路问题。<br>
-然而，如果我们的问题是：需要求从地点A到地点B，如何规划路径可使得地铁<strong>运行时间最短</strong>。<br>
-<img src="https://mocuishle0.github.io//post-images/1590637196384.png" alt="" loading="lazy"><br>
-显然，该问题实质为如何计算带权图中源点到所有其他顶点的最短路径。对于带权图我们无法使用BFS方法直接求解，因此引出我们的Dijkstra算法。<br>
-我们首先给出问题的定义：<br>
-<strong>定义1.1 单源最短路径问题 (边权为正)：</strong></p>
-<ul>
-<li>输入：
-<ul>
-<li>带权图𝑮 =(𝑽, 𝑬, 𝑾 )，其中𝒘(𝒖, 𝒗) ≥ 𝟎（图中所有边权为正）, (𝒖, 𝒗) ∈ 𝑬</li>
-<li>源点编号𝒔</li>
-</ul>
-</li>
-<li>输出：源点𝒔到所有其他顶点𝒕的<strong>最短距离</strong>𝜹(𝒔, 𝒕)和<strong>最短路径</strong>&lt; 𝒔, … , 𝒕 &gt;<br>
-P.s：需要强调的是，Dijkstra算法所能解决的是边权值权值均为正数的情况。对于权值为负数的情况，该算法并不能很好解决。</li>
-</ul>
-<h2 id="2-算法思想">2. 算法思想</h2>
-<p>Dijkstra算法其算法思想与之前Prim算法求最小生成树有异曲同工之处，但由于其处理问题不同，故存在一定差异。<br>
-Dijkstra算法的实现我们同样借助辅助数组来完成：</p>
-<ul>
-<li>𝒅𝒊𝒔𝒕表示距离上界（估计距离）：
-<ul>
-<li>源点𝒔，𝒅𝒊𝒔𝒕[𝒔]= 𝟎；其他顶点𝒖，𝒅𝒊𝒔𝒕[𝒖]初始化为∞;</li>
-<li>𝒅𝒊𝒔𝒕[𝒖]：源点𝒔到顶点𝒖的距离上界，𝜹(𝒔, 𝒖) ≤ 𝒅𝒊𝒔𝒕 𝒖</li>
-</ul>
-</li>
-<li>𝒄𝒐𝒍𝒐𝒓表示顶点状态：
-<ul>
-<li>黑色：到顶点𝒖最短路已被确定</li>
-<li>白色：到顶点𝒖最短路尚未被确定</li>
-</ul>
-</li>
-<li>𝒑𝒓𝒆𝒅表示前驱顶点：
-<ul>
-<li>(𝒑𝒓𝒆𝒅[𝒖] , 𝒖)𝒊为最短路径上的边</li>
-</ul>
-</li>
-</ul>
-<p>总结算法的核心思想如下：<br>
-<img src="https://mocuishle0.github.io//post-images/1590640865461.png" alt="" loading="lazy"><br>
-目前存在以下两个问题：</p>
-<ul>
-<li>选择哪个白色顶点变为黑色——贪心策略选择<br>
-<img src="https://mocuishle0.github.io//post-images/1590640991934.png" alt="" loading="lazy"></li>
-<li>如何更新每顶点的估计距离——利用已选节点进行松弛处理<br>
-<img src="https://mocuishle0.github.io//post-images/1590641045056.png" alt="" loading="lazy"></li>
-</ul>
-<h2 id="3-算法实例">3. 算法实例</h2>
-<p>初始时：<br>
-<img src="https://mocuishle0.github.io//post-images/1590641894616.png" alt="" loading="lazy"><br>
-利用当前已确定节点松弛其相邻接节点：<br>
-<img src="https://mocuishle0.github.io//post-images/1590641944151.png" alt="" loading="lazy"><br>
-之后，贪心选择当前估计距离最小的节点：<br>
-<img src="https://mocuishle0.github.io//post-images/1590642006599.png" alt="" loading="lazy"><br>
-重复上述过程，直至确定源节点到所有节点的最小距离：<br>
-<img src="https://mocuishle0.github.io//post-images/1590642154514.png" alt="" loading="lazy"></p>
-<h2 id="4-算法实现">4. 算法实现</h2>
-<p>通过上述实例演示，其实我们不难发现：Dijkstra算法整个算法流程与Prim算法的实现很类似。以下我们给出Dijkstra算法直观实现的伪代码：<br>
-<img src="https://mocuishle0.github.io//post-images/1590650064773.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590650107560.png" alt="" loading="lazy"><br>
-以上对于Dijkstra算法朴素地实现，其复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><msup><mi mathvariant="normal">∣</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|V|^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord"><span class="mord">∣</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>。<br>
-显然，算法中贪心选择𝒅𝒊𝒔𝒕数组中最小的节点仍然可以借助优先队列实现，以此来降低算法复杂度：<br>
-<img src="https://mocuishle0.github.io//post-images/1590650766296.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590650813491.png" alt="" loading="lazy"><br>
-可见，通过优先队列实现Dijkstra算法，可将复杂度降至<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi><mi mathvariant="normal">.</mi><mi>l</mi><mi>o</mi><mi>g</mi><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|E|.log|V|)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mord">∣</span><span class="mord">.</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mclose">)</span></span></span></span>。</p>
-<h2 id="5算法分析">5.算法分析</h2>
-<p>童咏昕老师在《算法设计与分析》课程中详细讲解了Dijkstra算法的正确性证明：<br>
-<img src="https://mocuishle0.github.io//post-images/1590651213094.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590651261482.png" alt="" loading="lazy"><br>
-该证明使用反证法，巧妙地借助了逆否命题与原命题等价证得Dijkstra算法的正确性。反证法也是证明算法正确性时常用的方法之一。</p>
-<h2 id="6算法小结">6.算法小结</h2>
-<h3 id="61-dijkstra算法-prim算法">6.1 Dijkstra算法 &amp; Prim算法</h3>
-<p>Dijkstra算法与Prim算法有很多<strong>相似</strong>之处：</p>
-<ul>
-<li>均是基于贪心策略的算法；</li>
-<li>均使用𝒅𝒊𝒔𝒕数组；</li>
-<li>算法过程中，均需要不断更新𝒅𝒊𝒔𝒕数组；</li>
-</ul>
-<p>但同时，Dijkstra算法与Prim算法由于其处理问题不同，故仍存在差异：</p>
-<ul>
-<li>虽然均需要使用𝒅𝒊𝒔𝒕数组，但𝒅𝒊𝒔𝒕数组作用不同：
-<ul>
-<li>Prim算法中，𝒅𝒊𝒔𝒕数组用于记录横跨割的边的权重；</li>
-<li>Dijkstra算法中，𝒅𝒊𝒔𝒕数组用于记录距离上界（估计距离）；</li>
-<li>P.s：Prim算法需要维护候选轻边权重；Dijkstra算法需要维护源节点到任意节点间路径最短距离。</li>
-</ul>
-</li>
-<li>更新𝒅𝒊𝒔𝒕数组的方法不同：
-<ul>
-<li>Prim算法将一个节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>选入子树后，判断该节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>到邻居节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>v</mi></mrow><annotation encoding="application/x-tex">v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span></span></span></span>的距离是否小于𝒅𝒊𝒔𝒕[v]；</li>
-<li>Dijkstra算法确定源节点到一个节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>的最短距离后，判断利用源节点到节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>的最短路径能否将源节点到节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>的邻居节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>v</mi></mrow><annotation encoding="application/x-tex">v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span></span></span></span>的距离松弛，即：𝒅𝒊𝒔𝒕[u]+$w(u,v)\leq $𝒅𝒊𝒔𝒕[v]；</li>
-</ul>
-</li>
-</ul>
-<h3 id="62-dijkstra算法-bfs算法">6.2 Dijkstra算法 &amp; BFS算法</h3>
-<figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1590652128370.png" alt="" loading="lazy"></figure>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[图算法：最小生成树]]></title>
-        <id>https://mocuishle0.github.io/post/tu-suan-fa-zui-xiao-sheng-cheng-shu/</id>
-        <link href="https://mocuishle0.github.io/post/tu-suan-fa-zui-xiao-sheng-cheng-shu/">
-        </link>
-        <updated>2020-05-27T03:17:38.000Z</updated>
-        <summary type="html"><![CDATA[<p>最小生成树问题是图算法问题中一类经典的问题，其在大量其他的图算法问题中也有广泛的应用。最小生成树问题，其核心是“贪心策略”在图算法中的应用，并由此产生了两类经典的最小生成树算法：<strong>Prim算法</strong>&amp;<strong>Kruskal算法</strong>。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>最小生成树问题是图算法问题中一类经典的问题，其在大量其他的图算法问题中也有广泛的应用。最小生成树问题，其核心是“贪心策略”在图算法中的应用，并由此产生了两类经典的最小生成树算法：<strong>Prim算法</strong>&amp;<strong>Kruskal算法</strong>。</p>
-<!-- more -->
-<p>本文内容概要：</p>
-<ul>
-<li>最小生成树问题背景及通用框架</li>
-<li>Prim算法</li>
-<li>Kruskal算法</li>
-</ul>
-<h2 id="1-最小生成树问题背景及通用框架">1. 最小生成树问题背景及通用框架</h2>
-<h3 id="11-问题引入">1.1 问题引入：</h3>
-<p>实例：城市间道路修建问题——需要修建道路连通城市，各道路花费不同，求解连通各城市的最小花费是多少？<br>
-<img src="https://mocuishle0.github.io//post-images/1590550021796.png" alt="" loading="lazy"></p>
-<h3 id="12-问题定义">1.2 问题定义：</h3>
-<p><strong>定义-1.1 子图（Subgraph）：</strong> 如果<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>V</mi><mo mathvariant="normal">′</mo></msup><mo>⊆</mo><mi>V</mi><mo separator="true">,</mo><msup><mi>E</mi><mo mathvariant="normal">′</mo></msup><mo>⊆</mo><mi>E</mi></mrow><annotation encoding="application/x-tex">V&#x27;\subseteq V, E&#x27;\subseteq E</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.887862em;vertical-align:-0.13597em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⊆</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.946332em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⊆</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span></span></span></span>，则称图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mo>(</mo><msup><mi>V</mi><mo mathvariant="normal">′</mo></msup><mo separator="true">,</mo><msup><mi>E</mi><mo mathvariant="normal">′</mo></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">G&#x27;=(V&#x27;,E&#x27;)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.001892em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>是图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi><mo>=</mo><mo>(</mo><mi>V</mi><mo separator="true">,</mo><mi>E</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">G=(V,E)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mclose">)</span></span></span></span>的一个子图；<br>
-<strong>定义-1.2 生成子图（Spanning Subgraph）：</strong> 如果<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>V</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mi>V</mi><mo separator="true">,</mo><msup><mi>E</mi><mo mathvariant="normal">′</mo></msup><mo>⊆</mo><mi>E</mi></mrow><annotation encoding="application/x-tex">V&#x27;= V, E&#x27;\subseteq E</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.946332em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⊆</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span></span></span></span>，则称图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>G</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mo>(</mo><msup><mi>V</mi><mo mathvariant="normal">′</mo></msup><mo separator="true">,</mo><msup><mi>E</mi><mo mathvariant="normal">′</mo></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">G&#x27;=(V&#x27;,E&#x27;)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.001892em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>是图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi><mo>=</mo><mo>(</mo><mi>V</mi><mo separator="true">,</mo><mi>E</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">G=(V,E)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mclose">)</span></span></span></span>的一个生成子图；<br>
-<img src="https://mocuishle0.github.io//post-images/1590550212312.png" alt="" loading="lazy"><br>
-<strong>定义-1.3 生成树（Spanning Tree）：</strong> 图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>T</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mo>(</mo><msup><mi>V</mi><mo mathvariant="normal">′</mo></msup><mo separator="true">,</mo><msup><mi>E</mi><mo mathvariant="normal">′</mo></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">T&#x27;=(V&#x27;,E&#x27;)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.001892em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>是无向图图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi><mo>=</mo><mo>(</mo><mi>V</mi><mo separator="true">,</mo><mi>E</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">G=(V,E)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mclose">)</span></span></span></span>的一个生成子图，并且是连通、无环的（树）；<br>
-<img src="https://mocuishle0.github.io//post-images/1590550375513.png" alt="" loading="lazy"><br>
-<strong>P.s：权重最小的生成树可能不唯一！（但如果各条边权重各不相同，则最小生成树唯一）</strong></p>
-<p><strong>定义-1.4 最小生成树问题（Minimum Spanning Tree Problem）：</strong></p>
-<ul>
-<li>输入：连通的无向图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi><mo>=</mo><mo>(</mo><mi>V</mi><mo separator="true">,</mo><mi>E</mi><mo separator="true">,</mo><mi>W</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">G=(V,E,W)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">W</span><span class="mclose">)</span></span></span></span>，其中<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>w</mi><mo>(</mo><mi>u</mi><mo separator="true">,</mo><mi>v</mi><mo>)</mo><mo>∈</mo><mi>W</mi></mrow><annotation encoding="application/x-tex">w(u,v)\in W</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span><span class="mopen">(</span><span class="mord mathdefault">u</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">W</span></span></span></span>表示边<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>u</mi><mo separator="true">,</mo><mi>v</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">(u,v)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">u</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mclose">)</span></span></span></span>的权重；</li>
-<li>输出：无向图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi><mo>=</mo><mo>(</mo><mi>V</mi><mo separator="true">,</mo><mi>E</mi><mo separator="true">,</mo><mi>W</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">G=(V,E,W)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">W</span><span class="mclose">)</span></span></span></span>的最小生成树<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>T</mi><mo>=</mo><mo>(</mo><msub><mi>V</mi><mi>T</mi></msub><mo separator="true">,</mo><msub><mi>E</mi><mi>T</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">T=(V_T,E_T)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">T</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，<br>
-* 优化目标：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>m</mi><mi>i</mi><mi>n</mi><msub><mo>∑</mo><mrow><mi>e</mi><mo>∈</mo><msub><mi>E</mi><mi>T</mi></msub></mrow></msub><mi>w</mi><mo>(</mo><mi>e</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">min \sum_{e\in E_T} w(e)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.150015em;vertical-align:-0.400015em;"></span><span class="mord mathdefault">m</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.17862099999999992em;"><span style="top:-2.4002900000000005em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">e</span><span class="mrel mtight">∈</span><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3567071428571427em;margin-left:-0.05764em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.14329285714285717em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.400015em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span><span class="mopen">(</span><span class="mord mathdefault">e</span><span class="mclose">)</span></span></span></span><br>
-* 约束条件：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mi mathvariant="normal">.</mi><mi>t</mi><mi mathvariant="normal">.</mi><mtext> </mtext><msub><mi>V</mi><mi>T</mi></msub><mo>=</mo><mi>V</mi><mo separator="true">,</mo><msub><mi>E</mi><mi>T</mi></msub><mo>⊆</mo><mi>E</mi></mrow><annotation encoding="application/x-tex">s.t. \  V_T=V,E_T\subseteq E</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord mathdefault">s</span><span class="mord">.</span><span class="mord mathdefault">t</span><span class="mord">.</span><span class="mspace"> </span><span class="mord"><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.22222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⊆</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span></span></span></span></li>
-</ul>
-<h3 id="13-通用框架">1.3 通用框架</h3>
-<h2 id="需要注意的是由于最小生成树是原图的一个生成子图-因此求解最小生成树其实质是求原图中属于最小生成树的边集"><img src="https://mocuishle0.github.io//post-images/1590550916058.png" alt="" loading="lazy"><br>
-需要注意的是，由于最小生成树是原图的一个<strong>生成子图</strong>。因此，求解最小生成树，其实质是求原图中属于最小生成树的边集。</h2>
-<p><strong>问题1：如何保证边集𝑨仍是最小生成树的子集？</strong><br>
-<strong>定义-1.5 安全边（Safe Edge）：</strong><br>
-* 𝑨是某棵最小生成树𝑻边的子集，𝑨 ⊆ 𝑻<br>
-* 𝑨 ∪ {(𝒖, 𝒗)} 仍是 𝑻 边的一个子集，则称(𝒖, 𝒗)是𝑨的安全边</p>
-<p><strong>回答1：若每次向边集𝑨中新增安全边，可保证边集𝑨是最小生成树的子集。可将框架具体为：</strong><br>
-<img src="https://mocuishle0.github.io//post-images/1590551312240.png" alt="" loading="lazy"></p>
-<p><strong>问题2：如何有效辨识安全边？</strong><br>
-<strong>定义-1.6 割（Cut）：</strong> 图𝑮 =(𝑽, 𝑬)是一个连通无向图，割(𝑺, 𝑽 − 𝑺)将图𝑮的顶点集𝑽划分为两部分。<br>
-<img src="https://mocuishle0.github.io//post-images/1590553987173.png" alt="" loading="lazy"><br>
-<strong>定义-1.7 横跨（Cross）：</strong> 给定割(𝑺, 𝑽 − 𝑺)和边(𝒖, 𝒗)，𝒖 ∈ 𝑺, 𝒗 ∈ 𝑽 − 𝑺，称边横跨(𝒖, 𝒗)割(𝑺, 𝑽 − 𝑺)<br>
-<img src="https://mocuishle0.github.io//post-images/1590554059152.png" alt="" loading="lazy"><br>
-<strong>定义-1.8 轻边（Light Edge）：</strong> 横跨割的所有边中，权重最小的称为横跨这个割的一条轻边。<br>
-<img src="https://mocuishle0.github.io//post-images/1590554143666.png" alt="" loading="lazy"><br>
-<strong>定义-1.9 不妨害（Respect）：</strong> 如果一个边集𝑨中没有边横跨某割，则称该割不妨害边集𝑨。<br>
-<img src="https://mocuishle0.github.io//post-images/1590554216822.png" alt="" loading="lazy"></p>
-<p><strong>安全边辨识定理：</strong><br>
-前提：给定图𝑮 =(𝑽, 𝑬 )是一个带权的连通无向图，令𝑨是边集𝑬的一个子集，且𝑨包含在图𝑮的某棵最小生成树中。<br>
-内容：<br>
-* 若割(𝑺, 𝑽 − 𝑺)是图𝑮中不妨害边集𝑨的任意割，且(𝒖, 𝒗)是横跨该割的轻边；<br>
-* 则对于边集𝑨，边(𝒖, 𝒗)是其安全边。<br>
-<img src="https://mocuishle0.github.io//post-images/1590554493870.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590554885982.png" alt="" loading="lazy"></p>
-<p>综上所述，我们可将通用框架作如下总结：<br>
-<img src="https://mocuishle0.github.io//post-images/1590555008306.png" alt="" loading="lazy"><br>
-即：</p>
-<ul>
-<li>保证无环；</li>
-<li>找轻边。</li>
-</ul>
-<h2 id="2-prim算法">2. Prim算法</h2>
-<p>Prim算法是我们以上总结的求解最小生成树通用框架策略的一种具体实现，具体而言该方法主要着眼于“节点”的角度。其思想概括如下：</p>
-<ul>
-<li>保证无环——始终保持一棵树</li>
-<li>找轻边——优先队列求轻边</li>
-</ul>
-<h3 id="21-算法思想">2.1 算法思想：</h3>
-<ul>
-<li><strong>步骤1</strong>：选择任意一个<strong>顶点</strong>，作为生成树的起始顶点；</li>
-<li><strong>步骤2</strong>：保持边集𝑨始终为一棵树，选择割(<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>𝑽</mi><mi>𝑨</mi></msub></mrow><annotation encoding="application/x-tex">𝑽_𝑨</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.18625em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33027699999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.18625em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> , 𝑽 − <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>𝑽</mi><mi>𝑨</mi></msub></mrow><annotation encoding="application/x-tex">𝑽_𝑨</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.18625em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33027699999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.18625em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>)；</li>
-<li><strong>步骤3</strong>：选择横跨割(<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>𝑽</mi><mi>𝑨</mi></msub></mrow><annotation encoding="application/x-tex">𝑽_𝑨</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.18625em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33027699999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.18625em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> , 𝑽 − <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>𝑽</mi><mi>𝑨</mi></msub></mrow><annotation encoding="application/x-tex">𝑽_𝑨</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.18625em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33027699999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.18625em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>)的轻边，添加到边集𝑨中；</li>
-<li><strong>步骤4</strong>：重复步骤2和步骤3，直至覆盖所有<strong>顶点</strong>。<br>
-<img src="https://mocuishle0.github.io//post-images/1590564519809.png" alt="" loading="lazy"></li>
-</ul>
-<h3 id="22-算法实现">2.2 算法实现：</h3>
-<p>为便于算法描述，仍借用辅助数组标记各节点状态以及横跨割的边的权重：</p>
-<ul>
-<li>𝒄𝒐𝒍𝒐𝒓数组：表示顶点状态
-<ul>
-<li>Black——节点已覆盖，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi><mo>∈</mo><msub><mi>𝑽</mi><mi>𝑨</mi></msub></mrow><annotation encoding="application/x-tex">u\in 𝑽_𝑨</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathdefault">u</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.18625em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33027699999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.18625em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></li>
-<li>White——节点未覆盖，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi><mo>∈</mo><mi>𝑽</mi><mo>−</mo><msub><mi>𝑽</mi><mi>𝑨</mi></msub></mrow><annotation encoding="application/x-tex">u\in 𝑽-𝑽_𝑨</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathdefault">u</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.76944em;vertical-align:-0.08333em;"></span><span class="mord boldsymbol" style="margin-right:0.18625em;">V</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.18625em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33027699999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.18625em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></li>
-</ul>
-</li>
-<li>𝒑𝒓𝒆𝒅记录前驱节点：
-<ul>
-<li>(𝒑𝒓𝒆𝒅[𝒖], 𝒖)即为最小生成树的边</li>
-</ul>
-</li>
-<li>𝒅𝒊𝒔𝒕记录横跨割(<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>𝑽</mi><mi>𝑨</mi></msub></mrow><annotation encoding="application/x-tex">𝑽_𝑨</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.18625em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33027699999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.18625em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> , 𝑽 − <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>𝑽</mi><mi>𝑨</mi></msub></mrow><annotation encoding="application/x-tex">𝑽_𝑨</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.18625em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33027699999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.18625em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>)的边的权重：
-<ul>
-<li>𝒅𝒊𝒔𝒕[u]——顶点集<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>𝑽</mi><mi>𝑨</mi></msub></mrow><annotation encoding="application/x-tex">𝑽_𝑨</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.18625em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33027699999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.18625em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>到顶点𝒖的最短距离，即：𝒅𝒊𝒔𝒕[u]=𝐦𝐢𝐧 {𝒘(𝒙, 𝒖)},∀𝒙∈<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>𝑽</mi><mi>𝑨</mi></msub></mrow><annotation encoding="application/x-tex">𝑽_𝑨</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.18625em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33027699999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.18625em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>；</li>
-<li><strong>轻边</strong>——𝐦𝐢𝐧{𝒅𝒊𝒔𝒕[𝒖]}, ∀𝒖 ∈ 𝑽−<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>𝑽</mi><mi>𝑨</mi></msub></mrow><annotation encoding="application/x-tex">𝑽_𝑨</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.18625em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33027699999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.18625em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><br>
-<img src="https://mocuishle0.github.io//post-images/1590565413627.png" alt="" loading="lazy"></li>
-</ul>
-</li>
-</ul>
-<h3 id="23-算法实例">2.3 算法实例：</h3>
-<p>不妨设<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>a</mi></mrow><annotation encoding="application/x-tex">a</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">a</span></span></span></span>为起始节点：<br>
-<img src="https://mocuishle0.github.io//post-images/1590564567231.png" alt="" loading="lazy"><br>
-在横跨割的候选边中选轻边，并加入边集中：<br>
-<img src="https://mocuishle0.github.io//post-images/1590564751084.png" alt="" loading="lazy"><br>
-更新横跨割的候选边：<br>
-<img src="https://mocuishle0.github.io//post-images/1590564832618.png" alt="" loading="lazy"><br>
-...<br>
-最终求得最小生成树：<br>
-<img src="https://mocuishle0.github.io//post-images/1590564889219.png" alt="" loading="lazy"></p>
-<h3 id="24-算法伪代码">2.4 算法伪代码：</h3>
-<p>首先我们给出算法直观地伪代码，如下：<br>
-<img src="https://mocuishle0.github.io//post-images/1590565758127.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590565799726.png" alt="" loading="lazy"><br>
-可见，直观地实现Prim算法，其复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><msup><mi mathvariant="normal">∣</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|V|^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord"><span class="mord">∣</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>。然而，我们发现：在找轻边的过程中，我们可以采用<strong>优先队列</strong>这一数据结构简化算法复杂度：<br>
-P.s：关于优先队列——通过二叉堆进行实现：<br>
-<img src="https://mocuishle0.github.io//post-images/1590566045374.png" alt="" loading="lazy"><br>
-改进后伪代码如下：<br>
-<img src="https://mocuishle0.github.io//post-images/1590566171186.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590566208236.png" alt="" loading="lazy"><br>
-可见，利用优先队列改进后，Prim算法复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi><mi mathvariant="normal">.</mi><mi>l</mi><mi>o</mi><mi>g</mi><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(|E|.log|V|)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mord">∣</span><span class="mord">.</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mclose">)</span></span></span></span></p>
-<h3 id="25-小结">2.5 小结：</h3>
-<figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1590566349042.png" alt="" loading="lazy"></figure>
-<h2 id="3-kruskal算法">3. Kruskal算法：</h2>
-<p>Kruskal算法同样是求解最小生成树通用框架策略的一种具体实现。具体而言，该方法主要着眼于“边”的角度。其思想概括如下：</p>
-<ul>
-<li>保证无环——每次选边判断是否成环</li>
-<li>找轻边——每次选当前权重最小边</li>
-</ul>
-<h3 id="31-算法思想">3.1 算法思想：</h3>
-<p>Kruskal算法可以看作是对通用框架的直接实现：</p>
-<ul>
-<li>保证所选边集𝑨是一个无环图——选边时避免成环，即：每次选边判断是否成环；</li>
-<li>保证所选边集𝑨仍然是最小生成树的子集——每次选择当前权重最小边。</li>
-</ul>
-<h3 id="32-实例演示">3.2 实例演示：</h3>
-<p>每次选择未选边中权重最小的边：<br>
-<img src="https://mocuishle0.github.io//post-images/1590570865352.png" alt="" loading="lazy"><br>
-...<br>
-直至此时，仍未成环：<br>
-<img src="https://mocuishle0.github.io//post-images/1590571087618.png" alt="" loading="lazy"><br>
-P.s：此时形成多棵子树（森林），而非一棵树。<br>
-下一时刻，我们发现——加入当前最小权重边会形成环路，故跳过该边：<br>
-<img src="https://mocuishle0.github.io//post-images/1590571134762.png" alt="" loading="lazy"><br>
-最终，最小生成子树如下：<br>
-<img src="https://mocuishle0.github.io//post-images/1590571256718.png" alt="" loading="lazy"></p>
-<h3 id="33-算法正确性证明">3.3 算法正确性证明：</h3>
-<figure data-type="image" tabindex="2"><img src="https://mocuishle0.github.io//post-images/1590571314586.png" alt="" loading="lazy"></figure>
-<h3 id="34-算法伪代码">3.4 算法伪代码：</h3>
-<figure data-type="image" tabindex="3"><img src="https://mocuishle0.github.io//post-images/1590571372783.png" alt="" loading="lazy"></figure>
-<p>根据以上伪代码，可见：实现Kruskal算法核心在于如何判断加入边的端点是否位于同一棵子树。此处引入一种很重要的数据结构——<strong>并查集</strong>（也被称之为“不相交集合”）：</p>
-<h3 id="35-附加并查集">3.5 附加：并查集</h3>
-<p>并查集是一种可以高效解决“连通性”问题的数据结构。在网上也看到了各种形象化理解并查集的例子，个人感觉最确切的例子可参考：<a href="https://blog.csdn.net/liujian20150808/article/details/50848646">并查集讲解</a>. 简而言之：对于每个查询的元素，指定一个与其同属一个集合的元素作为其代表，若待查询的两个元素其代表相同，则两个元素属于同一集合。并查集主要需要实现以下功能：</p>
-<ul>
-<li>Create_Set(𝒙)——初始化，初始时，各元素其代表就是自身：<br>
-<img src="https://mocuishle0.github.io//post-images/1590572211534.png" alt="" loading="lazy"></li>
-<li>Find_Set(𝒙)——查找根节点（代表）：<br>
-<img src="https://mocuishle0.github.io//post-images/1590572296716.png" alt="" loading="lazy"></li>
-<li>Union_Set(𝒙)——合并两组元素：<br>
-<img src="https://mocuishle0.github.io//post-images/1590572370913.png" alt="" loading="lazy"><br>
-以上三项功能其时间复杂度均为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>h</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(h)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">h</span><span class="mclose">)</span></span></span></span>，h为树的高度。树的高度与顶点规模关系可参考以下证明：<br>
-<img src="https://mocuishle0.github.io//post-images/1590572496310.png" alt="" loading="lazy"></li>
-</ul>
-<h3 id="36-算法具体伪代码">3.6 算法具体伪代码：</h3>
-<figure data-type="image" tabindex="4"><img src="https://mocuishle0.github.io//post-images/1590572555623.png" alt="" loading="lazy"></figure>
-<h2 id="总结">总结：</h2>
-<figure data-type="image" tabindex="5"><img src="https://mocuishle0.github.io//post-images/1590572613480.png" alt="" loading="lazy"></figure>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[图算法：图搜索算法——广度优先搜索（BFS）& 深度优先搜索（DFS）]]></title>
-        <id>https://mocuishle0.github.io/post/tu-suan-fa-tu-sou-suo-suan-fa-guang-du-you-xian-sou-suo-bfsand-shen-du-you-xian-sou-suo-dfs/</id>
-        <link href="https://mocuishle0.github.io/post/tu-suan-fa-tu-sou-suo-suan-fa-guang-du-you-xian-sou-suo-bfsand-shen-du-you-xian-sou-suo-dfs/">
-        </link>
-        <updated>2020-05-26T03:34:43.000Z</updated>
-        <summary type="html"><![CDATA[<p>本文主要介绍两类最基本的图搜索策略——BFS与DFS。BFS与DFS是一种最基础的，但也是最重要的图算法，其被大量应用在图算法的各个领域，众多高级的图算法，其核心其实仍是这两种最基础的图搜索算法。<br>
-本文主要依据北京航空航天大学童咏昕教授《算法设计与分析》课程内容，并结合本人对于图数据的研究课题内容，对图搜索上的两类基础算法进行总结。<br>
-P.s：本文主要关注无向图上的BFS与DFS算法，关于有向图的搜索算法会在后续进行讨论。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>本文主要介绍两类最基本的图搜索策略——BFS与DFS。BFS与DFS是一种最基础的，但也是最重要的图算法，其被大量应用在图算法的各个领域，众多高级的图算法，其核心其实仍是这两种最基础的图搜索算法。<br>
-本文主要依据北京航空航天大学童咏昕教授《算法设计与分析》课程内容，并结合本人对于图数据的研究课题内容，对图搜索上的两类基础算法进行总结。<br>
-P.s：本文主要关注无向图上的BFS与DFS算法，关于有向图的搜索算法会在后续进行讨论。</p>
-<!-- more -->
-<p>本文内容概要：</p>
-<ul>
-<li>图搜索应用及背景</li>
-<li>广度优先搜索（BFS）</li>
-<li>深度优先搜索（DFS）</li>
-</ul>
-<h2 id="1-图搜索">1. 图搜索</h2>
-<p>每当提及图搜索问题，便不得不提及图上的可达性查询问题，即：给定图<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi></mrow><annotation encoding="application/x-tex">G</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span></span></span></span>与查询节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>,<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>v</mi></mrow><annotation encoding="application/x-tex">v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span></span></span></span>，我们需要回答图上是否存在一条路径使得查询节点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi><mo separator="true">,</mo><mi>v</mi></mrow><annotation encoding="application/x-tex">u,v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">u</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span></span></span></span>之间可达。可达性查询问题是图查询问题中一类最基本，也是最重要的问题，是大多数查询问题的基础。可达性查询问题在现实生活中也具有大量的应用场景，如：社交网络查询任意用户之间的好友关系查询、任意两地之间道路交通的可达性查询等。<br>
-近年来，大量的科研工作已在可达性查询问题上进行了深入且细致的研究，提出了包括链分解、树覆盖、区间标记、2-Hop在内的多种高效的查询方法。此外，其研究对象也从传统的静态图进一步讨论到动态图、时间依赖图以至于演化图流序列等。<br>
-然而，无论目前在可达性查询领域有多少先进的查询方法，其最基本的思路均集中在如何构建规模合理的查询索引以提升查询效率。换言之，目前的方法均采用以空间成本换取时间成本的策略。关于可达性查询问题上时空代价的权衡可参见下图：<br>
-<img src="https://mocuishle0.github.io//post-images/1590476821378.png" alt="" loading="lazy"><br>
-在本文中，我们并不对当前最新进的图搜索方法进行介绍，而是对最基础的两类图搜索算法进行介绍。只有切实掌握了最基础的方法，才能进一步掌握更高效的方法。</p>
-<h2 id="2-广度优先搜索bfs">2. 广度优先搜索（BFS）</h2>
-<h3 id="21-算法思想">2.1 算法思想：</h3>
-<p>童咏昕教授在《算法设计与分析》课程中介绍的思想很形象地诠释了BFS的核心思——水滴落入水面所激起的涟漪会向相邻区域逐渐扩散。如下图所示：<br>
-<img src="https://mocuishle0.github.io//post-images/1590476891229.png" alt="" loading="lazy"><br>
-这种依次扩散的现象，蕴含了搜索图结构的一种顺序，即：<strong>处理某顶点时，一次性发现所有其相邻顶点</strong>。其实质可以称之为一种“<strong>分层</strong>”搜索的思想。该方法在多处同时“扩散”时，为了维护节点处理顺序需要借助“队列”这常用的数据结构。（p.s：队列的性质为先进先出（First In First Out，FIFO））。<br>
-综上所述，BFS的核心思想：<strong>处理某顶点时，一次性发现其所有相邻顶点，未处理顶点加入等待队列</strong>。</p>
-<h3 id="22-算法实现">2.2 算法实现：</h3>
-<p>BFS算法的实现多种多样，可以根据自己的具体应用需求设计相应实现方法。本文中采用《算法设计与分析》课程中提出的实现方法，该方法更易于理解BFS的核心思想，也有助于后续对BFS的应用。<br>
-算法首先需要借助以下三类辅助数组维护相关节点信息：</p>
-<ul>
-<li>𝒄𝒐𝒍𝒐𝒓数组表示顶点状态：
-<ul>
-<li>𝑾𝒉𝒊𝒕𝒆：白色顶点——𝒖尚未被发现，发现后直接入队；</li>
-<li>𝑩𝒍𝒂𝒄𝒌：黑色顶点——𝒖已被处理，无需再次入队；</li>
-<li>𝑮𝒓𝒂𝒚：灰色顶点——𝒖已加入队列，无需再次入队。</li>
-</ul>
-</li>
-<li>𝒑𝒓𝒆𝒅数组：表明顶点uu的前驱节点，即：节点uu由𝒑𝒓𝒆𝒅[u]发现</li>
-<li>𝒅𝒊𝒔𝒕数组：顶点uu距离源点的距离。</li>
-</ul>
-<p><strong>实例演示</strong>：<br>
-<img src="https://mocuishle0.github.io//post-images/1590477055845.png" alt="" loading="lazy"><br>
-P.s: 需要注意的是，由BFS算法中的𝒑𝒓𝒆𝒅数组可衍生出广度优先树：<br>
-<img src="https://mocuishle0.github.io//post-images/1590477101703.png" alt="" loading="lazy"></p>
-<h3 id="23-算法伪代码">2.3 算法伪代码：</h3>
-<p><img src="https://mocuishle0.github.io//post-images/1590477151160.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590477172715.png" alt="" loading="lazy"></p>
-<h3 id="24-算法复杂度分析">2.4 算法复杂度分析：</h3>
-<ul>
-<li>对于每个顶点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>u</mi></mrow><annotation encoding="application/x-tex">u</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">u</span></span></span></span>，搜索其相邻顶点消耗时间<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>𝑻</mi><mi>𝒖</mi></msub><mo>=</mo><mi>𝑶</mi><mo>(</mo><mi>𝟏</mi><mo>)</mo><mo>+</mo><mi>𝒅</mi><mi>𝒆</mi><mi>𝒈</mi><mo>(</mo><mi>𝒖</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">𝑻_𝒖= 𝑶(𝟏) + 𝒅𝒆𝒈(𝒖)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.12903em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.161108em;"><span style="top:-2.5500000000000003em;margin-left:-0.12903em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight" style="margin-right:0.09426em;">u</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mord mathbf">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord boldsymbol" style="margin-right:0.10861em;">d</span><span class="mord boldsymbol" style="margin-right:0.085em;">e</span><span class="mord boldsymbol" style="margin-right:0.105em;">g</span><span class="mopen">(</span><span class="mord boldsymbol" style="margin-right:0.09426em;">u</span><span class="mclose">)</span></span></span></span></li>
-<li>总运行时间：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>𝑻</mi><mo>&lt;</mo><msub><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><mi>V</mi></mrow></msub><msub><mi>𝑻</mi><mi>𝒖</mi></msub></mrow><annotation encoding="application/x-tex">𝑻 &lt; \sum_{u\in V} 𝑻_𝒖</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72521em;vertical-align:-0.0391em;"></span><span class="mord boldsymbol" style="margin-right:0.12903em;">T</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.07708em;vertical-align:-0.32708000000000004em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.17862099999999992em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">u</span><span class="mrel mtight">∈</span><span class="mord mathdefault mtight" style="margin-right:0.22222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.32708000000000004em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.12903em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.161108em;"><span style="top:-2.5500000000000003em;margin-left:-0.12903em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight" style="margin-right:0.09426em;">u</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>
-<ul>
-<li>可推得：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><mi>V</mi></mrow></msub><msub><mi>𝑻</mi><mi>𝒖</mi></msub><mo>=</mo><msub><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><mi>V</mi></mrow></msub><mi>𝑶</mi><mo>(</mo><mi>𝟏</mi><mo>+</mo><mi>𝒅</mi><mi>𝒆</mi><mi>𝒈</mi><mo>(</mo><mi>𝒖</mi><mo>)</mo><mo>)</mo><mo>=</mo><msub><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><mi>V</mi></mrow></msub><mi>𝑶</mi><mo>(</mo><mi>𝟏</mi><mo>)</mo><mo>+</mo><msub><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><mi>V</mi></mrow></msub><mi>𝑶</mi><mo>(</mo><mi>𝒅</mi><mi>𝒆</mi><mi>𝒈</mi><mo>(</mo><mi>𝒖</mi><mo>)</mo><mo>)</mo><mo>=</mo><mi>𝑶</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>)</mo><mo>+</mo><msub><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><mi>V</mi></mrow></msub><mi>𝑶</mi><mo>(</mo><mi>𝒅</mi><mi>𝒆</mi><mi>𝒈</mi><mo>(</mo><mi>𝒖</mi><mo>)</mo><mo>)</mo></mrow><annotation encoding="application/x-tex">\sum_{u\in V} 𝑻_𝒖=\sum_{u\in V} 𝑶(𝟏 + 𝒅𝒆𝒈(𝒖))=\sum_{u\in V} 𝑶(𝟏)+\sum_{u\in V} 𝑶(𝒅𝒆𝒈(𝒖))=𝑶(|V|)+\sum_{u\in V} 𝑶(𝒅𝒆𝒈(𝒖))</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.07708em;vertical-align:-0.32708000000000004em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.17862099999999992em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">u</span><span class="mrel mtight">∈</span><span class="mord mathdefault mtight" style="margin-right:0.22222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.32708000000000004em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord boldsymbol" style="margin-right:0.12903em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.161108em;"><span style="top:-2.5500000000000003em;margin-left:-0.12903em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord boldsymbol mtight" style="margin-right:0.09426em;">u</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.07708em;vertical-align:-0.32708000000000004em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.17862099999999992em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">u</span><span class="mrel mtight">∈</span><span class="mord mathdefault mtight" style="margin-right:0.22222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.32708000000000004em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mord mathbf">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord boldsymbol" style="margin-right:0.10861em;">d</span><span class="mord boldsymbol" style="margin-right:0.085em;">e</span><span class="mord boldsymbol" style="margin-right:0.105em;">g</span><span class="mopen">(</span><span class="mord boldsymbol" style="margin-right:0.09426em;">u</span><span class="mclose">)</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.07708em;vertical-align:-0.32708000000000004em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.17862099999999992em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">u</span><span class="mrel mtight">∈</span><span class="mord mathdefault mtight" style="margin-right:0.22222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.32708000000000004em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mord mathbf">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.07708em;vertical-align:-0.32708000000000004em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.17862099999999992em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">u</span><span class="mrel mtight">∈</span><span class="mord mathdefault mtight" style="margin-right:0.22222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.32708000000000004em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mord boldsymbol" style="margin-right:0.10861em;">d</span><span class="mord boldsymbol" style="margin-right:0.085em;">e</span><span class="mord boldsymbol" style="margin-right:0.105em;">g</span><span class="mopen">(</span><span class="mord boldsymbol" style="margin-right:0.09426em;">u</span><span class="mclose">)</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.07708em;vertical-align:-0.32708000000000004em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.17862099999999992em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">u</span><span class="mrel mtight">∈</span><span class="mord mathdefault mtight" style="margin-right:0.22222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.32708000000000004em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mord boldsymbol" style="margin-right:0.10861em;">d</span><span class="mord boldsymbol" style="margin-right:0.085em;">e</span><span class="mord boldsymbol" style="margin-right:0.105em;">g</span><span class="mopen">(</span><span class="mord boldsymbol" style="margin-right:0.09426em;">u</span><span class="mclose">)</span><span class="mclose">)</span></span></span></span></li>
-<li>由握手定理可知：𝒅𝒆𝒈(G)=2|E|；</li>
-</ul>
-</li>
-<li>综上所述：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>𝑻</mi><mo>=</mo><mi>𝑶</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>+</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">𝑻=𝑶(|V|+|E|)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68611em;vertical-align:0em;"></span><span class="mord boldsymbol" style="margin-right:0.12903em;">T</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mord">∣</span><span class="mclose">)</span></span></span></span></li>
-</ul>
-<h3 id="25-其他应用">2.5 其他应用：</h3>
-<p>结合BFS中构建的𝒑𝒓𝒆𝒅数组与𝒅𝒊𝒔𝒕数组，我们可以得到源节点到达其可达节点的最短距离：<br>
-<img src="https://mocuishle0.github.io//post-images/1590477448782.png" alt="" loading="lazy"><br>
-<strong>该方法使后续最短距离算法的核心与基础</strong></p>
-<h2 id="3深度优先搜索dfs">3.深度优先搜索（DFS）</h2>
-<h3 id="31-算法思想">3.1 算法思想：</h3>
-<p>深度优先搜索其核心是基于一种回溯的思想，即：“一条路走到黑”的搜索策略。详细而言，其算法步骤可分为以下三步：</p>
-<ul>
-<li>分叉时，任选一条边深入；</li>
-<li>无边时，后退一步找新边；</li>
-<li>找到边，从新边继续深入。</li>
-</ul>
-<h3 id="32-算法实现">3.2 算法实现：</h3>
-<p>与BFS策略相同，DFS算法的实现也多种多样，此处的实现策略主要为了便于体现算法思想以及后续性质介绍。在具体项目中，需要根据项目需求自行调整实现过程。<br>
-与BFS的实现类似，我们同样借助辅助数组来实现DFS算法：<br>
-P.s：此处使用多个辅助数组来进行实现，虽然显得较为繁复，但每个数组在后续DFS应用中均有重要作用。</p>
-<ul>
-<li>𝒄𝒐𝒍𝒐𝒓数组表示顶点状态：
-<ul>
-<li>𝑾𝒉𝒊𝒕𝒆：白色顶点——𝒖尚未被发现；</li>
-<li>𝑩𝒍𝒂𝒄𝒌：黑色顶点——𝒖已被处理；</li>
-<li>𝑮𝒓𝒂𝒚：灰色顶点——𝒖正在处理。</li>
-</ul>
-</li>
-<li>𝒑𝒓𝒆𝒅数组：表明顶点u的前驱节点，即：节点u由𝒑𝒓𝒆𝒅[u]发现</li>
-<li>𝒅数组：顶点发现时刻（变成灰色的时刻）</li>
-<li>𝒇数组：顶点完成时刻（变成黑色的时刻）</li>
-</ul>
-<h3 id="33-算法伪代码">3.3 算法伪代码：</h3>
-<p><img src="https://mocuishle0.github.io//post-images/1590477615170.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1590477701423.png" alt="" loading="lazy"></p>
-<h3 id="34-实例演示">3.4 实例演示：</h3>
-<p>我们以1号节点作为源节点执行DFS算法：<br>
-<img src="https://mocuishle0.github.io//post-images/1590477750236.png" alt="" loading="lazy"></p>
-<h3 id="35-复杂性分析">3.5 复杂性分析：</h3>
-<p>值得注意的是，虽然DFS涉及递归调用，但是其子问题个数、子问题规模均难以确定。因此，难以使用主定理法或递归树法进行分析。我们仍对DFS过程中，任意一个顶点v的开销进行分析：<br>
-<img src="https://mocuishle0.github.io//post-images/1590477797691.png" alt="" loading="lazy"><br>
-结合握手定理，可得总时间复杂度：<br>
-<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>𝑶</mi><mo>(</mo><msub><mo>∑</mo><mrow><mi>v</mi><mo>∈</mo><mi>V</mi></mrow></msub><mo>(</mo><mn>1</mn><mo>+</mo><mi mathvariant="normal">∣</mi><mi>A</mi><mi>d</mi><mi>j</mi><mo>[</mo><mi>v</mi><mo>]</mo><mi mathvariant="normal">∣</mi><mo>)</mo><mo>)</mo><mo>=</mo><mi>𝑶</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>)</mo><mo>+</mo><msub><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><mi>V</mi></mrow></msub><mo>(</mo><mi mathvariant="normal">∣</mi><mi>A</mi><mi>d</mi><mi>j</mi><mo>[</mo><mi>v</mi><mo>]</mo><mi mathvariant="normal">∣</mi><mo>)</mo><mo>=</mo><mi>𝑶</mi><mo>(</mo><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi><mo>+</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">𝑶(\sum_{v\in V}(1+|Adj[v]|))=𝑶(|V|)+\sum_{u\in V} (|Adj[v]|)=𝑶(|V|+|E|)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.07708em;vertical-align:-0.32708000000000004em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.17862099999999992em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">v</span><span class="mrel mtight">∈</span><span class="mord mathdefault mtight" style="margin-right:0.22222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.32708000000000004em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathdefault">A</span><span class="mord mathdefault">d</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mclose">]</span><span class="mord">∣</span><span class="mclose">)</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.07708em;vertical-align:-0.32708000000000004em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.17862099999999992em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">u</span><span class="mrel mtight">∈</span><span class="mord mathdefault mtight" style="margin-right:0.22222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.32708000000000004em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault">A</span><span class="mord mathdefault">d</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mclose">]</span><span class="mord">∣</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord boldsymbol" style="margin-right:0.09062em;">O</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.22222em;">V</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mord">∣</span><span class="mclose">)</span></span></span></span></p>
-<h3 id="36-算法性质">3.6 算法性质：</h3>
-<p>1）深度优先树：与BFS类似，结合𝒑𝒓𝒆𝒅数组可得到一棵深度优先树。据此，可将图中的边分为树边与非树边。<br>
-2）后向边：不是树边，但两顶点在深度优先树中是祖先后代关系。</p>
-<blockquote>
-<p>在无向图中，非树边一定是后向边；</p>
-</blockquote>
-<p>3）括号化定理：</p>
-<ul>
-<li>点v发现时刻<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>d</mi><mo>[</mo><mi>v</mi><mo>]</mo></mrow><annotation encoding="application/x-tex">d[v]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">d</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mclose">]</span></span></span></span>和结束时刻<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>f</mi><mo>[</mo><mi>v</mi><mo>]</mo></mrow><annotation encoding="application/x-tex">f[v]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mclose">]</span></span></span></span>构成区间<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>d</mi><mo>[</mo><mi>v</mi><mo>]</mo><mo separator="true">,</mo><mi>f</mi><mo>[</mo><mi>v</mi><mo>]</mo><mo>)</mo></mrow><annotation encoding="application/x-tex">(d[v],f[v])</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">d</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mclose">]</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mclose">]</span><span class="mclose">)</span></span></span></span>；</li>
-<li>任意两点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>v</mi><mo separator="true">,</mo><mi>w</mi></mrow><annotation encoding="application/x-tex">v,w</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span></span></span></span>必然满足以下情况之一：</li>
-<li>$(d[v],f[v])\subseteq (d[w],f[w])\to $→ w是v的后代；</li>
-<li><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>d</mi><mo>[</mo><mi>v</mi><mo>]</mo><mo separator="true">,</mo><mi>f</mi><mo>[</mo><mi>v</mi><mo>]</mo><mo>)</mo><mo>∩</mo><mo>(</mo><mi>d</mi><mo>[</mo><mi>w</mi><mo>]</mo><mo separator="true">,</mo><mi>f</mi><mo>[</mo><mi>w</mi><mo>]</mo><mo>)</mo><mo>=</mo><mi mathvariant="normal">∅</mi><mo>→</mo></mrow><annotation encoding="application/x-tex">(d[v],f[v])\cap (d[w],f[w])=\emptyset\to</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">d</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mclose">]</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mclose">]</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">d</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span><span class="mclose">]</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span><span class="mclose">]</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.80556em;vertical-align:-0.05556em;"></span><span class="mord">∅</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">→</span></span></span></span>→ v和w均不是对方后代<br>
-P.s：括号化定理是基于区间标记解决可达性查询的核心思想。<br>
-4）白色路径定理：<br>
-在深度优先树中，顶点v是w的祖先⇔在v被发现前，从v到w存在全为白色顶点构成的路径。<br>
-<img src="https://mocuishle0.github.io//post-images/1590478025331.png" alt="" loading="lazy"></li>
-</ul>
-<h2 id="4-有向图-无向图-对比">4. 有向图 &amp; 无向图 对比:</h2>
-<p>在之前的部分，我们主要以无向图作为研究对象，而在该节我们将对有向图展开讨论。需要注意的是，无向图其实质可以认为是一种边具有双向连通性的特殊的有向图。因此，我们在本节仅讨论有向图与无向图在DFS中性质的一些差异，BFS中的差异可类比得到。</p>
-<h3 id="41-连通无向图的优先树与连通有向图的优先森林">4.1 连通无向图的优先树与连通有向图的优先森林:</h3>
-<figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1590478105052.png" alt="" loading="lazy"></figure>
-<h3 id="42-深度优先搜索边的分类">4.2 深度优先搜索边的分类:</h3>
-<figure data-type="image" tabindex="2"><img src="https://mocuishle0.github.io//post-images/1590478140887.png" alt="" loading="lazy"></figure>
 ]]></content>
     </entry>
 </feed>

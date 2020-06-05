@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>C++11 新特征：返回类型后置 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591344675765">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="利用返回类型后置可以令一个函数返回值为“auto”
+
+除了构造函数和析构函数以外，函数声明都需要明确函数的返回类型，在传统的C或者C++中，函数声明大致是这个样子：
+int getSum(int a, int b);
+
+第一个int就是函数..." />
+    <meta name="keywords" content="C++" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591344675765" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">C++11 新特征：返回类型后置</h2>
+            <div class="post-date">2020-06-05</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/c11-xin-te-zheng-fan-hui-lei-xing-hou-zhi.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>利用返回类型后置可以令一个函数返回值为“auto”</p>
+<!-- more -->
+<p>除了构造函数和析构函数以外，函数声明都需要明确函数的返回类型，在传统的C或者C++中，函数声明大致是这个样子：</p>
+<pre><code>int getSum(int a, int b);
+</code></pre>
+<p>第一个int就是函数的返回类型，它表明函数的返回值类型为整数。在新的C++11以后，我们也可以这样声明：</p>
+<pre><code>auto getSum(int a, int b)-&gt;int;
+</code></pre>
+<p>在原来放返回值类型的位置写auto，在函数声明结束以后接一个'-&gt;'再跟着写函数的返回值类型。两种方式的效果是一样的。</p>
+<hr>
+<p><strong>更优雅的用法：</strong></p>
+<p>在介绍返回类型后置之前，我们先来再谈一组令人头大的概念：<strong>数组指针</strong>和<strong>指针数组</strong>......（回想起了被指针常量和常量指针支配的恐惧 -_-）</p>
+<ul>
+<li><strong>数组指针</strong>：可以理解为**“数组的指针”<strong>，即首先这个变量是一个</strong>指针**，其次，“数组”修饰这个指针，意思是说这个指针存放着一个数组的首地址，或者说这个指针指向一个数组的首地址。
+<ul>
+<li>e.g：*<em>char (<em>pa)[4];</em></em></li>
+<li>pa是一个指针指向一个char [4]的数组，每个数组元素是一个char类型的变量，所以我们不妨可以写成：char[4] (*pa);这样就可以直观的看出pa的指向的类型。（不过在编辑器中不要这么写，因为编译器根本不认识，这样写只是帮助我们理解。）</li>
+</ul>
+</li>
+<li><strong>指针数组</strong>：可以理解为**“指针的数组”<strong>，首先这个变量是一个</strong>数组**，其次，“指针”修饰这个数组，意思是说这个数组的所有元素都是指针类型。
+<ul>
+<li>e.g：*<em>char <em>arr[4] = {&quot;hello&quot;, &quot;world&quot;, &quot;shannxi&quot;, &quot;xian&quot;};</em></em></li>
+<li>arr就是定义的一个指针数组，它有四个元素，每个元素是一个char *类型的指针，这些指针存放着其对应字符串的首地址。</li>
+</ul>
+</li>
+</ul>
+<p>P.s：<strong>指针数组和数组指针的形成的根本原因就是运算符的优先级问题</strong>，所以定义变量是一定要注意这个问题，否则定义变量会有根本性差别！</p>
+<p>在明白了<strong>数组指针</strong>和<strong>指针数组</strong>的概念后，我们来聊聊返回类型后置的一种优雅的用法：</p>
+<p>一般情况下，当函数要返回多个数据时，会选择将数据封装在类（或结构体）中返回，或者直接返回一个指针。这两种方式要么麻烦，要么没有办法取得数据的数量。其实我们真正的需求就是返回一个数组（可以计算维度的）指针。这种方法是存在的：</p>
+<blockquote>
+<p>e.g:int (*getResultArray(int mode))[10];</p>
+</blockquote>
+<p>结合数组指针和指针数组的定义，上面的是数组指针还是指针数组呢？应该是<strong>数组指针</strong>。通过上面的形式，声明了一个返回包含10个整数的数组的指针。对于这样一个指针，我们可以像数组一样使用：</p>
+<pre><code>auto arr = getResultArray(1);
+cout &lt;&lt; sizeof(*arr)/sizeof(**arr) &lt;&lt; endl; //可以正确计算维度。
+</code></pre>
+<p>我们其实也可以这样做：</p>
+<pre><code>typedef int arr10[10];
+arr10* getResultArray(int mode)
+</code></pre>
+<p>C++11增加了返回类型后置以后，我们有了新的选择：</p>
+<pre><code>auto getResultArray(int mode)-&gt;int(*)[10]；
+</code></pre>
+<p>比第一种形式容易理解很多。也不需要自定义类型。</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/Yz3MZw1Sl/" class="tag">
+                    C++
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/c11-xin-te-zheng-rong-qi-de-cbegin-he-cend-han-shu/">
+                  <h3 class="post-title">
+                    C++11 新特征：容器的cbegin和cend函数 
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

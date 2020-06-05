@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>C++11 新特征：容器的cbegin和cend函数  | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591344675765">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="小众的常量迭代器
+
+这个新特征其实是偶尔在别人的总结中看到的，但觉得确实很有趣，就做个记录：
+1. 需求
+我们一般在使用STL容器时，下面代码是非常常见的：
+int sum = 0;
+vector&lt;int&gt; v{1, 2, 3,..." />
+    <meta name="keywords" content="C++" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591344675765" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">C++11 新特征：容器的cbegin和cend函数 </h2>
+            <div class="post-date">2020-06-05</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/c11-xin-te-zheng-rong-qi-de-cbegin-he-cend-han-shu.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>小众的常量迭代器</p>
+<!-- more -->
+<p>这个新特征其实是偶尔在别人的总结中看到的，但觉得确实很有趣，就做个记录：</p>
+<h2 id="1-需求">1. 需求</h2>
+<p>我们一般在使用STL容器时，下面代码是非常常见的：</p>
+<pre><code>int sum = 0;
+vector&lt;int&gt; v{1, 2, 3, 4, 5, 6};
+vector&lt;int&gt;::iterator it = v.begin();
+while(it != v.end()){
+       sum += *it;
+       it++;
+ }
+</code></pre>
+<p>但是，如果我们一旦定义容器为常量，就必须注意迭代器也需要声明为常量：</p>
+<pre><code>int sum = 0;
+
+//编译错误：原因是定义的vector是const类型，所以迭代器必须也是const类型
+const vector&lt;int&gt; cv{1, 2, 3, 4, 5, 6};
+vector&lt;int&gt;::iterator cit = cv.begin();
+while(cit != v.end()){
+       sum += *cit;
+       cit++;
+ }
+
+//正确写法：
+const vector&lt;int&gt; cv{1, 2, 3, 4, 5, 6};
+vector&lt;int&gt;::const_iterator cit = cv.begin();
+while(cit != v.end()){
+       sum += *cit;
+       cit++;
+}
+</code></pre>
+<p>这显然很麻烦，一个简单的方法是直接使用auto来自动推断迭代器类型（想必大家都更倾向于这样，毕竟...有了auto还要啥自行车）：</p>
+<pre><code>auto ait = cv.begin();
+while(ait != cv.end()){ 
+       sum += *ait;
+       ait++;
+ }
+</code></pre>
+<h2 id="2-优势">2. 优势</h2>
+<p>但我们也不难想到存在这样一种情形：<strong>数据本身不是const类型，但是从设计的角度来讲有些处理不应该修改该数据</strong>。这时也应该要求const类型的迭代器，以避免数据被意外修改。所以，C++11为此提供了cbegin和cend方法。</p>
+<pre><code>vector&lt;int&gt; v{1, 2, 3, 4, 5, 6};
+auto ait = v.cbegin();
+while(ait != v.cend()){
+           sum += *ait;
+           *ait = sum;  //编译错误
+           ait++;
+}
+</code></pre>
+<p>cbegin()/cend()决定了返回的迭代器类型为const。这时即使vector的类型不是const，也可以防止对该数据的误操作。</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/Yz3MZw1Sl/" class="tag">
+                    C++
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/c11-xin-te-zheng-chang-liang-biao-da-shi/">
+                  <h3 class="post-title">
+                    C++11 新特征：常量表达式
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

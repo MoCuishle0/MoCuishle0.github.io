@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>C++11 新特性：列表初始化 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591344675765">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="优雅的初始化方式
+
+回想一下，之前C或者C++在初始化数组时，可以使用下面的花括号加初始值的形式：
+int int_array[] = {1, 2, 3, 4, 5};
+
+这对于常使用C++的程序员而言，是一种司空见惯的写法。然而，这种方法..." />
+    <meta name="keywords" content="C++" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591344675765" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">C++11 新特性：列表初始化</h2>
+            <div class="post-date">2020-06-04</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/c11-xin-te-xing-lie-biao-chu-shi-hua.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>优雅的初始化方式</p>
+<!-- more -->
+<p>回想一下，之前C或者C++在初始化数组时，可以使用下面的花括号加初始值的形式：</p>
+<pre><code>int int_array[] = {1, 2, 3, 4, 5};
+</code></pre>
+<p>这对于常使用C++的程序员而言，是一种司空见惯的写法。然而，这种方法的运用范围很窄，许多场景都用不了。最典型的例子莫过于vector：可以像数组一样使用，可以自己管理数据长度，还提供各种操作数组的方法。声明的方法也很简单：</p>
+<pre><code>vector&lt;int&gt; int_vector;
+</code></pre>
+<p>但是有一个问题，当需要指定元素初始化vector时就不那么方便了，传统的初始化方法有以下几类：</p>
+<pre><code>//方法1:逐一压入
+int_vector.push_back(5);
+int_vector.push_back(4);
+int_vector.push_back(3);
+int_vector.push_back(2);
+int_vector.push_back(1);
+//方法2:统一赋值——int_vector共有10个元素，每个元素都是8
+vector&lt;int&gt; int_vector(10,8)；
+</code></pre>
+<h2 id="列表初始化">列表初始化</h2>
+<p>C++11中扩展了使用<strong>花括号</strong>初始化变量的应用范围，称这种初始化方式为列表初始化。例如，可以像下面这样初始化vector、list、map:</p>
+<pre><code>vector&lt;int&gt; int_vector = {5, 4, 3, 2, 1};
+list&lt;int&gt; int_list = {5, 4, 3, 2, 1};
+map&lt;int, const char*&gt; id2Name = {{1,&quot;Zhang&quot;},{2, &quot;Wang&quot;},{3, &quot;Li&quot;}};
+</code></pre>
+<p>更简单的还有以下写法：</p>
+<pre><code>vector&lt;int&gt; int_vector{5, 4, 3, 2, 1};
+
+list&lt;int&gt; int_list {5, 4, 3, 2, 1};
+
+map&lt;int, const char*&gt; id2Name{{1,&quot;Zhang&quot;},{2, &quot;Wang&quot;},{3, &quot;Li&quot;}};
+</code></pre>
+<p>舒服了～</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/Yz3MZw1Sl/" class="tag">
+                    C++
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/c11-xin-te-zheng-ji-yu-fan-wei-de-for-xun-huan/">
+                  <h3 class="post-title">
+                    C++11 新特征：基于范围的for循环
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>
