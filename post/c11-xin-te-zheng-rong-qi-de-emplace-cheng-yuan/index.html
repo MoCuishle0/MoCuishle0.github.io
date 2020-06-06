@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" >
 
-<title>C++11 新特征：容器的cbegin和cend函数  | MoCuishle</title>
+<title>C++11 新特征：容器的emplace成员 | MoCuishle</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
@@ -18,13 +18,12 @@
 
 
 
-    <meta name="description" content="小众的常量迭代器
+    <meta name="description" content="老问题，但还有更优雅的做法。
 
-这个新特征其实是偶尔在别人的总结中看到的，但觉得确实很有趣，就做个记录：
-1. 需求
-我们一般在使用STL容器时，下面代码是非常常见的：
-int sum = 0;
-vector&lt;int&gt; v{1, 2, 3,..." />
+在右值引用和移动语义部分，其实我们的核心在于减少了程序运行中对变量的拷贝次数（这仅是个人直观的理解）。其实在C++11的容器中，还有一种优雅的方式可以达到这一目的。
+1. 引例
+考虑下面的Rect类：
+str..." />
     <meta name="keywords" content="C++" />
   </head>
   <body>
@@ -97,63 +96,41 @@ vector&lt;int&gt; v{1, 2, 3,..." />
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
-            <h2 class="post-title">C++11 新特征：容器的cbegin和cend函数 </h2>
-            <div class="post-date">2020-06-05</div>
+            <h2 class="post-title">C++11 新特征：容器的emplace成员</h2>
+            <div class="post-date">2020-06-06</div>
             
-              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/c11-xin-te-zheng-rong-qi-de-cbegin-he-cend-han-shu.png')">
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/c11-xin-te-zheng-rong-qi-de-emplace-cheng-yuan.png')">
               </div>
             
             <div class="post-content" v-pre>
-              <p>小众的常量迭代器</p>
+              <p>老问题，但还有更优雅的做法。</p>
 <!-- more -->
-<p>这个新特征其实是偶尔在别人的总结中看到的，但觉得确实很有趣，就做个记录：</p>
-<h2 id="1-需求">1. 需求</h2>
-<p>我们一般在使用STL容器时，下面代码是非常常见的：</p>
-<pre><code>int sum = 0;
-vector&lt;int&gt; v{1, 2, 3, 4, 5, 6};
-vector&lt;int&gt;::iterator it = v.begin();
-while(it != v.end()){
-       sum += *it;
-       it++;
- }
+<p>在右值引用和移动语义部分，其实我们的核心在于减少了程序运行中对变量的拷贝次数（这仅是个人直观的理解）。其实在C++11的容器中，还有一种优雅的方式可以达到这一目的。</p>
+<h2 id="1-引例">1. 引例</h2>
+<p>考虑下面的Rect类：</p>
+<pre><code>struct Rect
+{
+    Rect(int l, int t, int r, int b)
+        :left{l}, top{t}
+        ,right{r}, bottom{b}
+    {}
+    int left;
+    int top;
+    int right;
+    int bottom;
+};
 </code></pre>
-<p>但是，如果我们一旦定义容器为常量，就必须注意迭代器也需要声明为常量：</p>
-<pre><code>int sum = 0;
-
-//编译错误：原因是定义的vector是const类型，所以迭代器必须也是const类型
-const vector&lt;int&gt; cv{1, 2, 3, 4, 5, 6};
-vector&lt;int&gt;::iterator cit = cv.begin();
-while(cit != v.end()){
-       sum += *cit;
-       cit++;
- }
-
-//正确写法：
-const vector&lt;int&gt; cv{1, 2, 3, 4, 5, 6};
-vector&lt;int&gt;::const_iterator cit = cv.begin();
-while(cit != v.end()){
-       sum += *cit;
-       cit++;
-}
+<p>如果我们需要向容器添加Rect对象时，代码大致是这样的：</p>
+<pre><code>std::list&lt;Rect&gt; rlist;
+rlist.push_front(Rect(10, 10, 20, 20));
 </code></pre>
-<p>这显然很麻烦，一个简单的方法是直接使用auto来自动推断迭代器类型（想必大家都更倾向于这样，毕竟...有了auto还要啥自行车）：</p>
-<pre><code>auto ait = cv.begin();
-while(ait != cv.end()){ 
-       sum += *ait;
-       ait++;
- }
+<p>在调用push_front时，首先构造一个临时的Rect对象传递给push_front方法，然后在push_front的内部，在复制一个Rect对象添加到容器中。全过程会发生一次创建动作和一次拷贝动作，才能将对象的内容添加到list当中去(其他容器同理)。</p>
+<h2 id="2-emplace方法">2. emplace方法</h2>
+<p>为了减少拷贝动作的次数，当然可以使用右值引用参数的成员函数。除此之外，C++11还提供了另一种方法：emplace成员。<strong>使用这个成员可以直接传递用于生成对象的参数，对象的创建过程交给容器去执行</strong>：</p>
+<pre><code>std::list&lt;Rect&gt; rlist;
+rlist.emplace_front(10, 10, 20, 20);
 </code></pre>
-<h2 id="2-优势">2. 优势</h2>
-<p>但我们也不难想到存在这样一种情形：<strong>数据本身不是const类型，但是从设计的角度来讲有些处理不应该修改该数据</strong>。这时也应该要求const类型的迭代器，以避免数据被意外修改。所以，C++11为此提供了cbegin和cend方法。</p>
-<pre><code>vector&lt;int&gt; v{1, 2, 3, 4, 5, 6};
-auto ait = v.cbegin();
-while(ait != v.cend()){
-           sum += *ait;
-           *ait = sum;  //编译错误
-           ait++;
-}
-</code></pre>
-<p>cbegin()/cend()决定了返回的迭代器类型为const。这时即使vector的类型不是const，也可以防止对该数据的误操作。</p>
+<p>用法非常简单，只要保证参数和元素构造函数的参数相同即可。除了emplace_front以外，C++11还提供了emplace和emplace_bak方法，分别对应insert和push_back方法。</p>
 
             </div>
             
@@ -168,9 +145,9 @@ while(ait != v.cend()){
             
               <div class="next-post">
                 <div class="next">下一篇</div>
-                <a href="https://mocuishle0.github.io/post/c11-xin-te-zheng-chang-liang-biao-da-shi/">
+                <a href="https://mocuishle0.github.io/post/c11-xin-te-zheng-you-zhi-yin-yong-yu-yi-dong-yu-yi/">
                   <h3 class="post-title">
-                    C++11 新特征：常量表达式
+                    C++11 新特征：右值引用 与 移动语义
                   </h3>
                 </a>
               </div>

@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://mocuishle0.github.io/</id>
     <title>MoCuishle</title>
-    <updated>2020-06-05T10:22:45.782Z</updated>
+    <updated>2020-06-06T10:42:45.556Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://mocuishle0.github.io/"/>
     <link rel="self" href="https://mocuishle0.github.io/atom.xml"/>
@@ -11,6 +11,276 @@
     <logo>https://mocuishle0.github.io/images/avatar.png</logo>
     <icon>https://mocuishle0.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, MoCuishle</rights>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：容器的emplace成员]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-rong-qi-de-emplace-cheng-yuan/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-rong-qi-de-emplace-cheng-yuan/">
+        </link>
+        <updated>2020-06-06T03:26:02.000Z</updated>
+        <summary type="html"><![CDATA[<p>老问题，但还有更优雅的做法。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>老问题，但还有更优雅的做法。</p>
+<!-- more -->
+<p>在右值引用和移动语义部分，其实我们的核心在于减少了程序运行中对变量的拷贝次数（这仅是个人直观的理解）。其实在C++11的容器中，还有一种优雅的方式可以达到这一目的。</p>
+<h2 id="1-引例">1. 引例</h2>
+<p>考虑下面的Rect类：</p>
+<pre><code>struct Rect
+{
+    Rect(int l, int t, int r, int b)
+        :left{l}, top{t}
+        ,right{r}, bottom{b}
+    {}
+    int left;
+    int top;
+    int right;
+    int bottom;
+};
+</code></pre>
+<p>如果我们需要向容器添加Rect对象时，代码大致是这样的：</p>
+<pre><code>std::list&lt;Rect&gt; rlist;
+rlist.push_front(Rect(10, 10, 20, 20));
+</code></pre>
+<p>在调用push_front时，首先构造一个临时的Rect对象传递给push_front方法，然后在push_front的内部，在复制一个Rect对象添加到容器中。全过程会发生一次创建动作和一次拷贝动作，才能将对象的内容添加到list当中去(其他容器同理)。</p>
+<h2 id="2-emplace方法">2. emplace方法</h2>
+<p>为了减少拷贝动作的次数，当然可以使用右值引用参数的成员函数。除此之外，C++11还提供了另一种方法：emplace成员。<strong>使用这个成员可以直接传递用于生成对象的参数，对象的创建过程交给容器去执行</strong>：</p>
+<pre><code>std::list&lt;Rect&gt; rlist;
+rlist.emplace_front(10, 10, 20, 20);
+</code></pre>
+<p>用法非常简单，只要保证参数和元素构造函数的参数相同即可。除了emplace_front以外，C++11还提供了emplace和emplace_bak方法，分别对应insert和push_back方法。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：右值引用 与 移动语义]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-you-zhi-yin-yong-yu-yi-dong-yu-yi/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-you-zhi-yin-yong-yu-yi-dong-yu-yi/">
+        </link>
+        <updated>2020-06-06T00:59:33.000Z</updated>
+        <summary type="html"><![CDATA[<p>一个新接触到的概念——左值、右值。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>一个新接触到的概念——左值、右值。</p>
+<!-- more -->
+<p>实话实说，关于左值、右值的概念也是这次整理时才第一次接触到。所以就根据看到的相关资料做一个归纳。</p>
+<h2 id="1-左值-右值">1. 左值 &amp; 右值</h2>
+<p>在C++表达式的特性中有一个左值和右值的概念。如果一个表达式可以放在<strong>赋值语句</strong>的左侧，就称之为左值，如果不能放到表达式的左侧，就称之为右值。通俗的来讲，<strong>左值（lvalue）是一个表达式，它表示一个可被标识的（变量或对象的）内存位置，并且允许使用&amp;操作符来获取这块内存的地址</strong>。如果一个表达式不是左值，那它就被定义为右值。</p>
+<pre><code>//赋值操作需要左操作数是一个左值。var 是一个有内存位置的对象，因此它是左值.
+int var;
+var = 4;
+
+4 = var;       // 错误！
+(var + 1) = 4; // 错误！
+</code></pre>
+<p>在上面的例子中，常量 4 和表达式 var + 1 都不是左值（也就是说，它们是右值），因为它们都是表达式的临时结果，而没有可识别的内存位置（也就是说，只存在于计算过程中的每个临时寄存器中）。因此，赋值给它们是没有任何语义上的意义的——我们赋值到了一个不存在的位置。</p>
+<p>不同的运算符对运算对象的要求各不相同，例如：</p>
+<ul>
+<li>赋值运算符的左侧要求是左值，得到的结果还是左值，因此我们可以继续对它赋值；</li>
+<li>取地址符作用于左值运算对象，返回对象的指针为右值，因此取地址运算表达式只能位于赋值语句的右侧。</li>
+</ul>
+<h2 id="2-右值引用">2. 右值引用</h2>
+<p>在介绍C++11 新引入的右值引用概念之前，我们先介绍一下一般的引用类型。需要注意的是，只有左值可以付给引用，如：</p>
+<pre><code>int&amp; ref = 9;   //编译错误
+</code></pre>
+<p>我们只能这样做：</p>
+<pre><code>    int l=9;
+    int &amp;r=l;
+    cout&lt;&lt;l&lt;&lt;&quot; &quot;&lt;&lt;r&lt;&lt;endl;      //9 9
+
+    r++;
+    cout&lt;&lt;l&lt;&lt;&quot; &quot;&lt;&lt;r&lt;&lt;endl;      //10 10
+</code></pre>
+<p>没有问题，l是左值，所以可以将引用类型的r绑定到l上，今后对r的操作就等同于对l的操作。</p>
+<p>C++11引入了右值引用的概念，<strong>使得我们把引用与右值进行绑定。使用两个“取地址符号”</strong>：</p>
+<pre><code>int&amp;&amp; rvalue_ref = 99;
+</code></pre>
+<p>下面的例子更有助于理解：</p>
+<pre><code>#include &lt;iostream&gt;
+
+void f(int&amp; i) { std::cout &lt;&lt; &quot;lvalue ref: &quot; &lt;&lt; i &lt;&lt; &quot;\n&quot;; }
+void f(int&amp;&amp; i) { std::cout &lt;&lt; &quot;rvalue ref: &quot; &lt;&lt; i &lt;&lt; &quot;\n&quot;; }
+
+int main()
+{
+    int i = 77;
+    f(i);    // lvalue ref called
+    f(99);   // rvalue ref called
+
+    f(std::move(i));  
+    
+    /*std::move，这是标准库中提供的方法，它可以将左值显式转换为右值引用类型，从而告诉编译器，可以像右值（临时变量）一样处理它。同时也意味着接下来除了对i赋值或销毁以外，不再使用它。*/
+
+    return 0;
+}
+/*
+    输出：
+        lvalue ref: 77
+        rvalue ref: 99
+        lvalue ref: 77
+*/
+</code></pre>
+<p>还存在更为隐晦的右值，如下例：</p>
+<pre><code>#include &lt;iostream&gt;
+
+int getValue ()     //getValue()是一个右值
+{
+    int ii = 10;
+    return ii;
+}
+
+int main()
+{
+    const int&amp; val = getValue(); // OK
+    int&amp; val = getValue(); // NOT OK
+
+    const int&amp;&amp; val = getValue(); // OK
+    int&amp;&amp; val = getValue(); //  OK
+    return 0;
+}
+
+</code></pre>
+<p>因此，对比以下代码，我们可以发现：</p>
+<pre><code>void printReference (const int&amp; value)  //可以接受参数为左值，也可以接受右值。 
+{
+        cout &lt;&lt; value;
+}
+
+void printReference (int&amp;&amp; value)   //只能接受右值引用作为参数。
+{
+        cout &lt;&lt; value;
+}
+</code></pre>
+<h2 id="3-移动语义">3. 移动语义</h2>
+<p>了解了右值引用的基本概念后，其实我也很纠结：C++11引入这样一个令人头大的特征到底有什么用？在<a href="https://blog.csdn.net/craftsman1970/article/details/80397276">参考文献</a>中作者的解释其实是挺容易让我理解的：</p>
+<h3 id="31-实例演示">3.1 实例演示</h3>
+<p>在C++语言中，引用是作为一种高效，安全的传递数据的方式而存在的。除了一般的引用类型，还可以声明const引用。例如，我们有以下一个Image类：</p>
+<pre><code>class Image
+{
+    private:
+       int width = 0;
+       int height = 0;
+       char *data = nullptr;
+public:
+
+   Image(int w, int h): width(w), height(h){
+       data = new char[getSize()];
+    }
+
+   int getSize(){
+       return width * height;
+    }
+
+   virtual ~Image(){
+        if (data != nullptr){
+            delete data;
+            data = nullptr;
+            width = 0;
+            height = 0;        
+        }  
+    }
+}
+</code></pre>
+<p>上面只是这个类的雏形，只有构造函数，析构函数和取得数据大小的功能。接下来添加比较两个Image是否相同的函数。最简单的形式大致如下。</p>
+<pre><code>bool isSame(Image&amp; img)
+{
+    if(width == img.width
+      &amp;&amp; height == img.height){
+        return (memcmp(data,img.data,getSize())==0);
+    }
+    else{
+        return false;
+    }
+}
+</code></pre>
+<p>这里使用引用类型的参数，避免了没有必要的拷贝动作。当然我们还可以做得更好：<strong>由于比较函数没有必要也不应该对比较对象的内容进行修改，所以还可用下面的形式进行承诺</strong>：</p>
+<pre><code>bool isSame(const Image&amp; img)
+{
+    if(width == img.width
+      &amp;&amp; height == img.height){
+        char* in = static_cast&lt;char*&gt;(img.data);
+        return (memcmp(data,in,getSize())==0);
+    }
+    else{
+        return false;
+    }
+}
+</code></pre>
+<p>这里，<strong>通过在参数前面增加const修饰符，向isSame方法的调用者保证，不会修改img的内容</strong>。</p>
+<hr>
+<p>到此为止都是我们所熟悉的内容。然而，如果我们希望继续添加将一个Image的一部分merge到另一个Image上的方法，函数的内容大致如下(这里忽略处理的细节)：</p>
+<pre><code>void merge(Image&amp; img){
+    //接管img中的数据。
+    img.height = 0;
+    img.width = 0;
+    img.data = nullptr;
+}
+</code></pre>
+<p>类似的操作在处理在输入对象时一般有两种处理方式。有时希望只是参照而不破坏输入数据，这时可以使用前面讲到的为参数增加const修饰符的方式来承诺；有时为了提高效率或者其他的原因希望可以<strong>接管输入的数据，就像上面代码的状态</strong>。这时的行为更像是数据移动。对于第二种方式，如果仅仅定义一般的引用类型，<strong>利用者根本没有办法通过方法声明来确定这个操作是否会接管参数中的数据。这种不确定性会造成很大的麻烦</strong>。解决这个问题的方法就是利用右值引用：</p>
+<pre><code>void merge(Image&amp;&amp; img){
+    //接管img中的数据。
+    img.height = 0;
+    img.width = 0;
+    img.data = nullptr;
+}
+</code></pre>
+<p>我们将参数声明为右值引用，要求像一个临时变量一样任性地使用数据。使用这个函数的方法如下：</p>
+<pre><code>Image img1(100, 100);
+Image img2(100, 200);
+img1.merge(std::move(img2));
+</code></pre>
+<p>注意代码中的std::move，这是标准库中提供的方法，它可以将左值显式转换为右值引用类型，从而告诉编译器，可以像右值（临时变量）一样处理它。同时也意味着接下来除了对img2赋值或销毁以外，不再使用它。C++11通过使用右值引用提供了一种接管数据的标准方法。</p>
+<h3 id="32-移动语义的功能">3.2 移动语义的功能</h3>
+<p>当一个函数的参数<strong>按值传递</strong>时，这就会进行<strong>拷贝</strong>。当然，编译器懂得如何去拷贝。 而对于我们自定义的类型，我们也许需要提供拷贝构造函数。但是不得不说，拷贝的代价是昂贵的。所以我们需要寻找一个避免不必要拷贝的方法，即C++11提供的移动语义。</p>
+<p>实际上，我们在第2部分介绍的右值引用，其主要目的是用于<strong>创建移动构造函数</strong>和<strong>移动赋值运算</strong>。</p>
+<p>移动构造函数类似于拷贝构造函数，把类的实例对象作为参数，并创建一个新的实例对象。但是，移动构造函数可以避免内存的重新分配，因为我们知道右值引用提供了一个暂时的对象，而不是进行copy，所以我们可以进行移动。换言之，<strong>在涉及到关于临时对象时，右值引用和移动语义允许我们避免不必要的拷贝</strong>。我们不想拷贝将要消失的临时对象，所以这个临时对象的资源可以被我们用作于其他的对象。<strong>右值就是典型的临时变量，并且他们可以被修改。如果我们知道一个函数的参数是一个右值，我们可以把它当做一个临时存储。这就意味着我们要移动而不是拷贝右值参数的内容</strong>。这就会节省很多的空间。</p>
+<p>更详细的解释可参考：<a href="https://www.kancloud.cn/wangshubo1989/new-characteristics/99718">文献</a></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：array容器]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-array-rong-qi/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-array-rong-qi/">
+        </link>
+        <updated>2020-06-06T00:29:41.000Z</updated>
+        <summary type="html"><![CDATA[<p>STL容器的新成员，更高效的数组。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>STL容器的新成员，更高效的数组。</p>
+<!-- more -->
+<p>就我个人而言，原生内置数组时常感觉用起来并不十分顺手。一是大小没有管理，二是越界操作没有检查。虽然C/C++也提供了一些解决办法，但总是不够完美。例如下面的代码：</p>
+<pre><code>int ary[5];
+memset(ary, 0, sizeof(ary));
+unsigned int i = 0;
+while(i&lt;sizeof(ary)/sizeof(ary[0])){
+    ary[i] = i;
+    i++;
+}
+</code></pre>
+<p>C++11后，标准库引入了更现代化的数组std::array。与内置数组相比，array是一种更安全、更容易使用的数组类型。与内置数组类似，array对象的大小是固定的。因此，array<strong>不支持添加和删除元素以及改变容器大小的操作</strong>。与内置数组一样，标准库array的大小也是类型的一部分。<strong>当定义一个array时，除了指定元素类型，还要指定容器大小</strong>（array&lt;T,N&gt; 模板定义了一种相当于标准数组的容器类型。它是一个<strong>有 N 个 T 类型元素的固定序列</strong>）。为了使用array类型，我们必须同时指定元素类型和大小。array仅仅是为普通数组添加了一些成员或全局函数，这使得数组能够被当成标准容器来使用。array不能被动态地扩展或压缩。</p>
+<p>和标准数组相比，array 容器的额外开销很小，但提供了两个优点：<strong>1）如果使用 at()，当用一个非法的索引访问数组元素时，能够被检测到，因为容器知道它有多少个元素；2）这也就意味着数组容器可以作为参数传给函数，而不再需要单独去指定数组元素的个数。</strong></p>
+<p>使用 array 容器类型时，需要在源文件中包含头文件 array。下面展示了如何创建具有 10 个 double 型元素的 array&lt;&gt;，该实例定义了一个 array 容器，却没有为元素指定初始值，那么元素就不会被初始化：</p>
+<pre><code>std::array&lt;double,10&gt; arr;
+</code></pre>
+<p>但是可以如下所示，将它们初始化为 0 或者和默认元素类型等效的值。使用下面语句初始化后，容器中所有的元素都会变为 0.0。</p>
+<pre><code>std::array&lt;double,10&gt; arr{};
+</code></pre>
+<p>当然，当创建 array 容器的实例时，要像创建常规数组那样，对元素进行初始化：</p>
+<pre><code>std::array&lt;double, 10&gt; arr {0.5, 1.0, 1.5, 2.0};
+</code></pre>
+<p>初始化器列表中的 4 个值用于初始化前 4 个元素，其余的元素都将为 0。</p>
+<p>回到我们最初的原生内置数组代码，我们可以利用array编写如下代码：</p>
+<pre><code>std::array&lt;int, 5&gt; c11ary;
+c11ary.fill(0);
+unsigned int i = 0;
+while(i&lt;c11ary.size()){
+    c11ary.at(i) = i;
+    i++;
+}
+</code></pre>
+<p>这段代码中:</p>
+<ul>
+<li>使用fill方法实现了数据填充。</li>
+<li>使用size方法取得数组的大小。</li>
+<li>虽然at(i)方法实现带有越界检查的读写。</li>
+</ul>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[C++11 新特征：返回类型后置]]></title>
         <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-fan-hui-lei-xing-hou-zhi/</id>
@@ -583,467 +853,6 @@ bool   b = nullptr;     // OK. b is false.
 int    i = nullptr;     // error
 
 foo(nullptr);           // calls foo(char *), not foo(int);
-</code></pre>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[C++11 新特征：auto & decltype类型推导]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-auto-and-decltype-lei-xing-tui-dao/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-auto-and-decltype-lei-xing-tui-dao/">
-        </link>
-        <updated>2020-06-04T01:22:10.000Z</updated>
-        <content type="html"><![CDATA[<p>第一次接触到<strong>auto</strong>关键字是无意间看到一行代码简洁优雅地实现了STL容器的迭代器，再看看我写的一长串诸如<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>v</mi><mi>e</mi><mi>c</mi><mi>t</mi><mi>o</mi><mi>r</mi><mo>&lt;</mo><mi>i</mi><mi>n</mi><mi>t</mi><mo>&gt;</mo><mo>:</mo><mo>:</mo><mi>i</mi><mi>t</mi><mi>e</mi><mi>r</mi><mi>a</mi><mi>t</mi><mi>o</mi><mi>r</mi><mi>i</mi><mi>t</mi><mo>⋯</mo></mrow><annotation encoding="application/x-tex">vector&lt;int&gt;::iterator it\dotsb</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65418em;vertical-align:-0.0391em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mord mathdefault">e</span><span class="mord mathdefault">c</span><span class="mord mathdefault">t</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.69862em;vertical-align:-0.0391em;"></span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mord mathdefault">t</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mrel">:</span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mrel">:</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span><span class="mord mathdefault">t</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">a</span><span class="mord mathdefault">t</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">i</span><span class="mord mathdefault">t</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">⋯</span></span></span></span>就默默流下了没有技术的眼泪😂。这次想到要整理C++11新特性，就先来谈谈这个<strong>auto</strong>关键字以及与其功能相似的<strong>decltype</strong>关键字：</p>
-<h2 id="1-auto关键字">1. auto关键字</h2>
-<h3 id="11-auto简介">1.1 auto简介</h3>
-<p>在C++11标准中，<strong>auto</strong>关键字的功能为自动类型推断。<strong>auto</strong>关键字的功能其实并不难理解，简而言之，就是<strong>让编译器根据变量的初值去自动推导这个变量的类型</strong>。<br>
-<strong>auto</strong>现在成了一个类型的占位符，通知编译器去根据初始化代码推断所声明变量的真实类型。各种作用域内声明变量都可以用到它。例如，名空间中，程序块中，或是for循环的初始化语句中。例如以下代码：</p>
-<pre><code>auto i = 42;        // i is an int
-auto d=23.3;        //d is a double
-auto l = 42LL;      // l is a long long
-</code></pre>
-<p>正如之前所说，auto最常见的用法是用来声明STL容器的迭代器。不得不说，正规的迭代器声明实在是太长了，例如：</p>
-<pre><code>using namespace std;
-//...
-vector&lt;int&gt; vec(3);
-vector&lt;int&gt;::iterator it;
-for(it=vec.begin();it!=vec.end();it++){
-    //...
-}
-</code></pre>
-<p>然而，如果我们使用auto关键字，代码会简洁很多：</p>
-<pre><code>using namespace std;
-//...
-vector&lt;int&gt; vec(3);
-for(auto it=vec.begin();it!=vec.end();it++){
-    //...
-}
-</code></pre>
-<h3 id="12-auto效率">1.2. auto效率</h3>
-<p>auto实际上实在编译时对变量进行了类型推导，所以不会对程序的运行效率造成不良影响。另外，auto并不会影响编译速度，因为编译时本来也要右侧推导然后判断与左侧是否匹配。</p>
-<h3 id="13-注意事项">1.3. 注意事项</h3>
-<p>auto关键字虽然很简单，使用也很方便，但其在使用中仍有以下几点事项需要注意：</p>
-<ul>
-<li>auto声明的变量必须要初始化，否则编译器不能判断变量的类型。</li>
-<li>auto不能被声明为返回值，auto不能作为形参，auto不能被修饰为模板参数。但是，<strong>如果函数有一个尾随的返回类型时，auto是可以出现在函数声明中返回值位置</strong>。这种情况下，auto并不是告诉编译器去推断返回类型，而是指引编译器去函数的末端寻找返回值类型。下面给出一个经典的例子，函数的返回值类型就是operator+操作符作用在T1、T2类型变量上的返回值类型：</li>
-</ul>
-<pre><code>template &lt;typename _Tx, typename _Ty&gt;
-auto compose(_Tx x, _Ty y)-&gt;decltype(_Tx + _Ty)    //decltype用法见后文
-{
-    return x + y;
-}
-auto v = compose(2, 3.14);  // v's type is double
-</code></pre>
-<h2 id="2-decltype关键字">2. decltype关键字</h2>
-<p>其实我也是在查询auto关键字时，第一次接触到<strong>decltype</strong>关键字。编译时类型推导的出现主要是为了泛型编程，因为在非泛型编程中，我们的类型都是确定的，根本不需要再进行推导。而编译时类型推导，除了上面介绍的auto关键字，还有decltype关键字。以下对<strong>decltype</strong>的用法进行整理：</p>
-<h3 id="21-decltype用法">2.1 decltype用法</h3>
-<p>decltype与auto关键字一样，用于进行编译时类型推导，不过它与auto还是有一些区别的。decltype的类型推导并不是像auto一样是从变量声明的初始化表达式获得变量的类型，<strong>而是以一个普通表达式作为参数，返回该表达式的类型，而且decltype并不会对表达式进行求值</strong>。例如：</p>
-<pre><code>int i = 4;
-decltype(i) a;      //推导结果为int。a的类型为int。
-using size_t = decltype(sizeof(0));     //using此处用于定义别名,sizeof(a)的返回值为size_t类型
-</code></pre>
-<p>同样地，decltype也可以用于声明STL容器的迭代器：</p>
-<pre><code>vector&lt;int &gt;vec;
-    typedef decltype(vec.begin()) vectype;
-    for (vectype i = vec.begin; i != vec.end(); i++)
-    {
-        //...
-    }
-</code></pre>
-<p>此外，在C++中，我们有时候会遇上一些匿名类型，而借助decltype，我们可以重新使用这个匿名的结构体：</p>
-<pre><code>struct 
-{
-    int d ;
-    doubel b;
-}anon_s;
-
-decltype(anon_s) as ;//定义了一个上面匿名的结构体
-</code></pre>
-<p>而decltype最大的用途是在泛型编程中结合auto，用于追踪函数的返回值类型。（参考auto中最后一个示例代码）。</p>
-<h3 id="22-decltype推导四规则仅作了解">2.2 decltype推导四规则（仅作了解）</h3>
-<ol>
-<li>如果e是一个没有带括号的标记符表达式或者类成员访问表达式，那么的decltype（e）就是e所命名的实体的类型。此外，如果e是一个被重载的函数，则会导致编译错误。</li>
-<li>否则 ，假设e的类型是T，如果e是一个将亡值，那么decltype（e）为T&amp;&amp;</li>
-<li>否则，假设e的类型是T，如果e是一个左值（左值就是在赋值中可以放在赋值操作符两边的值，一切变量都是左值，但const变量是例外），那么decltype（e）为T&amp;。</li>
-<li>否则，假设e的类型是T，则decltype（e）为T。</li>
-</ol>
-<p>如下面的例子，仅仅为i加上了()，就导致类型推导结果的差异。这是因为，i是一个标记符表达式，根据推导规则1，类型被推导为int。而(i)为一个左值表达式，所以类型被推导为int&amp;。</p>
-<pre><code>int i=10;
-decltype(i) a; //a推导为int
-decltype((i))b=i;//b推导为int&amp;，必须为其初始化，否则编译错误
-</code></pre>
-<p>具体内容可参考：<a href="https://www.cnblogs.com/QG-whz/p/4952980.html">decltype用法</a></p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[ACM专题：字符串匹配算法]]></title>
-        <id>https://mocuishle0.github.io/post/acm-zhuan-ti-zi-fu-chuan-pi-pei-suan-fa/</id>
-        <link href="https://mocuishle0.github.io/post/acm-zhuan-ti-zi-fu-chuan-pi-pei-suan-fa/">
-        </link>
-        <updated>2020-06-02T09:01:26.000Z</updated>
-        <summary type="html"><![CDATA[<p>字符串匹配问题，无论是编程课还是算法课都会被提及，就连公司笔试、面试也都是热点问题之一。可是奈何当时学习时对于该问题的算法理解并不到位，特此进行总结归纳。<br>
-P.s：以下内容主要是对公众号：“程序员小灰”中字符串匹配专题的整理加上自己的理解。<a href="https://mp.weixin.qq.com/s/67uf7pRxXh7Iwm7MMpqJoA">原文参考</a></p>
-]]></summary>
-        <content type="html"><![CDATA[<p>字符串匹配问题，无论是编程课还是算法课都会被提及，就连公司笔试、面试也都是热点问题之一。可是奈何当时学习时对于该问题的算法理解并不到位，特此进行总结归纳。<br>
-P.s：以下内容主要是对公众号：“程序员小灰”中字符串匹配专题的整理加上自己的理解。<a href="https://mp.weixin.qq.com/s/67uf7pRxXh7Iwm7MMpqJoA">原文参考</a></p>
-<!-- more -->
-<p>本文概要：</p>
-<ul>
-<li>问题定义</li>
-<li>BF算法（暴力求解）</li>
-<li>RK算法</li>
-<li>BM算法</li>
-<li>KMP算法</li>
-</ul>
-<h2 id="1-问题定义">1. 问题定义</h2>
-<p>所谓字符串匹配问题，即给定一个字符串A（称：“主串”）和一个字符串B（称：“模式串”），我们需要找出模式串在主串中第一次出现的位置，若模式串未在主串中出现，则返回-1。<br>
-举一个例子：<br>
-<img src="https://mocuishle0.github.io//post-images/1591089180883.webp" alt="" loading="lazy"><br>
-在上图中，字符串B是A的子串，B第一次在A中出现的位置下标是2（字符串的首位下标是0），所以返回 2。<br>
-而在下面的例子中：<br>
-<img src="https://mocuishle0.github.io//post-images/1591089220552.png" alt="" loading="lazy"><br>
-字符串B在A中并不存在，所以返回 -1。</p>
-<h2 id="2-bf算法暴力求解">2. BF算法（暴力求解）</h2>
-<p>Brute Force（暴力算法）的想法其实无须多言，即：遍历主串每一位字符，尝试从头匹配模式串。若与当前主串字符与模式串字符匹配，则尝试用主串中下一位字符去匹配模式串的下一位字符；否则，用主串下一位字符尝试从头匹配模式串。<br>
-<strong>实例如下</strong>：<br>
-第一轮，我们从主串的首位开始，把主串和模式串的字符逐个比较。<br>
-<img src="https://mocuishle0.github.io//post-images/1591089560847.png" alt="" loading="lazy"><br>
-显然，主串的首位字符是a，模式串的首位字符是b，两者并不匹配。</p>
-<p>第二轮，我们把模式串后移一位，从主串的第二位开始，把主串和模式串的字符逐个比较<br>
-<img src="https://mocuishle0.github.io//post-images/1591089608610.png" alt="" loading="lazy"><br>
-主串的第二位字符是b，模式串的第二位字符也是b，两者匹配，继续比较：<br>
-<img src="https://mocuishle0.github.io//post-images/1591089629905.png" alt="" loading="lazy"><br>
-主串的第三位字符是b，模式串的第三位字符也是c，两者并不匹配。<br>
-...<br>
-重复上述过程，直到找到模式串第一次出现位置，或将主串遍历完毕。</p>
-<p>显然，BF算法最大的问题在于对于某些极端情况处理效率极低，如下：<br>
-<img src="https://mocuishle0.github.io//post-images/1591089744915.png" alt="" loading="lazy"><br>
-上图的情况，在每一轮进行字符匹配时，模式串的前三个字符a都和主串中的字符相匹配，一直检查到模式串最后一个字符b，才发现不匹配。这样一来，两个字符串在每一轮都需要白白比较4次，显然非常浪费。假设主串的长度是m，模式串的长度是n，那么在这种极端情况下，BF算法的最坏时间复杂度是<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>m</mi><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(mn)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">m</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>。</p>
-<h2 id="3-rk算法rabin-karp">3. RK算法（Rabin-Karp）</h2>
-<p>RK算法的核心在于<strong>使用哈希散列处理字符串，进而比较两个字符串的哈希值</strong>。其实质可看作是对于字符串的一个编码过程。<br>
-如果熟悉哈希表的话我们可知，每一个字符串都可以通过某种哈希算法，转换成一个整型数，这个整型数就是hashcode：<br>
-<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>h</mi><mi>a</mi><mi>s</mi><mi>h</mi><mi>c</mi><mi>o</mi><mi>d</mi><mi>e</mi><mo>=</mo><mi>h</mi><mi>a</mi><mi>s</mi><mi>h</mi><mo>(</mo><mi>s</mi><mi>t</mi><mi>r</mi><mi>i</mi><mi>n</mi><mi>g</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">hashcode = hash(string)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">h</span><span class="mord mathdefault">a</span><span class="mord mathdefault">s</span><span class="mord mathdefault">h</span><span class="mord mathdefault">c</span><span class="mord mathdefault">o</span><span class="mord mathdefault">d</span><span class="mord mathdefault">e</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">h</span><span class="mord mathdefault">a</span><span class="mord mathdefault">s</span><span class="mord mathdefault">h</span><span class="mopen">(</span><span class="mord mathdefault">s</span><span class="mord mathdefault">t</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mclose">)</span></span></span></span><br>
-<img src="https://mocuishle0.github.io//post-images/1591090031037.webp" alt="" loading="lazy"><br>
-显然，相对于逐个字符比较两个字符串，仅比较两个字符串的hashcode要容易得多。</p>
-<p>RK算法流程如下：<br>
-给定主串和模式串如下（假定字符串只包含26个小写字母）：<br>
-<img src="https://mocuishle0.github.io//post-images/1591090083179.png" alt="" loading="lazy"><br>
-第一步，<strong>我们需要生成模式串的hashcode</strong>。生成hashcode的算法多种多样，比如：按位相加——这是最简单的方法，我们可以把a当做1，b当做2，c当做3......然后把字符串的所有字符相加，相加结果就是它的hashcode。如：</p>
-<blockquote>
-<p><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>b</mi><mi>c</mi><mi>e</mi><mo>=</mo><mn>2</mn><mo>+</mo><mn>3</mn><mo>+</mo><mn>5</mn><mo>=</mo><mn>10</mn><mi mathvariant="normal">。</mi></mrow><annotation encoding="application/x-tex">bce =  2 + 3 + 5 = 10。</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">b</span><span class="mord mathdefault">c</span><span class="mord mathdefault">e</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">0</span><span class="mord cjk_fallback">。</span></span></span></span></p>
-</blockquote>
-<p>但是，这个算法虽然简单，却很可能产生hash冲突，比如bce、bec、cbe的hashcode是一样的。<br>
-因此，我们不妨考虑将字符串转换成26进制数，既然字符串只包含26个小写字母，那么我们可以把每一个字符串当成一个26进制数来计算。</p>
-<blockquote>
-<p><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>b</mi><mi>c</mi><mi>e</mi><mo>=</mo><mn>2</mn><mo>∗</mo><mo>(</mo><mn>2</mn><msup><mn>6</mn><mn>2</mn></msup><mo>)</mo><mo>+</mo><mn>3</mn><mo>∗</mo><mn>26</mn><mo>+</mo><mn>5</mn><mo>=</mo><mn>1435</mn></mrow><annotation encoding="application/x-tex">bce = 2*(26^2) + 3*26 + 5 = 1435</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">b</span><span class="mord mathdefault">c</span><span class="mord mathdefault">e</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">2</span><span class="mord"><span class="mord">6</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">2</span><span class="mord">6</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">4</span><span class="mord">3</span><span class="mord">5</span></span></span></span></p>
-</blockquote>
-<p>这样做的好处是大幅减少了hash冲突，缺点是计算量较大，而且有可能出现超出整型范围的情况，需要对计算结果进行取模。为了方便演示，后续我们采用的是按位相加的hash算法，所以bce的hashcode是10：<br>
-<img src="https://mocuishle0.github.io//post-images/1591090287246.png" alt="" loading="lazy"></p>
-<p>第二步，<strong>生成主串当中第一个等长子串的hashcode</strong>。由于主串通常要长于模式串，把整个主串转化成hashcode是没有意义的，只有比较主串当中和模式串等长的子串才有意义。因此，我们首先生成主串中第一个和模式串等长的子串hashcode，即abb = 1 + 2 + 2 = 5：<br>
-<img src="https://mocuishle0.github.io//post-images/1591090346395.webp" alt="" loading="lazy"></p>
-<p>第三步，<strong>比较两个hashcode</strong>。显然，5！=10，说明模式串和第一个子串不匹配，我们继续下一轮比较。</p>
-<p>第四步，<strong>生成主串当中第二个等长子串的hashcode</strong>。bbc = 2 + 2 + 3 = 7：<br>
-<img src="https://mocuishle0.github.io//post-images/1591090391409.png" alt="" loading="lazy"><br>
-...<br>
-重复以上过程。我们发现，当生成主串当中第三个等长子串的hashcode时，bce= 2 + 3 + 5 = 10：<br>
-<img src="https://mocuishle0.github.io//post-images/1591090454534.png" alt="" loading="lazy"><br>
-显然，10 ==10，两个hash值相等！这是否说明两个字符串也相等呢？别高兴的太早，<strong>由于存在hash冲突的可能，我们还需要进一步验证</strong>。<br>
-第五步，<strong>逐个字符比较两字符串</strong>。hashcode的比较只是初步验证，之后我们还需要像BF算法那样，对两个字符串逐个字符比较，最终判断出两个字符串匹配。最后得出结论，模式串bce是主串abbcefgh的子串，第一次出现的下标是2。</p>
-<p>通过以上过程，我们不难发现，RK算法本质类似于BF算法，只不过是将字符串的比较转化为先通过哈希值的比较，后进行验证的策略。可能我们会想：每次hash的时间复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>，若将全部子串进行hash，最终时间复杂度仍为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>m</mi><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(mn)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">m</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>，这与BF算法相同。<br>
-然而，需要注意的是，每次对主串中的子串进行hash的过程并不独立：我们可以根据前一子串的hashcode进行简单的加减运算即可得到后一子串的hashcode。<br>
-综上，由于RK算法计算单个子串hash时间复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>，后续子串是增量计算所以整体复杂度仍为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>。</p>
-<p>此外，我们不难想到，由于RK算法核心是使用哈希值，因此该算法的缺点在于哈希冲突。每次哈希冲突（即主串的子串哈希值与模式串相等）时，就需要逐个字符比对，这在极端情况下将退化为BF算法。</p>
-<h2 id="4-bm算法">4. BM算法</h2>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[ACM专题：最长回文子串]]></title>
-        <id>https://mocuishle0.github.io/post/acm-zhuan-ti-zui-chang-hui-wen-zi-chuan/</id>
-        <link href="https://mocuishle0.github.io/post/acm-zhuan-ti-zui-chang-hui-wen-zi-chuan/">
-        </link>
-        <updated>2020-06-02T02:33:57.000Z</updated>
-        <summary type="html"><![CDATA[<p>最长回文子串问题，是ACM题库或各大公司笔试/面试中一类经典的问题。该问题在本科阶段的学习中就屡次被提及，但当时并未完全理解。此次对该问题进行一次整理与归纳。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>最长回文子串问题，是ACM题库或各大公司笔试/面试中一类经典的问题。该问题在本科阶段的学习中就屡次被提及，但当时并未完全理解。此次对该问题进行一次整理与归纳。</p>
-<!-- more -->
-<p>本文概要：</p>
-<ul>
-<li>问题定义</li>
-<li>求解思路：
-<ul>
-<li>暴力求解</li>
-<li>动态规划求解</li>
-<li>中心扩散法</li>
-<li>Manacher 算法</li>
-</ul>
-</li>
-</ul>
-<h2 id="1-问题定义">1. 问题定义：</h2>
-<p><strong>定义 1.1 回文串：</strong> 是一个正读和反读都一样的字符串，比如“level”或者“noon”等等就是回文串。（百度百科）<br>
-<strong>定义 1.2 最长回文子串：</strong> 最长回文子串或最长对称因子问题是在一个字符串中查找一个最长的连续的回文的子串，例如“banana”最长回文子串是“anana”。最长回文子串并不一定是唯一的，比如“abracadabra”，没有超过3的回文子串，但是有两个回文字串长度都是3：“ada”和“aca”。</p>
-<p><strong>示例 1：</strong><br>
-输入: &quot;babad&quot;<br>
-输出: &quot;bab&quot;<br>
-注意: &quot;aba&quot; 也是一个有效答案。</p>
-<p><strong>示例 2:</strong><br>
-输入: &quot;cbbd&quot;<br>
-输出: &quot;bb&quot;</p>
-<h2 id="2-求解思路">2. 求解思路：</h2>
-<h3 id="21-暴力求解brute-force">2.1 暴力求解（Brute Force）</h3>
-<p>直观地，我们可以穷举给定字符串s中全部子串，继而判断当前子串是否符合回文串定义。在所有回文串中找到长度最长的即可。<br>
-值得注意的是，在具体实现过程中，我们通过以下技巧来提高算法的效率：</p>
-<ul>
-<li>在具体实现时，可以只针对长度大于“当前得到的最长回文子串长度”的子串进行“回文验证”；</li>
-<li>在记录最长回文子串的时候，可以只记录“当前子串的起始位置”和“子串长度”，不必做截取。</li>
-</ul>
-<p>参考代码如下：</p>
-<pre><code>//暴力求解法：
-int maxL = 0;
-string resStr;
-for (int i = 0; i &lt; s.length(); i++)
-{
-    string str;
-    for (int j = i; j &lt; s.length(); j++)
-    {
-        str += s[j];
-        string rstr = str;
-
-        if (maxL &lt; str.length())
-        {
-            reverse(rstr.begin(), rstr.end());
-            if (str == rstr){
-                maxL = str.length();
-                resStr = str;
-            }
-        }
-
-    }
-}
-
-cout &lt;&lt; resStr &lt;&lt; endl;
-</code></pre>
-<p><strong>复杂性分析：</strong></p>
-<ul>
-<li>时间复杂度：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>3</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^3)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，其中N表示给定字符串s的长度。（两重循环+字符串逆序）</li>
-<li>空间复杂度：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span>。（只记录“当前子串的起始位置”和“子串长度”）</li>
-</ul>
-<blockquote>
-<p>暴力解法时间复杂度高，但是思路清晰、编写简单。因此，可以使用暴力匹配算法检验我们编写的其它算法是否正确。优化的解法在很多时候，是基于“暴力解法”，以空间换时间得到的，因此思考清楚暴力解法，分析其缺点，很多时候能为我们打开思路。</p>
-</blockquote>
-<h3 id="22-动态规划dynamic-programming">2.2 动态规划（Dynamic programming）</h3>
-<p>动态规划是算法中一类最基础，同时也是最重要的解题思路之一。判断一个问题是否可以通过动态规划方法求解的核心在于：<strong>判读问题是否具有最优子结构性质，即问题的最优解由相关子问题的最优解组合而成，且子问题可单独求解</strong>。此处推荐算法领域的经典书籍《算法导论》以及北京航空航天大学童咏昕教授的《算法设计与分析》课程（中国大学MOOC）。<br>
-就我本人的理解而言，动态规划方法其本质类似于自动机，即后一状态需参考前一状态（或前多个状态）进行状态转移。在这一过程中，问题核心在于发现状态间转换关系，以及如何实现状态转移。LeetCode中的大神也对动态规划进行了总结（<a href="https://leetcode-cn.com/problems/longest-palindromic-substring/solution/zhong-xin-kuo-san-dong-tai-gui-hua-by-liweiwei1419/">参考文献</a>），见下图：<br>
-<img src="https://mocuishle0.github.io//post-images/1591067828997.png" alt="" loading="lazy"></p>
-<p>就最长回文子串问题而言，我们不难发现，对于给定字符串s的任意长度大于2的子串s[i][j]（从位置i到位置j构成的子串），其是否为回文子串存在以下关系：</p>
-<ul>
-<li><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>[</mo><mi>i</mi><mo>]</mo><mo>[</mo><mi>j</mi><mo>]</mo></mrow><annotation encoding="application/x-tex">s[i][j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault">i</span><span class="mclose">]</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span>是回文串 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mtext>  </mtext><mo>⟺</mo><mtext>  </mtext></mrow><annotation encoding="application/x-tex">\iff</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.549em;vertical-align:-0.024em;"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">⟺</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span></span></span> 字符<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>[</mo><mi>i</mi><mo>]</mo><mo>=</mo><mi>s</mi><mo>[</mo><mi>j</mi><mo>]</mo></mrow><annotation encoding="application/x-tex">s[i]=s[j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault">i</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span>且子串<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>[</mo><mi>i</mi><mo>+</mo><mn>1</mn><mo>]</mo><mo>[</mo><mi>j</mi><mo>−</mo><mn>1</mn><mo>]</mo></mrow><annotation encoding="application/x-tex">s[i+1][j-1]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">]</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span>是回文串；</li>
-</ul>
-<p>因此，我们不难得出该问题的动态规划方法：</p>
-<ul>
-<li>
-<p><strong>1）初始化</strong>：初始化一个N*N的矩阵（二维数组）用于表示子串s[i][j]是否为回文串，其中：由于<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi><mo>≤</mo><mi>j</mi></mrow><annotation encoding="application/x-tex">i\leq j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.79549em;vertical-align:-0.13597em;"></span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span></span></span></span>，因此该矩阵为上三角矩阵，且对角线元素均为<strong>true</strong>。</p>
-</li>
-<li>
-<p><strong>2）递推公式</strong>：</p>
-<ul>
-<li>首先，如果子串s[i][j]中的首末字符<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>[</mo><mi>i</mi><mo>]</mo><mi mathvariant="normal">≠</mi><mi>s</mi><mo>[</mo><mi>j</mi><mo>]</mo></mrow><annotation encoding="application/x-tex">s[i]\neq s[j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault">i</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel"><span class="mrel"><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.69444em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="rlap"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="inner"><span class="mrel"></span></span><span class="fix"></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span></span><span class="mrel">=</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span>，则s[i][j]可直接判定为<strong>false</strong>；</li>
-<li>之后，需要判断子串s[i][j]除去首末字符<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>s</mi><mo>[</mo><mi>i</mi><mo>]</mo><mi mathvariant="normal">、</mi><mi>s</mi><mo>[</mo><mi>j</mi><mo>]</mo></mrow><annotation encoding="application/x-tex">s[i]、s[j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault">i</span><span class="mclose">]</span><span class="mord cjk_fallback">、</span><span class="mord mathdefault">s</span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span>后是否构成区间：
-<ul>
-<li>若不构成区间，即：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>j</mi><mo>−</mo><mn>1</mn><mo>)</mo><mo>−</mo><mo>(</mo><mi>i</mi><mo>+</mo><mn>1</mn><mo>)</mo><mo>+</mo><mn>1</mn><mo>&lt;</mo><mn>2</mn><mo>←</mo><mi>j</mi><mo>−</mo><mi>i</mi><mo>&lt;</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">(j-1)-(i+1)+1 &lt; 2\leftarrow j-i &lt; 3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.68354em;vertical-align:-0.0391em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">←</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.69862em;vertical-align:-0.0391em;"></span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span></span></span></span>：则s[i][j]可判定为<strong>true</strong>；</li>
-<li>若构成区间，即$ j-i \geq 3$：则s[i][j]的结果取决于则s[i+1][j-1]。</li>
-<li>注意：每次判定子串s[i][j]是否为回文串后，需再次判断该回文串长度是否大于当前最长回文串长度。若超过当前最长则需要更新。</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p><strong>3）计算顺序</strong>：<br>
-该问题的计算顺序是又一难点。不同于一般的动态规划问题：从左至右、从上至下依次根据前一状态计算后一状态，根据该问题的递推公式可知：当前状态（s[i][j]）取决于矩阵中其左下角状态（s[i+1][j-1]）。因此，我们给出该问题两种错误的计算顺序和四种正确的计算顺序：<br>
-<img src="https://mocuishle0.github.io//post-images/1591069534676.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1591069540322.png" alt="" loading="lazy"></p>
-</li>
-</ul>
-<p>参考代码如下：</p>
-<pre><code>int slen = s.length();
-int maxLen = 1;
-int begin = 0;
-
-if (slen &lt; 2)
-{
-    cout &lt;&lt; s &lt;&lt; endl;
-}
-
-bool dp[slen][slen];
-
-memset(dp, 0, sizeof(dp));
-
-for (int i = 0; i &lt; slen; i++)
-{
-    dp[i][i] = true;
-}
-
-for (int j = 1; j &lt; slen; j++)
-{
-    for (int i = 0; i &lt; j; i++)
-    {
-        if (s[i] != s[j])
-        {
-            dp[i][j] = false;
-        }
-        else
-        {
-            if (j - i &lt; 3) //区间判断：(j-1)-(i+1)+1&lt;2 =&gt; j-i&lt;3
-            {
-                dp[i][j] = true;
-            }
-            else
-            {
-                dp[i][j] = dp[i + 1][j - 1];
-            }
-        }
-
-        if (dp[i][j] &amp;&amp; j - i + 1 &gt; maxLen)
-        {
-            maxLen = j - i + 1;
-            begin = i;
-        }
-    }
-}
-
-cout &lt;&lt; s.substr(begin, maxLen) &lt;&lt; endl;
-</code></pre>
-<p><strong>复杂性分析：</strong></p>
-<ul>
-<li>时间复杂度：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>;</li>
-<li>空间复杂度：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>（二维数组）;</li>
-</ul>
-<p><strong>小结（<a href="https://leetcode-cn.com/problems/longest-palindromic-substring/solution/zhong-xin-kuo-san-dong-tai-gui-hua-by-liweiwei1419/">参考</a>）：</strong></p>
-<ul>
-<li>我们看到，用「动态规划」方法解决问题，有的时候并不是直接面向问题的。</li>
-<li>「动态规划」依然是「空间换时间」思想的体现，并且本身「动态规划」作为一种打表格法，就是在用「空间」换「时间」。</li>
-<li>关于「动态规划」方法执行时间慢的说明：
-<ul>
-<li>动态规划本质上还是「暴力解法」，因为需要枚举左右边界，有 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>这么多；</li>
-<li>以下提供的「中心扩散法」枚举了所有可能的回文子串的中心，有 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mn>2</mn><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(2N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">2</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>这么多，不在一个级别上。</li>
-</ul>
-</li>
-</ul>
-<h3 id="23-中心扩散法">2.3 中心扩散法</h3>
-<p>中心扩散法其实质是对于朴素的暴力求解法的一种优化：朴素的暴力求解是对于子串左右边界的枚举，而根据回文子串的特性我们不难想到，<strong>可对回文“中心位置”进行枚举，并以“中心位置”为中心尝试向左右扩散以得到最长回文子串</strong>。</p>
-<p>综上，中心扩散法的思路是：遍历每一个可能的中心位置，利用“回文串”中心对称的特点，往两边扩散，看最多能扩散多远。枚举“中心位置”时间复杂度为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>，从“中心位置”扩散得到“回文子串”的时间复杂度为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>。因此，中心扩散法时间复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><msup><mi>N</mi><mn>2</mn></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>。</p>
-<p>该方法理解起来并不困难，然而该方法的核心在于如何有效遍历两类回文中心：</p>
-<ul>
-<li><strong>奇数回文串</strong>的“中心”是一个具体的字符，例如：回文串 &quot;aba&quot; 的中心是字符 &quot;b&quot;；</li>
-<li><strong>偶数回文串</strong>的“中心”是位于中间的两个字符的“空隙”，例如：回文串串 &quot;abba&quot; 的中心是两个 &quot;b&quot; 中间的那个“空隙”。<br>
-如下图所示：<br>
-<img src="https://mocuishle0.github.io//post-images/1591085916365.png" alt="" loading="lazy"><br>
-因此，可能成为“中心位置”的候选位置如下所示：<br>
-<img src="https://mocuishle0.github.io//post-images/1591085971415.png" alt="" loading="lazy"></li>
-</ul>
-<p>考虑以上情况，参考代码实现如下（<a href="https://leetcode-cn.com/problems/longest-palindromic-substring/solution/zhong-xin-kuo-san-dong-tai-gui-hua-by-liweiwei1419/">原文</a>）：</p>
-<pre><code>string centerSpread(string s, int left, int right) {
-        // left = right 的时候，此时回文中心是一个空隙，向两边扩散得到的回文子串的长度是奇数
-        // right = left + 1 的时候，此时回文中心是一个字符，向两边扩散得到的回文子串的长度是偶数
-        int size = s.size();
-        int i = left;
-        int j = right;
-        while (i &gt;= 0 &amp;&amp; j &lt; size) {
-            if (s[i] == s[j]) {
-                i--;
-                j++;
-            } else {
-                break;
-            }
-        }
-        // 这里要小心，跳出 while 循环时，恰好满足 s.charAt(i) != s.charAt(j)，因此不能取 i，不能取 j
-        return s.substr(i + 1, j - i - 1);
-    }
-
-string longestPalindrome(string s) {
-        // 特判
-        int size = s.size();
-        if (size &lt; 2) {
-            return s;
-        }
-
-        int maxLen = 1;
-        string res = s.substr(0, 1);
-
-        // 中心位置枚举到 len - 2 即可
-        for (int i = 0; i &lt; size - 1; i++) {
-            string oddStr = centerSpread(s, i, i);
-            string evenStr = centerSpread(s, i, i + 1);
-            string maxLenStr = oddStr.size() &gt; evenStr.size() ? oddStr : evenStr;
-            if (maxLenStr.length() &gt; maxLen) {
-                maxLen = maxLenStr.size();
-                res = maxLenStr;
-            }
-        }
-        return res;
-    }
-
-</code></pre>
-<h3 id="24-manacher-算法">2.4 Manacher 算法</h3>
-<p>Manacher 算法其时间复杂度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>O</mi><mo>(</mo><mi>N</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span>，然而其本身较为复杂。以下仅是自己的理解综合<a href="https://leetcode-cn.com/problems/longest-palindromic-substring/solution/zui-chang-hui-wen-zi-chuan-by-leetcode-solution/">参考文献</a>进行的归纳。</p>
-<p>Manacher 算法其核心类似于著名的字符串匹配问题中的KMP算法：<strong>基于中心扩展算法，在下一次扩展时充分利用上一次扩展中的可用信息</strong>。<br>
-在介绍Manacher 算法具体流程之前，需要引入<strong>臂长</strong>的概念。所谓臂长，即表示中心扩展算法向外扩展的长度。如果一个位置的最大回文字符串长度为 2 * L + 1 ，其臂长为 L。以Leetcode中的示例为例：给定字符串s=&quot;ebabababe&quot;，对于位置j=4（s[j]=s[4]='a'）而言，其臂长L=4:<br>
-<img src="https://mocuishle0.github.io//post-images/1591087759158.png" alt="" loading="lazy"></p>
-<p>Manacher 算法其出发点在于，从位置为i的位置进行中心扩展，能否借助之前得到的位置为j的中心扩展中的信息。答案是肯定的。具体来说，如果位置 j 的臂长为L，并且有 j + L &gt; i，如下图所示：<br>
-<img src="https://mocuishle0.github.io//post-images/1591087888404.png" alt="" loading="lazy"><br>
-当在位置 i 开始进行中心拓展时，我们可以先找到 i 关于 j 的对称点<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>i</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mn>2</mn><mo>∗</mo><mi>j</mi><mo>−</mo><mi>i</mi></mrow><annotation encoding="application/x-tex">i&#x27;=2 * j - i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">i</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span></span></span></span>。那么如果点 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>i</mi><mo mathvariant="normal">′</mo></msup></mrow><annotation encoding="application/x-tex">i&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">i</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>的臂长等于 n，我们就可以知道，点 i 的臂长至少为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>m</mi><mi>i</mi><mi>n</mi><mo>(</mo><mi>j</mi><mo>+</mo><mi>L</mi><mo>−</mo><mi>i</mi><mo separator="true">,</mo><mi>n</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">min(j + L - i, n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">m</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathdefault">L</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">i</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">n</span><span class="mclose">)</span></span></span></span>。那么我们就可以直接跳过 i 到 i + min(j + L - i, n) 这部分，从 i + min(j + L - i, n) + 1 开始拓展。</p>
-<p>以上图为例，j=4,L=4：<br>
-若i=6，可知<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>i</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">i&#x27;=2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">i</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span></span></span></span>，且<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>i</mi><mo mathvariant="normal">′</mo></msup></mrow><annotation encoding="application/x-tex">i&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">i</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>的臂长n=1。由于<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>m</mi><mi>i</mi><mi>n</mi><mo>(</mo><mi>j</mi><mo>+</mo><mi>L</mi><mo>−</mo><mi>i</mi><mo separator="true">,</mo><mi>n</mi><mo>)</mo><mo>=</mo><mi>m</mi><mi>i</mi><mi>n</mi><mo>(</mo><mn>2</mn><mo separator="true">,</mo><mn>1</mn><mo>)</mo><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">min(j + L - i, n)=min(2,1)=1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">m</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathdefault">L</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">i</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">m</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mopen">(</span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>，所以我们就可以直接跳过 i=6 到 i + min(j + L - i, n) =7 这部分，从位置 i + min(j + L - i, n) + 1 =8 开始拓展。</p>
-<p>显然，以上的处理仅针对字符串长度为奇数。而对于字符串长度为偶数的情况，我们可以通过一个简单的小技巧即可完成两种情况的统一：我们向字符串的头尾以及每两个字符中间添加一个特殊字符 #，比如字符串 aaba 处理后会变成 #a#a#b#a#。那么原先长度为偶数的回文字符串 aa 会变成长度为奇数的回文字符串 #a#a#，而长度为奇数的回文字符串 aba 会变成长度仍然为奇数的回文字符串 #a#b#a#，我们就不需要再考虑长度为偶数的回文字符串了。</p>
-<p>参考代码如下：</p>
-<pre><code>int expand(const string&amp; s, int left, int right) {
-        while (left &gt;= 0 &amp;&amp; right &lt; s.size() &amp;&amp; s[left] == s[right]) {
-            --left;
-            ++right;
-        }
-        return (right - left - 2) / 2;
-    }
-
-    string longestPalindrome(string s) {
-        int start = 0, end = -1;
-        string t = &quot;#&quot;;
-        for (char c: s) {
-            t += c;
-            t += '#';
-        }
-        t += '#';
-        s = t;
-
-        vector&lt;int&gt; arm_len;
-        int right = -1, j = -1;
-        for (int i = 0; i &lt; s.size(); ++i) {
-            int cur_arm_len;
-            if (right &gt;= i) {
-                int i_sym = j * 2 - i;
-                int min_arm_len = min(arm_len[i_sym], right - i);
-                cur_arm_len = expand(s, i - min_arm_len, i + min_arm_len);
-            }
-            else {
-                cur_arm_len = expand(s, i, i);
-            }
-            arm_len.push_back(cur_arm_len);
-            if (i + cur_arm_len &gt; right) {
-                j = i;
-                right = i + cur_arm_len;
-            }
-            if (cur_arm_len * 2 + 1 &gt; end - start) {
-                start = i - cur_arm_len;
-                end = i + cur_arm_len;
-            }
-        }
-
-        string ans;
-        for (int i = start; i &lt;= end; ++i) {
-            if (s[i] != '#') {
-                ans += s[i];
-            }
-        }
-        return ans;
-    }
-
 </code></pre>
 ]]></content>
     </entry>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>C++11 新特征：array容器 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591414765319">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="STL容器的新成员，更高效的数组。
+
+就我个人而言，原生内置数组时常感觉用起来并不十分顺手。一是大小没有管理，二是越界操作没有检查。虽然C/C++也提供了一些解决办法，但总是不够完美。例如下面的代码：
+int ary[5];
+memset(..." />
+    <meta name="keywords" content="C++" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591414765319" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">C++11 新特征：array容器</h2>
+            <div class="post-date">2020-06-06</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/c11-xin-te-zheng-array-rong-qi.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>STL容器的新成员，更高效的数组。</p>
+<!-- more -->
+<p>就我个人而言，原生内置数组时常感觉用起来并不十分顺手。一是大小没有管理，二是越界操作没有检查。虽然C/C++也提供了一些解决办法，但总是不够完美。例如下面的代码：</p>
+<pre><code>int ary[5];
+memset(ary, 0, sizeof(ary));
+unsigned int i = 0;
+while(i&lt;sizeof(ary)/sizeof(ary[0])){
+    ary[i] = i;
+    i++;
+}
+</code></pre>
+<p>C++11后，标准库引入了更现代化的数组std::array。与内置数组相比，array是一种更安全、更容易使用的数组类型。与内置数组类似，array对象的大小是固定的。因此，array<strong>不支持添加和删除元素以及改变容器大小的操作</strong>。与内置数组一样，标准库array的大小也是类型的一部分。<strong>当定义一个array时，除了指定元素类型，还要指定容器大小</strong>（array&lt;T,N&gt; 模板定义了一种相当于标准数组的容器类型。它是一个<strong>有 N 个 T 类型元素的固定序列</strong>）。为了使用array类型，我们必须同时指定元素类型和大小。array仅仅是为普通数组添加了一些成员或全局函数，这使得数组能够被当成标准容器来使用。array不能被动态地扩展或压缩。</p>
+<p>和标准数组相比，array 容器的额外开销很小，但提供了两个优点：<strong>1）如果使用 at()，当用一个非法的索引访问数组元素时，能够被检测到，因为容器知道它有多少个元素；2）这也就意味着数组容器可以作为参数传给函数，而不再需要单独去指定数组元素的个数。</strong></p>
+<p>使用 array 容器类型时，需要在源文件中包含头文件 array。下面展示了如何创建具有 10 个 double 型元素的 array&lt;&gt;，该实例定义了一个 array 容器，却没有为元素指定初始值，那么元素就不会被初始化：</p>
+<pre><code>std::array&lt;double,10&gt; arr;
+</code></pre>
+<p>但是可以如下所示，将它们初始化为 0 或者和默认元素类型等效的值。使用下面语句初始化后，容器中所有的元素都会变为 0.0。</p>
+<pre><code>std::array&lt;double,10&gt; arr{};
+</code></pre>
+<p>当然，当创建 array 容器的实例时，要像创建常规数组那样，对元素进行初始化：</p>
+<pre><code>std::array&lt;double, 10&gt; arr {0.5, 1.0, 1.5, 2.0};
+</code></pre>
+<p>初始化器列表中的 4 个值用于初始化前 4 个元素，其余的元素都将为 0。</p>
+<p>回到我们最初的原生内置数组代码，我们可以利用array编写如下代码：</p>
+<pre><code>std::array&lt;int, 5&gt; c11ary;
+c11ary.fill(0);
+unsigned int i = 0;
+while(i&lt;c11ary.size()){
+    c11ary.at(i) = i;
+    i++;
+}
+</code></pre>
+<p>这段代码中:</p>
+<ul>
+<li>使用fill方法实现了数据填充。</li>
+<li>使用size方法取得数组的大小。</li>
+<li>虽然at(i)方法实现带有越界检查的读写。</li>
+</ul>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/Yz3MZw1Sl/" class="tag">
+                    C++
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/c11-xin-te-zheng-fan-hui-lei-xing-hou-zhi/">
+                  <h3 class="post-title">
+                    C++11 新特征：返回类型后置
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

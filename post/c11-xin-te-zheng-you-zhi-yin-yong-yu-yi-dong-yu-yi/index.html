@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>C++11 新特征：右值引用 与 移动语义 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591414765319">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="一个新接触到的概念——左值、右值。
+
+实话实说，关于左值、右值的概念也是这次整理时才第一次接触到。所以就根据看到的相关资料做一个归纳。
+1. 左值 &amp; 右值
+在C++表达式的特性中有一个左值和右值的概念。如果一个表达式可以放在赋值语..." />
+    <meta name="keywords" content="C++" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591414765319" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">C++11 新特征：右值引用 与 移动语义</h2>
+            <div class="post-date">2020-06-06</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/c11-xin-te-zheng-you-zhi-yin-yong-yu-yi-dong-yu-yi.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>一个新接触到的概念——左值、右值。</p>
+<!-- more -->
+<p>实话实说，关于左值、右值的概念也是这次整理时才第一次接触到。所以就根据看到的相关资料做一个归纳。</p>
+<h2 id="1-左值-右值">1. 左值 &amp; 右值</h2>
+<p>在C++表达式的特性中有一个左值和右值的概念。如果一个表达式可以放在<strong>赋值语句</strong>的左侧，就称之为左值，如果不能放到表达式的左侧，就称之为右值。通俗的来讲，<strong>左值（lvalue）是一个表达式，它表示一个可被标识的（变量或对象的）内存位置，并且允许使用&amp;操作符来获取这块内存的地址</strong>。如果一个表达式不是左值，那它就被定义为右值。</p>
+<pre><code>//赋值操作需要左操作数是一个左值。var 是一个有内存位置的对象，因此它是左值.
+int var;
+var = 4;
+
+4 = var;       // 错误！
+(var + 1) = 4; // 错误！
+</code></pre>
+<p>在上面的例子中，常量 4 和表达式 var + 1 都不是左值（也就是说，它们是右值），因为它们都是表达式的临时结果，而没有可识别的内存位置（也就是说，只存在于计算过程中的每个临时寄存器中）。因此，赋值给它们是没有任何语义上的意义的——我们赋值到了一个不存在的位置。</p>
+<p>不同的运算符对运算对象的要求各不相同，例如：</p>
+<ul>
+<li>赋值运算符的左侧要求是左值，得到的结果还是左值，因此我们可以继续对它赋值；</li>
+<li>取地址符作用于左值运算对象，返回对象的指针为右值，因此取地址运算表达式只能位于赋值语句的右侧。</li>
+</ul>
+<h2 id="2-右值引用">2. 右值引用</h2>
+<p>在介绍C++11 新引入的右值引用概念之前，我们先介绍一下一般的引用类型。需要注意的是，只有左值可以付给引用，如：</p>
+<pre><code>int&amp; ref = 9;   //编译错误
+</code></pre>
+<p>我们只能这样做：</p>
+<pre><code>    int l=9;
+    int &amp;r=l;
+    cout&lt;&lt;l&lt;&lt;&quot; &quot;&lt;&lt;r&lt;&lt;endl;      //9 9
+
+    r++;
+    cout&lt;&lt;l&lt;&lt;&quot; &quot;&lt;&lt;r&lt;&lt;endl;      //10 10
+</code></pre>
+<p>没有问题，l是左值，所以可以将引用类型的r绑定到l上，今后对r的操作就等同于对l的操作。</p>
+<p>C++11引入了右值引用的概念，<strong>使得我们把引用与右值进行绑定。使用两个“取地址符号”</strong>：</p>
+<pre><code>int&amp;&amp; rvalue_ref = 99;
+</code></pre>
+<p>下面的例子更有助于理解：</p>
+<pre><code>#include &lt;iostream&gt;
+
+void f(int&amp; i) { std::cout &lt;&lt; &quot;lvalue ref: &quot; &lt;&lt; i &lt;&lt; &quot;\n&quot;; }
+void f(int&amp;&amp; i) { std::cout &lt;&lt; &quot;rvalue ref: &quot; &lt;&lt; i &lt;&lt; &quot;\n&quot;; }
+
+int main()
+{
+    int i = 77;
+    f(i);    // lvalue ref called
+    f(99);   // rvalue ref called
+
+    f(std::move(i));  
+    
+    /*std::move，这是标准库中提供的方法，它可以将左值显式转换为右值引用类型，从而告诉编译器，可以像右值（临时变量）一样处理它。同时也意味着接下来除了对i赋值或销毁以外，不再使用它。*/
+
+    return 0;
+}
+/*
+    输出：
+        lvalue ref: 77
+        rvalue ref: 99
+        lvalue ref: 77
+*/
+</code></pre>
+<p>还存在更为隐晦的右值，如下例：</p>
+<pre><code>#include &lt;iostream&gt;
+
+int getValue ()     //getValue()是一个右值
+{
+    int ii = 10;
+    return ii;
+}
+
+int main()
+{
+    const int&amp; val = getValue(); // OK
+    int&amp; val = getValue(); // NOT OK
+
+    const int&amp;&amp; val = getValue(); // OK
+    int&amp;&amp; val = getValue(); //  OK
+    return 0;
+}
+
+</code></pre>
+<p>因此，对比以下代码，我们可以发现：</p>
+<pre><code>void printReference (const int&amp; value)  //可以接受参数为左值，也可以接受右值。 
+{
+        cout &lt;&lt; value;
+}
+
+void printReference (int&amp;&amp; value)   //只能接受右值引用作为参数。
+{
+        cout &lt;&lt; value;
+}
+</code></pre>
+<h2 id="3-移动语义">3. 移动语义</h2>
+<p>了解了右值引用的基本概念后，其实我也很纠结：C++11引入这样一个令人头大的特征到底有什么用？在<a href="https://blog.csdn.net/craftsman1970/article/details/80397276">参考文献</a>中作者的解释其实是挺容易让我理解的：</p>
+<h3 id="31-实例演示">3.1 实例演示</h3>
+<p>在C++语言中，引用是作为一种高效，安全的传递数据的方式而存在的。除了一般的引用类型，还可以声明const引用。例如，我们有以下一个Image类：</p>
+<pre><code>class Image
+{
+    private:
+       int width = 0;
+       int height = 0;
+       char *data = nullptr;
+public:
+
+   Image(int w, int h): width(w), height(h){
+       data = new char[getSize()];
+    }
+
+   int getSize(){
+       return width * height;
+    }
+
+   virtual ~Image(){
+        if (data != nullptr){
+            delete data;
+            data = nullptr;
+            width = 0;
+            height = 0;        
+        }  
+    }
+}
+</code></pre>
+<p>上面只是这个类的雏形，只有构造函数，析构函数和取得数据大小的功能。接下来添加比较两个Image是否相同的函数。最简单的形式大致如下。</p>
+<pre><code>bool isSame(Image&amp; img)
+{
+    if(width == img.width
+      &amp;&amp; height == img.height){
+        return (memcmp(data,img.data,getSize())==0);
+    }
+    else{
+        return false;
+    }
+}
+</code></pre>
+<p>这里使用引用类型的参数，避免了没有必要的拷贝动作。当然我们还可以做得更好：<strong>由于比较函数没有必要也不应该对比较对象的内容进行修改，所以还可用下面的形式进行承诺</strong>：</p>
+<pre><code>bool isSame(const Image&amp; img)
+{
+    if(width == img.width
+      &amp;&amp; height == img.height){
+        char* in = static_cast&lt;char*&gt;(img.data);
+        return (memcmp(data,in,getSize())==0);
+    }
+    else{
+        return false;
+    }
+}
+</code></pre>
+<p>这里，<strong>通过在参数前面增加const修饰符，向isSame方法的调用者保证，不会修改img的内容</strong>。</p>
+<hr>
+<p>到此为止都是我们所熟悉的内容。然而，如果我们希望继续添加将一个Image的一部分merge到另一个Image上的方法，函数的内容大致如下(这里忽略处理的细节)：</p>
+<pre><code>void merge(Image&amp; img){
+    //接管img中的数据。
+    img.height = 0;
+    img.width = 0;
+    img.data = nullptr;
+}
+</code></pre>
+<p>类似的操作在处理在输入对象时一般有两种处理方式。有时希望只是参照而不破坏输入数据，这时可以使用前面讲到的为参数增加const修饰符的方式来承诺；有时为了提高效率或者其他的原因希望可以<strong>接管输入的数据，就像上面代码的状态</strong>。这时的行为更像是数据移动。对于第二种方式，如果仅仅定义一般的引用类型，<strong>利用者根本没有办法通过方法声明来确定这个操作是否会接管参数中的数据。这种不确定性会造成很大的麻烦</strong>。解决这个问题的方法就是利用右值引用：</p>
+<pre><code>void merge(Image&amp;&amp; img){
+    //接管img中的数据。
+    img.height = 0;
+    img.width = 0;
+    img.data = nullptr;
+}
+</code></pre>
+<p>我们将参数声明为右值引用，要求像一个临时变量一样任性地使用数据。使用这个函数的方法如下：</p>
+<pre><code>Image img1(100, 100);
+Image img2(100, 200);
+img1.merge(std::move(img2));
+</code></pre>
+<p>注意代码中的std::move，这是标准库中提供的方法，它可以将左值显式转换为右值引用类型，从而告诉编译器，可以像右值（临时变量）一样处理它。同时也意味着接下来除了对img2赋值或销毁以外，不再使用它。C++11通过使用右值引用提供了一种接管数据的标准方法。</p>
+<h3 id="32-移动语义的功能">3.2 移动语义的功能</h3>
+<p>当一个函数的参数<strong>按值传递</strong>时，这就会进行<strong>拷贝</strong>。当然，编译器懂得如何去拷贝。 而对于我们自定义的类型，我们也许需要提供拷贝构造函数。但是不得不说，拷贝的代价是昂贵的。所以我们需要寻找一个避免不必要拷贝的方法，即C++11提供的移动语义。</p>
+<p>实际上，我们在第2部分介绍的右值引用，其主要目的是用于<strong>创建移动构造函数</strong>和<strong>移动赋值运算</strong>。</p>
+<p>移动构造函数类似于拷贝构造函数，把类的实例对象作为参数，并创建一个新的实例对象。但是，移动构造函数可以避免内存的重新分配，因为我们知道右值引用提供了一个暂时的对象，而不是进行copy，所以我们可以进行移动。换言之，<strong>在涉及到关于临时对象时，右值引用和移动语义允许我们避免不必要的拷贝</strong>。我们不想拷贝将要消失的临时对象，所以这个临时对象的资源可以被我们用作于其他的对象。<strong>右值就是典型的临时变量，并且他们可以被修改。如果我们知道一个函数的参数是一个右值，我们可以把它当做一个临时存储。这就意味着我们要移动而不是拷贝右值参数的内容</strong>。这就会节省很多的空间。</p>
+<p>更详细的解释可参考：<a href="https://www.kancloud.cn/wangshubo1989/new-characteristics/99718">文献</a></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/Yz3MZw1Sl/" class="tag">
+                    C++
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/c11-xin-te-zheng-array-rong-qi/">
+                  <h3 class="post-title">
+                    C++11 新特征：array容器
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>
