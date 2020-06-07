@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://mocuishle0.github.io/</id>
     <title>MoCuishle</title>
-    <updated>2020-06-07T03:02:43.262Z</updated>
+    <updated>2020-06-07T12:47:02.163Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://mocuishle0.github.io/"/>
     <link rel="self" href="https://mocuishle0.github.io/atom.xml"/>
@@ -11,6 +11,175 @@
     <logo>https://mocuishle0.github.io/images/avatar.png</logo>
     <icon>https://mocuishle0.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, MoCuishle</rights>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：Lambda表达式（续）]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-lambda-biao-da-shi-xu/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-lambda-biao-da-shi-xu/">
+        </link>
+        <updated>2020-06-07T08:17:54.000Z</updated>
+        <summary type="html"><![CDATA[<p>上一次总结Lambda表达式后，又陆陆续续看到许多关于Lambda表达式的资料，又有了许多新的感触。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>上一次总结Lambda表达式后，又陆陆续续看到许多关于Lambda表达式的资料，又有了许多新的感触。</p>
+<!-- more -->
+<h2 id="1-更常见的应用场景">1. 更常见的应用场景</h2>
+<p>在上一篇介绍Lambda表达式的文章中，已经提及Lambda结合sort函数的应用场景，但并未展开。其实，相较于上一篇文章中那个具体的例子，sort函数（find_if函数同理）结合Lambda表达式其实更易于理解：在引入Lambda表达式之前，我们要对容器中的元素进行自定义的排序需要自己定义一个比表函数（也被称为 “谓词”），如下：</p>
+<pre><code>bool compare(const string&amp; s1, const string&amp; s2){
+    return s1.size() &lt; s2.size();
+}
+
+vector&lt;string&gt; v{&quot;This&quot;,&quot;is&quot;, &quot;a&quot;, &quot;predicate&quot;, &quot;.&quot;};
+sort(v.begin(), v.end(), compare);
+for(auto s:v){
+    cout &lt;&lt; s &lt;&lt; endl;
+}
+/*
+输出：
+.
+a
+is
+This
+predicate
+*/
+</code></pre>
+<p>在这个例子中，我们定义了一个函数传递给sort算法。这个函数可以重复使用还好，如果只是用使用一次的话就显得比较麻烦。这种情况下可以使用C++11提供的新特性：lamada表达式。代码如下：</p>
+<pre><code>vector&lt;string&gt; v{&quot;This&quot;,&quot;is&quot;, &quot;a&quot;, &quot;predicate&quot;, &quot;.&quot;};
+sort(v.begin(), v.end(),[](const string&amp; s1, const string&amp; s2){
+        return s1.size() &gt; s2.size();
+      });
+for(auto s:v){
+    cout &lt;&lt; s &lt;&lt; endl;
+}
+/*
+输出：
+predicate
+This
+is
+.
+a
+*/
+</code></pre>
+<h2 id="2-可变lambda">2. 可变Lambda</h2>
+<p>在一些资料里还看到了一个有趣的例子：<br>
+假设有如下vector，保存的内容是学生的考试成绩，可以用以下代码来寻找第一个及格成绩：</p>
+<pre><code>vector&lt;int&gt; score{45, 70, 56, 86, 28, 60, 90};
+find_if(score.begin(), score.end(), 
+        [](int v){return (v &gt;=60);});
+</code></pre>
+<p>如果需要找到第n个及格成绩，很自然地会考虑使用下面的代码：</p>
+<pre><code>vector&lt;int&gt; score{45, 70, 56, 86, 28, 60, 90};
+int counter = 2;
+find_if(score.begin(), score.end(), 
+        [counter](int v){
+           return (v &gt;=60)&amp;&amp;(--counter == 0);
+        });
+</code></pre>
+<p>但是，这时会出现编译错误，告诉你counter是只读的。其原因是因为在lambda表达式中很少有需要修改捕获值的场景，因此<strong>默认捕获值具有const属性</strong>。如果出现本例这样，确实希望修改捕获值的情况，C++11使用<strong>mutable</strong>关键字来解决这个问题。来看完整代码：</p>
+<pre><code>vector&lt;int&gt; score{45, 70, 56, 86, 28, 60, 90};
+int counter = 2;
+auto iter find_if(score.begin(), score.end(),
+        [counter](int v)mutable{
+           return (v &gt;=60)&amp;&amp;(--counter == 0);
+        });
+cout &lt;&lt; *iter &lt;&lt; endl;
+</code></pre>
+<p>需要注意的是，由于是<strong>值捕获</strong>，处于lambda表达式外面的counter值依然不会改变。如果希望连外面的counter一起修改，使用<strong>引用捕获</strong>即可。</p>
+<h2 id="3-lambda表达式的递归调用">3. Lambda表达式的递归调用</h2>
+<p>没想到吧～Lambda表达式也可以递归调用...老套娃了...<br>
+直观地想，Lambda表达式由于不存在函数名，因此如何自己调用自己是一个比较棘手的问题。但是，还是有办法的。以阶乘为例：</p>
+<pre><code>function&lt;int(int)&gt; factorial =[&amp;](int n){
+           if(n &lt; 2) return 1;
+           return n * factorial(n - 1);
+        };
+cout &lt;&lt; factorial(3) &lt;&lt; endl;
+</code></pre>
+<p>Lambda表达式的递归调用有几个要点：</p>
+<ul>
+<li>使用标准库中的<strong>function模版类型定义表达式类型</strong>，其中<strong>模版参数与lambda表达式的返回值，参数一致</strong>;</li>
+<li>使用<strong>引用捕获</strong>来获得factorial的使用权;</li>
+<li>调用factorial实现递归调用。</li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特性：string与数值转换函数]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-xing-string-yu-shu-zhi-zhuan-huan-han-shu/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-xing-string-yu-shu-zhi-zhuan-huan-han-shu/">
+        </link>
+        <updated>2020-06-07T07:50:41.000Z</updated>
+        <summary type="html"><![CDATA[<p>我还以为这个不是新特征呢...</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>我还以为这个不是新特征呢...</p>
+<!-- more -->
+<p>可能由于对于string的使用较多，所以该库中的一些方法也时常会被用到，因此对于string与数值转换函数也并未意识到这是C++11新特征中的一项。</p>
+<p>P.s：数值和string的转换其实也可以通过<sstream>头文件下的stringstream进行转换。详细内容可参考：<a href="https://home.gamer.com.tw/creationDetail.php?sn=4114818">stringstream用法</a></p>
+<h2 id="1-数值-string">1. 数值-&gt;string</h2>
+<p>使用全局函数<strong>std::to_string</strong>：</p>
+<pre><code>string to_string (int val);
+string to_string (long val);
+string to_string (long long val);
+string to_string (unsigned val);
+string to_string (unsigned long val);
+string to_string (unsigned long long val);
+string to_string (float val);
+string to_string (double val);
+string to_string (long double val)
+</code></pre>
+<p>以上函数实现了各类数值类型到string的转换。</p>
+<h2 id="2-string-数值">2. string-&gt;数值</h2>
+<p>针对基本的数值类型，C++11提供了相应的转换方法：</p>
+<pre><code>stoi：string -&gt; int
+
+stol:  string -&gt; long
+
+stoll：string -&gt; long long
+
+stoul：sting -&gt; unsigned long
+
+stoull：string -&gt; unsigned long long.
+
+stof：string -&gt; float
+
+stod：string -&gt; double
+
+stold：string -&gt; long double.
+</code></pre>
+<p>例如：</p>
+<pre><code>string value = to_string(2.5);
+int iv = stoi(value);
+cout &lt;&lt; &quot;iv=&quot; &lt;&lt; iv &lt;&lt; endl;        //iv=2
+double dv = stod(value);
+cout &lt;&lt; &quot;dv=&quot; &lt;&lt; dv &lt;&lt; endl;        //dv=2.5
+</code></pre>
+<p>需要注意的是，string到数值转换函数的声明，会发现这些函数的第二个参数，例如stod的声明：</p>
+<pre><code>double stod (const string&amp;  str, size_t* idx = 0);
+</code></pre>
+<p>参数idx用于保管数值之后下一个字符的位置。利用这个参数带回的结果，可以实现某些便利的处理，例如实现一个包含多个数值的string的连续转换：</p>
+<pre><code>string values(&quot;1.0,2.4,3.5,4.6,5.7&quot;);
+while(values.size()&gt;0){
+    string::size_type sz;
+    cout &lt;&lt; stod(values, &amp;sz) &lt;&lt; endl;
+    if(sz &lt; values.size()){
+        values = values.substr(sz + 1);
+    }
+    else{
+        values.clear();
+    }
+}
+/*
+输出：
+1
+2.4
+3.5
+4.6
+5.7
+*/
+</code></pre>
+<p>除此之外，从当转换目标为整数时，可以通过第三个参数指定转换的基数，例如以下代码的输出结果就是256：</p>
+<pre><code>string hex(&quot;100&quot;);
+cout &lt;&lt; stoi(hex, nullptr, 16);     //256，即将一个16进制数值的字符串形式转换成10进制整型
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[C++：内存分配方式]]></title>
         <id>https://mocuishle0.github.io/post/cnei-cun-fen-pei-fang-shi/</id>
@@ -683,150 +852,6 @@ constexpr long long f18 = factorial(20);
 <li>加强初始值的检查</li>
 <li>计算的时机从运行时提前到编译时，比宏定义效率更高。</li>
 </ul>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[C++11 新特性：列表初始化]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-xing-lie-biao-chu-shi-hua/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-xing-lie-biao-chu-shi-hua/">
-        </link>
-        <updated>2020-06-04T09:13:03.000Z</updated>
-        <summary type="html"><![CDATA[<p>优雅的初始化方式</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>优雅的初始化方式</p>
-<!-- more -->
-<p>回想一下，之前C或者C++在初始化数组时，可以使用下面的花括号加初始值的形式：</p>
-<pre><code>int int_array[] = {1, 2, 3, 4, 5};
-</code></pre>
-<p>这对于常使用C++的程序员而言，是一种司空见惯的写法。然而，这种方法的运用范围很窄，许多场景都用不了。最典型的例子莫过于vector：可以像数组一样使用，可以自己管理数据长度，还提供各种操作数组的方法。声明的方法也很简单：</p>
-<pre><code>vector&lt;int&gt; int_vector;
-</code></pre>
-<p>但是有一个问题，当需要指定元素初始化vector时就不那么方便了，传统的初始化方法有以下几类：</p>
-<pre><code>//方法1:逐一压入
-int_vector.push_back(5);
-int_vector.push_back(4);
-int_vector.push_back(3);
-int_vector.push_back(2);
-int_vector.push_back(1);
-//方法2:统一赋值——int_vector共有10个元素，每个元素都是8
-vector&lt;int&gt; int_vector(10,8)；
-</code></pre>
-<h2 id="列表初始化">列表初始化</h2>
-<p>C++11中扩展了使用<strong>花括号</strong>初始化变量的应用范围，称这种初始化方式为列表初始化。例如，可以像下面这样初始化vector、list、map:</p>
-<pre><code>vector&lt;int&gt; int_vector = {5, 4, 3, 2, 1};
-list&lt;int&gt; int_list = {5, 4, 3, 2, 1};
-map&lt;int, const char*&gt; id2Name = {{1,&quot;Zhang&quot;},{2, &quot;Wang&quot;},{3, &quot;Li&quot;}};
-</code></pre>
-<p>更简单的还有以下写法：</p>
-<pre><code>vector&lt;int&gt; int_vector{5, 4, 3, 2, 1};
-
-list&lt;int&gt; int_list {5, 4, 3, 2, 1};
-
-map&lt;int, const char*&gt; id2Name{{1,&quot;Zhang&quot;},{2, &quot;Wang&quot;},{3, &quot;Li&quot;}};
-</code></pre>
-<p>舒服了～</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[C++11 新特征：基于范围的for循环]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-ji-yu-fan-wei-de-for-xun-huan/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-ji-yu-fan-wei-de-for-xun-huan/">
-        </link>
-        <updated>2020-06-04T08:13:10.000Z</updated>
-        <summary type="html"><![CDATA[<p>像python一样，优雅地简化对数组、容器的遍历代码。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>像python一样，优雅地简化对数组、容器的遍历代码。</p>
-<!-- more -->
-<p>其实很多时候还是很羡慕python中for循环的写法的，直到发现...原来C++11原来也有这么优雅的循环写法，真香！<br>
-为了在遍历容器时支持“foreach”用法，C++11扩展了for语句的语法。用这个新的写法，<strong>可以遍历C类型的数组、初始化列表以及任何重载了非成员的begin()和end()函数的类型</strong>。 如果你只是想对集合或数组的每个元素做一些操作，而不关心下标、迭代器位置或者元素个数，那么这种foreach的for循环将会非常有用。</p>
-<h2 id="1-基于范围的for循环">1. 基于范围的for循环</h2>
-<p>循环最常见的的场景就是对数据集合的每一个元素进行某种操作。C++11之前，大致是这样的程序：</p>
-<pre><code>int a[] = {1, 2, 3, 4};
-
-int sum = 0;
-
-for(int i = 0 ; i &lt; sizeof(a)/sizeof(a[0]); ++i)｛
-
-        sum += a[i];
-
-｝
-
-vector&lt;int&gt; v{1, 2, 3,4};
-
-int sum = 0;
-
-for(auto it = v.begin(); it != v.end(); it++){
-
-    sum += *it;
-
-}
-</code></pre>
-<p>而在C++11 引入基于范围的for循环后，循环可以优雅地写成下面这样：</p>
-<pre><code>int array[]{1, 2, 3, 4};
-
-int sum = 0;
-
- for(int a : array){
-
-     sum += a;
-
-}
-
-vector&lt;int&gt; vect{1, 2, 3, 4};
-
-int sum = 0;
-
-for(int v: vect){
-
-    sum += v;
-
-}
-</code></pre>
-<p>for(int v : vect)可以理解为“对于vect中的每一个v”。</p>
-<h2 id="2-应用条件">2. 应用条件</h2>
-<p>正如之前所说，数据v被范围for遍历的条件是，该<strong>数据支持v.begin()/v.end()或者是begin(v)/end(v)并返回一个迭代器</strong>。STL中的容器都满足上述条件。对于内置类型的数组来讲C++编译器提供了等同于上述接口的机制，因此也可以在范围for中使用。</p>
-<h2 id="3-完整示例">3. 完整示例</h2>
-<pre><code>#include &lt;iostream&gt;
-#include &lt;vector&gt;
- 
-int main() {
-    std::vector&lt;int&gt; v = {0, 1, 2, 3, 4, 5};
- 
-    for (const int&amp; i : v) // 以 const 引用访问
-        std::cout &lt;&lt; i &lt;&lt; ' ';
-    std::cout &lt;&lt; '\n';
- 
-    for (auto i : v) // 以值访问，i 的类型是 int
-        std::cout &lt;&lt; i &lt;&lt; ' ';
-    std::cout &lt;&lt; '\n';
- 
-    for (auto&amp; i : v) // 以引用访问，i 的类型是 int&amp;
-        std::cout &lt;&lt; i &lt;&lt; ' ';
-    std::cout &lt;&lt; '\n';
- 
-    for (int n : {0, 1, 2, 3, 4, 5}) // 初始化器可以是花括号初始化器列表
-        std::cout &lt;&lt; n &lt;&lt; ' ';
-    std::cout &lt;&lt; '\n';
- 
-    int a[] = {0, 1, 2, 3, 4, 5};
-    for (int n : a) // 初始化器可以是数组
-        std::cout &lt;&lt; n &lt;&lt; ' ';
-    std::cout &lt;&lt; '\n';
- 
-    for (int n : a)  
-        std::cout &lt;&lt; 1 &lt;&lt; ' '; // 不必使用循环变量
-    std::cout &lt;&lt; '\n';
- 
-}
-
-//输出为
-// 0 1 2 3 4 5
-// 0 1 2 3 4 5
-// 0 1 2 3 4 
-// 0 1 2 3 4 5
-// 0 1 2 3 4 5
-// 1 1 1 1 1 1
-</code></pre>
 ]]></content>
     </entry>
 </feed>
