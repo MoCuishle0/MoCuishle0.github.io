@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://mocuishle0.github.io/</id>
     <title>MoCuishle</title>
-    <updated>2020-06-06T10:42:45.556Z</updated>
+    <updated>2020-06-07T03:02:43.262Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://mocuishle0.github.io/"/>
     <link rel="self" href="https://mocuishle0.github.io/atom.xml"/>
@@ -11,6 +11,150 @@
     <logo>https://mocuishle0.github.io/images/avatar.png</logo>
     <icon>https://mocuishle0.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, MoCuishle</rights>
+    <entry>
+        <title type="html"><![CDATA[C++：内存分配方式]]></title>
+        <id>https://mocuishle0.github.io/post/cnei-cun-fen-pei-fang-shi/</id>
+        <link href="https://mocuishle0.github.io/post/cnei-cun-fen-pei-fang-shi/">
+        </link>
+        <updated>2020-06-07T02:22:38.000Z</updated>
+        <summary type="html"><![CDATA[<p>C++的内存分配方式是理解C++特征的基础。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>C++的内存分配方式是理解C++特征的基础。</p>
+<!-- more -->
+<p>首先，我们主要根据《C++ Primer Plus》中的介绍进行一个总结：C++有三种管理数据内存的方式——<strong>自动存储、静态存储和动态存储</strong>（也称为自由存储空间 或 堆）。在C++11中还新增了线程存储，这将在后续文章中介绍。本文主要就自动存储、静态存储和动态存储进行归纳整理。</p>
+<h2 id="1-堆和栈">1. 堆和栈</h2>
+<h3 id="11-概念">1.1 概念</h3>
+<p>在具体介绍三类存储方式之前，我们先明确堆和栈的概念：</p>
+<ul>
+<li>栈：就像装数据的桶或箱子，它是一种具有<strong>后进先出</strong>性质的数据结构。</li>
+<li>堆：一种经过排序的树形数据结构，每个结点都有一个值。通常我们所说的堆的数据结构，是指二叉堆。堆的特点是根结点的值最小（或最大），且根结点的两个子树也是一个堆。由于堆的这个特性，常用来实现优先队列，堆的存取是随意，这就如同我们在图书馆的书架上取书，虽然书的摆放是有顺序的，但是我们想取任意一本时不必像栈一样，先取出前面所有的书，书架这种机制不同于箱子，我们可以直接取出我们想要的书。</li>
+</ul>
+<h3 id="12-程序的内存分配">1.2 程序的内存分配</h3>
+<p>一个由C/C++编译的程序占用的内存分为以下几个部分：<br>
+1、<strong>栈区（stack）</strong> —— 由编译器自动分配释放，存放函数的参数值，局部变量的值等。其操作方式类似于数据结构中的栈。<br>
+2、<strong>堆区（heap）</strong> —— 一般由程序员分配释放，若程序员不释放，程序结束时可能由OS（操作系统）回收。注意它与数据结构中的堆是两回事，分配方式倒是类似于链表。<br>
+3、<strong>全局区（静态区）</strong>（static）—— 全局变量和静态变量的存储是放在一块的，初始化的全局变量和静态变量在一块区域，未初始化的全局变量和未初始化的静态变量在相邻的另一块区域。程序结束后由系统释放。<br>
+4、<strong>文字常量区</strong> —— 常量字符串就是放在这里的。程序结束后由系统释放。<br>
+5、<strong>程序代码区</strong> —— 存放函数体的二进制代码。</p>
+<p>可以根据以下代码进行理解：</p>
+<pre><code>int  a=0;   全局初始化区    
+
+char *p1;   全局未初始化区    
+int  main()    
+{    
+  int  b; //栈    
+  char  s[]=&quot;abc&quot;; //栈    
+  char  *p2; //栈    
+  char  *p3=&quot;123456&quot;; //123456/0在常量区，p3在栈上。    
+
+  static int c =0；//全局（静态）初始化区    
+  p1 =  (char  *)malloc(10);  //分配得来得10和20字节的区域就在堆区
+  p2  = (char  *)malloc(20);       
+  strcpy(p3,&quot;123456&quot;); //123456/0放在常量区，编译器可能会将它与p3所指向的&quot;123456&quot;  优化成一个地方。    
+}    
+</code></pre>
+<h2 id="2-三种管理数据内存的方式">2. 三种管理数据内存的方式</h2>
+<h3 id="21-自动存储">2.1 自动存储</h3>
+<p>在函数内部定义的常规变量使用自动存储空间，被称为自动变量，这意味着他们在所属的函数被调用时自动产生，在该函数结束时消亡。实际上，自动变量是一个局部变量，其作用域为包含它的代码块。</p>
+<p>自动变量通常存储在栈中，即：执行该代码块时，其中变量依次加入栈中；而在离开代码块时，将按相反顺序释放这些变量——后进先出（LIFO）。因此，程序执行过程中，栈将不断的增大和缩小。</p>
+<h3 id="22-静态存储">2.2 静态存储</h3>
+<p>静态存储是整个程序执行期间都存在的存储方式。其数据位于静态存储区（静态区）。使得变量成为静态变量的方式有两种：1）在函数外部定义它；2）使用static关键字声明变量。</p>
+<p>自动存储和静态存储的关键在于：其对于变量的寿命限制不同——变量可能存在于程序的的整个生命周期（静态变量）；也可能仅存在于特定函数被执行时（自动变量）。</p>
+<p>例如：</p>
+<pre><code>#include &lt;iostream&gt;
+ 
+using namespace std;
+ 
+void display();
+ 
+int main()
+{
+    display();
+    display();
+    display();
+    display();
+    display();
+     return 0;
+}
+ 
+ 
+void display() {
+    static int counter = 0;
+    cout &lt;&lt; &quot;display function called &quot; &lt;&lt; ++counter &lt;&lt; &quot; times.&quot; &lt;&lt; endl;
+}
+
+/*
+输出：
+    display function called 1 times.
+    display function called 2 times.
+    display function called 3 times.
+    display function called 4 times.
+    display function called 5 times.
+*/
+</code></pre>
+<p>上例说明：当我们在一个函数中声明一个static的变量的时候（即static 为function scope），那么这个静态变量的 lifetime将开始于函数第一次调用开始， 一直到这个Program 运行结束。即函数中的声明并初始化的static变量只执行一次， 无论在Program调用多少次， 都只执行一次， 并该变量保存在heap中。 发生修改就可以保存。</p>
+<h3 id="23-动态存储">2.3 动态存储</h3>
+<p><strong>new</strong>和<strong>delete</strong>运算符提供了一个比自动变量和静态变量更灵活的方法。其管理一个内存池，在C++中被称为自由存储空间（free store）或 堆（heap）。<strong>该内存池同用于静态变量和动态变量的内存是分开的</strong>。</p>
+<p>new和delete使得程序员对变量寿命有更多控制权，甚至可以在一个函数中分配内存，而在另一个函数中释放。因此，数据的生命周期不完全受程序或函数的生存时间控制。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[计算机网络：TCP协议的三次握手 & 四次挥手]]></title>
+        <id>https://mocuishle0.github.io/post/ji-suan-ji-wang-luo-tcp-xie-yi-de-san-ci-wo-shou-and-si-ci-hui-shou/</id>
+        <link href="https://mocuishle0.github.io/post/ji-suan-ji-wang-luo-tcp-xie-yi-de-san-ci-wo-shou-and-si-ci-hui-shou/">
+        </link>
+        <updated>2020-06-07T01:38:50.000Z</updated>
+        <summary type="html"><![CDATA[<p>上一次接触计算机网络相关知识还是本科阶段学习计网课程，此次为了准备相关面试，还是需要把这部分知识好好整理一下......</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>上一次接触计算机网络相关知识还是本科阶段学习计网课程，此次为了准备相关面试，还是需要把这部分知识好好整理一下......</p>
+<!-- more -->
+<p>计算机网络部分最容易考到的便是TCP协议的**“三次握手”<strong>和</strong>“四次挥手”**，在网上也看到了许多形象的解读，在此做一归纳：</p>
+<h2 id="1-tcpip协议">1. TCP/IP协议</h2>
+<p>TCP/IP协议模型（Transmission Control Protocol/Internet Protocol），包含了一系列构成互联网基础的网络协议，是Internet的核心协议，通过20多年的发展已日渐成熟，并被广泛应用于局域网和广域网中，目前已成为事实上的国际标准。TCP/IP协议簇是一组不同层次上的多个协议的组合，<strong>通常被认为是一个四层协议系统，与OSI的七层模型相对应</strong>。</p>
+<p>HTTP（HyperText Transfer Protocol），超文本传输协议，是互联网上应用最广泛的一种网络协议，所有www文件都必须遵守的一个标准，是以 ASCII 码传输，建立在 TCP/IP 协议之上的应用层规范。简而言之，<strong>HTTP协议就是基于TCP/IP协议模型来传输信息的</strong>。</p>
+<p><strong>TCP/IP四层模型：</strong></p>
+<ul>
+<li><strong>链路层</strong>：也称作数<strong>据链路层或网络接口层</strong>（在第一个图中为网络接口层和硬件层），通常包括操作系统中的设备驱动程序和计算机中对应的网络接口卡。它们一起处理与电缆（或其他任何传输媒介）的物理接口细节。ARP（地址解析协议）和RARP（逆地址解析协议）是某些网络接口（如以太网和令牌环网）使用的特殊协议，用来转换IP层和网络接口层使用的地址。</li>
+<li><strong>网络层</strong>： 也称作互联网层（在第一个图中为网际层），处理分组在网络中的活动，例如分组的选路。在TCP/IP协议族中，网络层协议包括IP协议（网际协议），ICMP协议（Internet互联网控制报文协议），以及IGMP协议（Internet组管理协议）。IP是一种网络层协议，提供的是一种不可靠的服务，它只是尽可能快地把分组从源结点送到目的结点，但是并不提供任何可靠性保证。同时被TCP和UDP使用。TCP和UDP的每组数据都通过端系统和每个中间路由器中的IP层在互联网中进行传输。ICMP是IP协议的附属协议。IP层用它来与其他主机或路由器交换错误报文和其他重要信息。IGMP是Internet组管理协议。它用来把一个UDP数据报多播到多个主机。</li>
+<li><strong>传输层</strong>：主要为两台主机上的应用程序提供端到端的通信。<strong>在TCP/IP协议族中，有两个互不相同的传输协议：TCP（传输控制协议）和UDP（用户数据报协议）</strong>。TCP为两台主机提供高可靠性的数据通信。它所做的工作包括把应用程序交给它的数据分成合适的小块交给下面的网络层，确认接收到的分组，设置发送最后确认分组的超时时钟等。由于运输层提供了高可靠性的端到端的通信，因此应用层可以忽略所有这些细节。为了提供可靠的服务，TCP采用了超时重传、发送和接收端到端的确认分组等机制。UDP则为应用层提供一种非常简单的服务。它只是把称作数据报的分组从一台主机发送到另一台主机，但并不保证该数据报能到达另一端。一个数据报是指从发送方传输到接收方的一个信息单元（例如，发送方指定的一定字节数的信息）。UDP协议任何必需的可靠性必须由应用层来提供。</li>
+<li><strong>应用层</strong>：应用层决定了向用户提供应用服务时通信的活动。TCP/IP 协议族内预存了各类通用的应用服务。包括 HTTP，FTP（File Transfer Protocol，文件传输协议），DNS（Domain Name System，域名系统）服务。</li>
+</ul>
+<h2 id="2-tcp三次握手">2. TCP三次握手</h2>
+<p>先给一个更便于理解的示例：<br>
+<img src="https://mocuishle0.github.io//post-images/1591494923826.webp" alt="" loading="lazy"></p>
+<ul>
+<li>客户端A：你好服务器，我是客户端A；</li>
+<li>服务器B：你好客户端A，我是服务器B；</li>
+<li>客户端A：你好，服务器B。</li>
+</ul>
+<p>官方描述：</p>
+<ul>
+<li><strong>第一次握手</strong>：建立连接时，客户端发送syn包（syn=j）到服务器，并进入SYN_SENT状态，等待服务器确认；【SYN：同步序列编号（Synchronize Sequence Numbers）】</li>
+<li><strong>第二次握手</strong>：服务器收到syn包，必须确认客户的SYN（ack=j+1），同时自己也发送一个SYN包（syn=k），即SYN+ACK包，此时服务器进入SYN_RECV状态；</li>
+<li><strong>第三次握手</strong>：客户端收到服务器的SYN+ACK包，向服务器发送确认包ACK(ack=k+1），此包发送完毕，客户端和服务器进入ESTABLISHED（TCP连接成功）状态，完成三次握手。</li>
+</ul>
+<p>完成三次握手，客户端与服务器开始传送数据。这样就保证了，每次传送数据都会准确到达目标设备了。</p>
+<h2 id="3-tcp四次挥手">3. TCP四次挥手</h2>
+<p>还是先给出一个更便于理解的示例：</p>
+<ul>
+<li>主动结束方：你好，我的数据发送完毕了，我要进入准备断开的状态了。（此时它虽然不再发送数据了，但是可以接受数据）</li>
+<li>另一方：我知道了，我还没有发送完毕的，你等着吧。</li>
+<li>另一方：我也发送完毕了，可以断开链接了。（此时它也进入准备断开的状态）</li>
+<li>主动结束方：好的，那断开吧</li>
+</ul>
+<figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1591495364320.webp" alt="" loading="lazy"></figure>
+<p>官方描述：</p>
+<ul>
+<li>客户端A发送一个FIN，用来关闭客户A到服务器B的数据传送。</li>
+<li>服务器B收到这个FIN，它发回一个ACK，确认序号为收到的序号加1。和SYN一样，一个FIN将占用一个序号。</li>
+<li>服务器B关闭与客户端A的连接，发送一个FIN给客户端A。</li>
+<li>客户端A发回ACK报文确认，并将确认序号设置为收到序号加1。</li>
+</ul>
+<h2 id="4-为什么tcp建立链接是三次关闭链接是四次呢">4. 为什么TCP建立链接是三次，关闭链接是四次呢？</h2>
+<p>其实也不难理解，因为服务端的listen状态下的socket当收到SYN报文的建连请求后，<strong>它可以把ACK和SYN（ACK起应答作用，而SYN起同步作用）放在一个报文里来发送</strong>。但关闭连接时，当收到对方的FIN报文通知时，<strong>它仅仅表示对方没有数据发送给你了；但未必你所有的数据都全部发送给对方了，所以你可以未必会马上会关闭SOCKET，也即你可能还需要发送一些数据给对方之后，再发送FIN报文给对方来表示你同意现在可以关闭连接了，所以它这里的ACK报文和FIN报文多数情况下都是分开发送的</strong>。</p>
+<p>通过TCP协议使得两台设备成功链接，并成功发送了数据，接下来，就需要服务器端来处理数据了。</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[C++11 新特征：容器的emplace成员]]></title>
         <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-rong-qi-de-emplace-cheng-yuan/</id>
@@ -682,177 +826,6 @@ int main() {
 // 0 1 2 3 4 5
 // 0 1 2 3 4 5
 // 1 1 1 1 1 1
-</code></pre>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[C++11 新特征：Lambda函数与表达式]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-lambda-han-shu-yu-biao-da-shi/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-lambda-han-shu-yu-biao-da-shi/">
-        </link>
-        <updated>2020-06-04T06:47:21.000Z</updated>
-        <content type="html"><![CDATA[<p>其实，最开始接触到lambda函数是在关于python匿名函数的教程中。后来在一些资料上也看到了关于C++中匿名函数的用法的相关讲解。那么，借着这次整理C++11新特征的机会，就对C++中的lambda函数进行一下归纳：</p>
-<h2 id="1-lambda-函数与表达式">1. Lambda 函数与表达式</h2>
-<p>C++11 提供了对匿名函数的支持（即，没有函数名的函数）,称为** Lambda 函数(也叫 Lambda 表达式)**。其作用主要在于，如果代码里面存在大量的小函数，而这些函数一般只被一两处调用，那么不妨将它们重构成Lambda表达式，也就是匿名函数。作用就是当你想用一个函数，但是又不想费神去命名一个函数。</p>
-<p>Lambda 表达式本质上与函数声明非常类似，其通用表达形式——$[捕获区] (参数区)-&gt;返回类型 {代码区}：</p>
-<ul>
-<li><strong>[捕获区]</strong>，指定在可见域范围内lambda表达式代码内可见的参数，即（除了形参之外）它可以使用的变量列表。<strong>在Lambda表达式内可以访问当前作用域的变量</strong>，这是Lambda表达式的闭包（Closure）行为：
-<ul>
-<li>[]，沒有定义任何变量，即不捕获外部的任何变量。使用未定义变量会引发错误。</li>
-<li>[x, &amp;y]，x以传值方式传入（默认），y以引用方式传入。</li>
-<li>[&amp;]，任何被使用到的外部变量都隐式地以引用方式加以引用。</li>
-<li>[=]，任何被使用到的外部变量都隐式地以传值方式加以引用。</li>
-<li>[&amp;, x]，x显式地以传值方式加以引用。其余变量以引用方式加以引用。</li>
-<li>[=, &amp;z]，z显式地以引用方式加以引用。其余变量以传值方式加以引用。</li>
-<li>[this]，以值的方式捕获 this 指针。</li>
-</ul>
-</li>
-<li><strong>(参数区)</strong>，指定lambda表达式内部变量定义</li>
-<li><strong>-&gt;返回类型</strong>，是返回类型，如果 lambda 代码块中包含了 return 语句，则该 lambda 表达式的返回类型由 return 语句的返回类型确定。如果没有 return 语句，则类似 void f(…) 函数。</li>
-<li><strong>{代码区}</strong>，是Lambda表达式主题结构。</li>
-</ul>
-<p>例如：</p>
-<pre><code>//通用表达形式：[捕获区](参数区)-&gt;返回类型 {代码区};
-int n = [] (int x, int y) { return x + y; }(5, 4);      //n=9
-</code></pre>
-<p>P.s：Lambda函数通过“函数体”后面的‘()’传入参数，如上例中的（5,4）。</p>
-<h2 id="2-使用场景">2. 使用场景</h2>
-<p>Lambda 表达式把函数看作对象。Lambda 表达式可以像对象一样使用，比如可以将它们赋给变量和作为参数传递，还可以像函数一样对其求值。就目前来看，Lambda函数最常用的使用场景在于：sort、for_each等自定义比较函数。</p>
-<p>下面给出了一个非常具体且完整的Lambda表达式的使用样例，可帮助我们加深理解：</p>
-<pre><code>class CTest 
-{ 
- public:  
-   CTest() : m_nData(20) { NULL; }  
-   void TestLambda()  
-   {   
-     vector&lt;int&gt; vctTemp;   
-     vctTemp.push_back(1);   
-     vctTemp.push_back(2);    
-
-   // 无函数对象参数，输出：1 2   
-   {    
-     for_each(vctTemp.begin(), vctTemp.end(), [](int v){ cout &lt;&lt; v &lt;&lt; endl; });   
-   }   
-
-   // 以值方式传递作用域内所有可见的局部变量（包括this），输出：11 12   
-   {    
-     int a = 10;    
-     for_each(vctTemp.begin(), vctTemp.end(), [=](int v){ cout &lt;&lt; v+a &lt;&lt; endl; });   
-   }    
-
-   // 以引用方式传递作用域内所有可见的局部变量（包括this），输出：11 13 12   
-   {    
-     int a = 10;   
-     for_each(vctTemp.begin(), vctTemp.end(), [&amp;](int v)mutable{ cout &lt;&lt; v+a &lt;&lt; endl; a++; });    
-     cout &lt;&lt; a &lt;&lt; endl;   
-   }    
-
-   // 以值方式传递局部变量a，输出：11 13 10   
-   {    
-     int a = 10;    
-     for_each(vctTemp.begin(), vctTemp.end(), [a](int v)mutable{ cout &lt;&lt; v+a &lt;&lt; endl; a++; });    
-     cout &lt;&lt; a &lt;&lt; endl;   
-   }    
-
-   // 以引用方式传递局部变量a，输出：11 13 12   
-   {    
-     int a = 10;    
-     for_each(vctTemp.begin(), vctTemp.end(), [&amp;a](int v){ cout &lt;&lt; v+a &lt;&lt; endl; a++; });    
-     cout &lt;&lt; a &lt;&lt; endl;  
-   }    
-
-   // 传递this，输出：21 22 
-   {  
-     for_each(vctTemp.begin(), vctTemp.end(), [this](int v){ cout &lt;&lt; v+m_nData &lt;&lt; endl; });   
-   }    
-
-   // 除b按引用传递外，其他均按值传递，输出：11 12 17   
-   {    
-     int a = 10;    
-     int b = 15;    
-     for_each(vctTemp.begin(), vctTemp.end(), [=, &amp;b](int v){ cout &lt;&lt; v+a &lt;&lt; endl; b++; });    
-     cout &lt;&lt; b &lt;&lt; endl;   
-   }     
-   // 操作符重载函数参数按引用传递，输出：2 3   
-   {    
-     for_each(vctTemp.begin(), vctTemp.end(), [](int &amp;v){ v++; });    
-     for_each(vctTemp.begin(), vctTemp.end(), [](int v){ cout &lt;&lt; v &lt;&lt; endl; });   
-   }    
-   // 空的Lambda表达式   
-   {    
-     [](){}();    []{}();   
-   }  
- }  
- private:  int m_nData; 
-};
-</code></pre>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[C++11 新特征：nullptr空指针]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-nullptr-kong-zhi-zhen/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-nullptr-kong-zhi-zhen/">
-        </link>
-        <updated>2020-06-04T03:05:43.000Z</updated>
-        <content type="html"><![CDATA[<h2 id="1-空指针">1. 空指针</h2>
-<p>在谈nullptr之前，我们先聊聊C++中的空指针：<br>
-在指针变量声明的时候，如果没有确切的地址可以赋值，为指针变量赋一个 NULL 值是一个良好的编程习惯。赋为 NULL 值的指针被称为空指针。<strong>NULL 指针是一个定义在标准库中的值为零的常量</strong>。例如：</p>
-<pre><code>#include &lt;iostream&gt;
-//程序将输出：ptr 的值是 0
-using namespace std;
-
-int main ()
-{
-   int  *ptr = NULL;
-   // int *ptr = 0; 
-
-   cout &lt;&lt; &quot;ptr 的值是 &quot; &lt;&lt; ptr ;
- 
-   return 0;
-}
-</code></pre>
-<p>在大多数的操作系统上，程序不允许访问地址为 0 的内存，因为该内存是操作系统保留的。然而，内存地址 0 有特别重要的意义，它表明该指针不指向一个可访问的内存位置。但按照惯例，如果指针包含空值（零值），则假定它不指向任何东西。如需检查一个空指针，可以使用 if 语句，如下所示：</p>
-<pre><code>if(ptr)     /* 如果 ptr 非空，则完成 */
-if(!ptr)    /* 如果 ptr 为空，则完成 */
-//个人常用的方式：
-if(ptr!=NULL)       /* 如果 ptr 非空，则完成 */
-if(ptr==NULL)   /* 如果 ptr 为空，则完成 */
-</code></pre>
-<p>所以，综上所述，声明一个空指针可有两种方式：<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi><mi>n</mi><mi>t</mi><mo>∗</mo><mi>p</mi><mo>=</mo><mi>N</mi><mi>U</mi><mi>L</mi><mi>L</mi><mi mathvariant="normal">或</mi><mi>i</mi><mi>n</mi><mi>t</mi><mo>∗</mo><mi>p</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">int* p = NULL 或 int* p = 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mord mathdefault">t</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">p</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mord mathdefault" style="margin-right:0.10903em;">U</span><span class="mord mathdefault">L</span><span class="mord mathdefault">L</span><span class="mord cjk_fallback">或</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mord mathdefault">t</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">p</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>。<br>
-此处对<strong>NULL</strong>和<strong>常数0</strong>进行一些整理：</p>
-<ul>
-<li>NULL到底是什么？NULL的实质是一个在标准库头文件&lt;stddef.h&gt;中定义的宏。</li>
-<li>它的值是多少？C/C++标准规定：它的值是一个空指针常量（null pointer constant），由实现定义。</li>
-<li>什么样的值才能称之为空指针常量？C语言中常数0和<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>v</mi><mi>o</mi><mi>i</mi><mi>d</mi><mo>∗</mo><mo>)</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">(void*)0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mord mathdefault">o</span><span class="mord mathdefault">i</span><span class="mord mathdefault">d</span><span class="mord">∗</span><span class="mclose">)</span><span class="mord">0</span></span></span></span>都是空指针常量；C++中（暂且忽略C++11）常数0是，而<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>v</mi><mi>o</mi><mi>i</mi><mi>d</mi><mo>∗</mo><mo>)</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">(void*)0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03588em;">v</span><span class="mord mathdefault">o</span><span class="mord mathdefault">i</span><span class="mord mathdefault">d</span><span class="mord">∗</span><span class="mclose">)</span><span class="mord">0</span></span></span></span>不是。</li>
-</ul>
-<p>其实我们查看对NULL的定义即可明白：</p>
-<pre><code>if defined(__cplusplus)
-define NULL 0    // C++中使用0作为NULL的值
-else
-define NULL ((void *)0)    // C中使用((void *)0)作为NULL的值
-endif
-</code></pre>
-<h2 id="2-nullptr">2. nullptr</h2>
-<p>通过上述介绍，我们不难看出，在编程的世界里0有双重的角色，可以表示整数零，也可以表示一个空指针。在C语言中，通过预编译宏NULL，可以区分0表示的是零还是(void*)0。但是，在C++的世界中，这样是不可以的。加之C++中允许函数重载，这便对空指针的声明产生了影响，例如：</p>
-<pre><code>void foo(char *);
-void foo(int);
-</code></pre>
-<p>如果把NULL定义为0，那么foo(NULL)将调用哪个函数呢？</p>
-<pre><code>#include &lt;stddef.h&gt;
-void foo(int) {}     // #1
-void foo(char*) {}   // #2
-int main() {
-    foo(NULL); // 调用#1还是#2？
-}
-</code></pre>
-<p>从字面上来讲，NULL是个空指针常量，我们可能会觉得：既然是个指针，那么应该调用#2。但事实上调用的却是#1，因为C++中NULL扩展为常数0，它是int型。<br>
-为了解决常数0既是整数常量，也是空指针常量这样的二义性问题，C++11引入了另一个关键字nullptr，作为一个空指针。例如：</p>
-<pre><code>char *pc = nullptr;     // OK
-int  *pi = nullptr;     // OK
-bool   b = nullptr;     // OK. b is false.
-int    i = nullptr;     // error
-
-foo(nullptr);           // calls foo(char *), not foo(int);
 </code></pre>
 ]]></content>
     </entry>
