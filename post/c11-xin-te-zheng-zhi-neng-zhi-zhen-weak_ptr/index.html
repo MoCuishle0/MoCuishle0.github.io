@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>C++11 新特征：智能指针——weak_ptr | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591687960550">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="weak_ptr看起来更像shared_ptr的附属品，它从shared_ptr衍生，但不会控制所指向对象的生命周期。weak_ptr的弱就弱在这里。
+
+1. 初始化
+一共有三种形式，都非常简单，直接看代码：
+shared_ptr&lt;M..." />
+    <meta name="keywords" content="C++" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591687960550" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">C++11 新特征：智能指针——weak_ptr</h2>
+            <div class="post-date">2020-06-08</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/c11-xin-te-zheng-zhi-neng-zhi-zhen-weak_ptr.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>weak_ptr看起来更像shared_ptr的附属品，它从shared_ptr衍生，但不会控制所指向对象的生命周期。weak_ptr的弱就弱在这里。</p>
+<!-- more -->
+<h2 id="1-初始化">1. 初始化</h2>
+<p>一共有三种形式，都非常简单，直接看代码：</p>
+<pre><code>shared_ptr&lt;MyString&gt; shpr = make_shared&lt;MyString&gt;(&quot;Hello shared_ptr&quot;);
+cout &lt;&lt; &quot;shpr.get = &quot; &lt;&lt; shpr.get() &lt;&lt; endl;
+cout &lt;&lt; &quot;shpr.use_count = &quot; &lt;&lt; shpr.use_count() &lt;&lt; endl;
+
+//空weak_ptr
+weak_ptr&lt;MyString&gt; wp1;
+cout &lt;&lt; &quot;wp1.use_count = &quot; &lt;&lt; wp1.use_count() &lt;&lt; endl;
+
+//从shared_ptr构造weak_ptr
+weak_ptr&lt;MyString&gt; wp2(shpr);
+cout &lt;&lt; &quot;wp2.use_count = &quot; &lt;&lt; wp2.use_count() &lt;&lt; endl;
+
+//从其他weak_ptr构造weak_ptr
+weak_ptr&lt;MyString&gt; wp3(wp2);
+cout &lt;&lt; &quot;wp3.use_count = &quot; &lt;&lt; wp3.use_count() &lt;&lt; endl;
+
+/*
+输出：
+Constructed (Hello shared_ptr)!
+shpr.get = 0x7fc419504098
+shpr.use_count = 1
+wp1.use_count = 0
+wp2.use_count = 1
+wp3.use_count = 1
+Destructed (Hello shared_ptr)!
+*/
+</code></pre>
+<p>虽然根据shared_ptr构造了两个weak_ptr，引用计数仍然为1。</p>
+<h2 id="2-赋值">2. 赋值</h2>
+<p>相应地，赋值操作同样简单：</p>
+<pre><code>shared_ptr&lt;MyString&gt; shpr = make_shared&lt;MyString&gt;(&quot;Hello shared_ptr&quot;);
+cout &lt;&lt; &quot;shpr.get = &quot; &lt;&lt; shpr.get() &lt;&lt; endl;
+cout &lt;&lt; &quot;shpr.use_count = &quot; &lt;&lt; shpr.use_count() &lt;&lt; endl;
+
+weak_ptr&lt;MyString&gt; wp4;
+weak_ptr&lt;MyString&gt; wp5;
+
+wp4=shpr;
+cout &lt;&lt; &quot;wp4.use_count = &quot; &lt;&lt; wp4.use_count() &lt;&lt; endl;
+
+wp5=wp4;
+cout &lt;&lt; &quot;wp5.use_count = &quot; &lt;&lt; wp5.use_count() &lt;&lt; endl;
+
+cout &lt;&lt; &quot;shpr.get = &quot; &lt;&lt; shpr.get() &lt;&lt; endl;
+cout &lt;&lt; &quot;shpr.use_count = &quot; &lt;&lt; shpr.use_count() &lt;&lt; endl;
+
+输出：
+Constructed (Hello shared_ptr)!
+shpr.get = 0x7f8dcee059b8
+shpr.use_count = 1
+wp4.use_count = 1
+wp5.use_count = 1
+shpr.get = 0x7f8dcee059b8
+shpr.use_count = 1
+Destructed (Hello shared_ptr)!
+*/
+</code></pre>
+<h2 id="3-使用">3. 使用</h2>
+<p>C++11标准库没有提供通过weak_ptr直接访问对象的方法，而是调用weak_ptr的lock方法生成一个shared_ptr，再通过shared_ptr访问对象：<br>
+<img src="https://mocuishle0.github.io//post-images/1591609352184.png" alt="" loading="lazy"><br>
+上述示例输出为“127”，也就是说weak_ptr提供了一种按需锁定对象的手段。</p>
+<p>其实，关于weak_ptr与shared_ptr之间的关系可参考：<a href="https://blog.csdn.net/craftsman1970/article/details/80889084">shared_ptr/weak_ptr示例</a></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/Yz3MZw1Sl/" class="tag">
+                    C++
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-unique_ptr/">
+                  <h3 class="post-title">
+                    C++11 新特征：智能指针——unique_ptr
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

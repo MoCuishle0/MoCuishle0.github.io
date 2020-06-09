@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>C++11 新特征：智能指针——unique_ptr | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591687960550">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="在C++11引入的新智能指针中，shared_ptr指针通过其计数机制实现与其他指针共享内存。此外，在C++11中还存在一个与之相应的智能指针——unique_prt：它同样可以自动管理内存，只是这块内存不和其他的unique_ptr分享。..." />
+    <meta name="keywords" content="C++" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591687960550" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">C++11 新特征：智能指针——unique_ptr</h2>
+            <div class="post-date">2020-06-08</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/c11-xin-te-zheng-zhi-neng-zhi-zhen-unique_ptr.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>在C++11引入的新智能指针中，shared_ptr指针通过其计数机制实现与其他指针共享内存。此外，在C++11中还存在一个与之相应的智能指针——unique_prt：它同样可以自动管理内存，只是这块内存不和其他的unique_ptr分享。</p>
+<!-- more -->
+<h2 id="1-unique_ptr指针的初始化-赋值">1. unique_ptr指针的初始化 &amp; 赋值</h2>
+<p>有了shared_ptr的基础，我们首先介绍unique_ptr指针的初始化、赋值:</p>
+<h3 id="11-初始化">1.1 初始化</h3>
+<p>如果观察unique_ptr的构造函数声明会发现，unique_ptr支持的构造函数和shared_ptr相差无几，这里直接举例：<br>
+1）<strong>初始化为空指针</strong>：<br>
+<img src="https://mocuishle0.github.io//post-images/1591602846333.png" alt="" loading="lazy"><br>
+2）<strong>从指针创建</strong>：<br>
+<img src="https://mocuishle0.github.io//post-images/1591602869282.png" alt="" loading="lazy"><br>
+3）<strong>从右值引用创建</strong>：<br>
+<img src="https://mocuishle0.github.io//post-images/1591602892061.png" alt="" loading="lazy"><br>
+从输出结果可见，内存从p3转到了p4:<br>
+<img src="https://mocuishle0.github.io//post-images/1591603039945.png" alt="" loading="lazy"></p>
+<h3 id="12-赋值">1.2 赋值</h3>
+<p>需要强调的是，由于unique_ptr对于内存的独占特性，<strong>unique_ptr不支持直接的赋值操作，而只能支持右值引用的赋值</strong>，基本形式如下：</p>
+<pre><code>unique_ptr&lt;MyString&gt; p1(new MyString(&quot;hello unique ptr&quot;));
+cout &lt;&lt; &quot;p1.get = &quot; &lt;&lt; p1.get() &lt;&lt; endl;
+
+unique_ptr&lt;MyString&gt; p2;
+cout &lt;&lt; &quot;p2.get = &quot; &lt;&lt; p2.get() &lt;&lt; endl;
+
+p2 = move(p1);
+cout &lt;&lt; &quot;p1.get = &quot; &lt;&lt; p1.get() &lt;&lt; endl;
+cout &lt;&lt; &quot;p2.get = &quot; &lt;&lt; p2.get() &lt;&lt; endl;
+
+/*
+输出：
+Constructed (hello unique ptr)!
+p1.get = 0x7f8381c05a00
+p2.get = 0x0
+p1.get = 0x0
+p2.get = 0x7f8381c05a00
+Destructed (hello unique ptr)!
+*/
+</code></pre>
+<p>需要说明的是，上述代码其实并没有什么实际意义，仅是为了说明unique_ptr采用了所有权独占机制。在真正的项目中，unique_ptr最常见的用法如下：</p>
+<pre><code>unique_ptr&lt;MyString&gt; GetUnique(string ms)
+{
+    unique_ptr&lt;MyString&gt; tmp(new MyString(ms));
+    cout &lt;&lt; tmp.get() &lt;&lt; endl;
+    return tmp;
+}
+
+int main(){
+    unique_ptr&lt;MyString&gt; p1;
+    p1 = GetUnique(&quot;hello unique_ptr&quot;);
+
+    p1-&gt;Output();
+    cout &lt;&lt; p1.get() &lt;&lt; endl;
+    return 0;
+} 
+
+/*
+输出：
+Constructed (hello unique_ptr)!
+0x7fde05405a00
+hello unique_ptr
+0x7fde05405a00
+Destructed (hello unique_ptr)!
+*/
+</code></pre>
+<p>GetUnique()返回一个临时unique_ptr，然后p1接管了原本归返回的unique_ptr所有的对象，而返回时临时的 unique_ptr 被销毁，也就是说没有机会使用unique_ptr 来访问无效的数据，换句话来说，这种赋值是不会出现任何问题的，即没有理由禁止这种赋值。实际上，编译器确实允许这种赋值，这正是unique_ptr更聪明的地方。</p>
+<p><strong>总之，党程序试图将一个 unique_ptr 赋值给另一个时，如果源 unique_ptr 是个临时右值，编译器允许这么做；如果源 unique_ptr 将存在一段时间，编译器将禁止这么做，比如：</strong></p>
+<pre><code>unique_ptr&lt;string&gt; pu1(new string (&quot;hello world&quot;));
+unique_ptr&lt;string&gt; pu2;
+pu2 = pu1;                                      //#1 not allowed---编译器报错
+unique_ptr&lt;string&gt; pu3;
+pu3 = unique_ptr&lt;string&gt;(new string (&quot;You&quot;));   //#2 allowed
+</code></pre>
+<p>其中#1留下悬挂的unique_ptr(pu1)，这可能导致危害。而#2不会留下悬挂的unique_ptr，因为它调用 unique_ptr 的构造函数，该构造函数创建的临时对象在其所有权让给 pu3 后就会被销毁。</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/Yz3MZw1Sl/" class="tag">
+                    C++
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-shared_ptr/">
+                  <h3 class="post-title">
+                    C++11 新特征：智能指针——shared_ptr
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

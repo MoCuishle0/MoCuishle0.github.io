@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://mocuishle0.github.io/</id>
     <title>MoCuishle</title>
-    <updated>2020-06-07T14:27:47.350Z</updated>
+    <updated>2020-06-09T09:01:04.694Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://mocuishle0.github.io/"/>
     <link rel="self" href="https://mocuishle0.github.io/atom.xml"/>
@@ -11,6 +11,813 @@
     <logo>https://mocuishle0.github.io/images/avatar.png</logo>
     <icon>https://mocuishle0.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, MoCuishle</rights>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：线程（1）]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-xian-cheng-1/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-xian-cheng-1/">
+        </link>
+        <updated>2020-06-09T01:42:53.000Z</updated>
+        <summary type="html"><![CDATA[<p>C++11最引人注目的特征之一便是其引入了对线程的支持</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>C++11最引人注目的特征之一便是其引入了对线程的支持</p>
+<!-- more -->
+<h2 id="1-基础知识回顾">1. 基础知识回顾</h2>
+<h3 id="11-线程-进程">1.1 线程 &amp; 进程</h3>
+<ul>
+<li>进程是<strong>资源分配和调度</strong>的一个独立单位。而线程是<strong>进程的一个实体，是CPU调度和分派</strong>的基本单位。</li>
+<li>一个进程至少拥有一个线程。</li>
+<li>在<strong>同一个进程中的多个线程的内存资源是共享的，也就是说各线程都可以改变进程中的变量</strong>。因此在执行多线程运算的时候要注意执行顺序。</li>
+</ul>
+<h3 id="12-并发-并行">1.2 并发 &amp; 并行</h3>
+<ul>
+<li><strong>并行（parallellism）<strong>指的是多个任务在</strong>同一时刻同时在执行</strong>。</li>
+<li><strong>并发（concurrency）<strong>是指在一个时间段内，多个任务</strong>交替进行</strong>。虽然看起来像在同时执行，但其实是交替的。</li>
+</ul>
+<h2 id="2-c11-线程">2. C++11 线程</h2>
+<p>C++11提供了一套精练的线程库，小巧且易用。运行一个线程，可以直接创建一个std::thread的实例，线程在实例成功构造时启动。下面给出一个简单的示例：</p>
+<pre><code>#include &lt;thread&gt;
+#include &lt;iostream&gt;
+
+using namespace std;
+
+void foo() {
+    cout &lt;&lt; &quot;Hello C++11&quot; &lt;&lt; endl;
+}
+
+int main() {
+    thread thread1(foo);  // 启动线程foo
+    thread1.join();  // 等待线程执行完成
+
+    return 0;
+}
+
+/*
+输出：
+Hello C++11
+*/
+</code></pre>
+<h3 id="21-线程参数传入">2.1 线程参数传入</h3>
+<p>查看源代码我们不难发现以下代码：</p>
+<pre><code>explicit thread(_Fp&amp;&amp; __f, _Args&amp;&amp;... __args);
+</code></pre>
+<p>其中：fn，可以指向函数，指向成员，或是移动构造函数；args，是传递给fn的参数，这些参数可以移动赋值构造。如果fn是一个成员指针，那么第一个args参数就必须是一个对象，或是引用，或是指向该对象的指针。下面的样例代码是对最开始的代码的改进：</p>
+<pre><code>void foo(string str)
+{
+    cout &lt;&lt; &quot;Hello C++11 &quot; + str &lt;&lt; endl;
+}
+
+int main()
+{
+    thread thread1(foo,&quot;thread&quot;); // 启动线程foo
+    thread1.join();      // 等待线程执行完成
+
+    return 0;
+}
+
+//输出：Hello C++11 thread
+</code></pre>
+<p>同理，将类成员函数作为线程入口也是可以的——只需要<strong>将this作为第一个参数进行传递</strong>，即可：</p>
+<pre><code>#include &lt;thread&gt;
+#include &lt;iostream&gt;
+
+class Greet
+{
+    const char *owner = &quot;Greet&quot;;
+public:
+    void SayHello(const char *name) {
+        std::cout &lt;&lt; &quot;Hello &quot; &lt;&lt; name &lt;&lt; &quot; from &quot; &lt;&lt; this-&gt;owner &lt;&lt; std::endl;
+    }
+};
+int main() {
+    Greet greet;
+
+    std::thread thread(&amp;Greet::SayHello, &amp;greet, &quot;C++11&quot;);  ////注意在调用非静态类成员函数时，需要加上实例变量。
+    thread.join();
+
+    return 0;
+}
+
+//输出：Hello C++11 from Greet
+</code></pre>
+<p>此外，需要额外注意的是：当调用函数的参数为引用参数时，线程调用需要加上ref关键字表示引用。并且线程函数会改变引用的变量值。</p>
+<pre><code>void Add1(int n)
+{
+    n++;
+    cout &lt;&lt; &quot;n=&quot; &lt;&lt; n &lt;&lt; endl;
+}
+
+void Add2(int &amp;n)
+{
+    n++;
+    cout &lt;&lt; &quot;n=&quot; &lt;&lt; n &lt;&lt; endl;
+}
+
+int main()
+{
+    int n = 0;
+
+    thread t1(Add1, n);
+    t1.join();
+    cout &lt;&lt; &quot;n=&quot; &lt;&lt; n &lt;&lt; endl;
+
+    thread t2(Add2, ref(n));
+    t2.join();
+    cout &lt;&lt; &quot;n=&quot; &lt;&lt; n &lt;&lt; endl;
+
+    return 0;
+}
+/*
+输出：
+n=1
+n=0
+n=1
+n=1
+*/
+</code></pre>
+<h3 id="22-线程管理">2.2 线程管理</h3>
+<h4 id="等待线程完成">等待线程完成</h4>
+<p>一般来说,我们在主线程中开辟出一些子线程来完成我们的任务。正常情况下，需要在主线程的最后调用join()，用于阻塞主线程，避免主线程先于其他子线程执行完毕退出，然后导致整个进程的异常。其中，<strong>join的作用就是等待线程执行完成</strong>。也就是说，join函数返回时，说明子线程执行完成。</p>
+<p><strong>join</strong>：<strong>阻塞当前线程</strong>，直至 *this 所标识的线程完成其执行。*this 所标识的线程的完成同步于从 join() 的成功返回。该方法简单暴力，主线程等待子进程期间什么都不能做。thread::join()会清理子线程相关的内存空间，此后thread object将不再和这个子线程相关了，即thread object不再joinable了，所以join对于一个子线程来说只可以被调用一次，为了实现更精细的线程等待机制，可以使用条件变量等机制。我们不妨参考以下示例：</p>
+<pre><code>void pause_thread(int n)
+{
+    cout&lt;&lt;&quot;No.&quot;&lt;&lt;n&lt;&lt;&quot; starting...&quot;&lt;&lt;endl;
+    this_thread::sleep_for(chrono::seconds(n));
+    cout &lt;&lt; &quot;\t pause of &quot; &lt;&lt; n &lt;&lt; &quot;s ended&quot; &lt;&lt; endl;
+    cout&lt;&lt;&quot;No.&quot;&lt;&lt;n&lt;&lt;&quot; finished&quot;&lt;&lt;endl;
+}
+
+int main()
+{
+    cout &lt;&lt; &quot;Spawning 3 threads...&quot; &lt;&lt; endl;
+    thread t1(pause_thread, 2);
+
+    thread t2(pause_thread, 4);
+
+    thread t3(pause_thread, 6);
+
+    //cout &lt;&lt; &quot;Done spawning threads. Waiting them join...&quot; &lt;&lt; endl;
+
+    t1.join();
+    t2.join();
+    t3.join();
+
+    cout &lt;&lt; &quot;All threads done!&quot; &lt;&lt; endl;
+
+    return 0;
+}
+
+/*
+输出：
+Spawning 3 threads...
+No.2 starting...
+No.4 starting...
+No.6 starting...
+         pause of 2s ended
+No.2 finished
+         pause of 4s ended
+No.4 finished
+         pause of 6s ended
+No.6 finished
+All threads done!
+*/
+</code></pre>
+<h4 id="线程暂停">线程暂停</h4>
+<p>从外部让线程暂停，会引发很多并发问题。这大概也是std::thread并没有直接提供pause函数的原因。但有时线程在运行时，确实需要“停顿”一段时间怎么办呢？可以<strong>使用std::this_thread::sleep_for或std::this_thread::sleep_until</strong>。如下：</p>
+<pre><code>void pause_thread(int n)
+{
+    this_thread::sleep_for(chrono::seconds(n));
+    cout &lt;&lt; &quot;pause of &quot; &lt;&lt; n &lt;&lt; &quot;s ended&quot; &lt;&lt; endl;
+    this_thread::sleep_until(chrono::system_clock::now() + chrono::seconds(n));
+    cout &lt;&lt; &quot;continue&quot; &lt;&lt; endl;
+}
+
+int main()
+{
+    cout &lt;&lt; &quot;Spawning 3 threads...&quot; &lt;&lt; endl;
+    thread th1(pause_thread, 2);
+    thread th2(pause_thread, 4);
+    thread th3(pause_thread, 6);
+
+    cout &lt;&lt; &quot;Done spawning threads. Now waiting for them to join:&quot; &lt;&lt; endl;
+
+    th1.join();
+    th2.join();
+    th3.join();
+
+    cout &lt;&lt; &quot;All threads joined!&quot; &lt;&lt; endl;
+
+    return 0;
+}
+
+/*
+输出：
+Spawning 3 threads...
+Done spawning threads. Now waiting for them to join:
+pause of 2s ended
+continue
+pause of 4s ended
+pause of 6s ended
+continue
+continue
+All threads joined!
+*/
+</code></pre>
+<h4 id="线程拷贝">线程拷贝</h4>
+<pre><code>std::thread a(foo);
+std::thread b;
+b = a;
+</code></pre>
+<p>当执行以上代码时，foo线程最终是由b来管理。std::thread被设计为<strong>只能由一个实例来维护线程状态，以及对线程进行操作</strong>。因此当发生赋值操作时，会发生<strong>线程所有权转移</strong>。赋完值后，原来由a管理的线程改为由b管理，b不再指向任何线程(相当于执行了detach操作)。如果b原本指向了一个线程，那么这个线程会被终止掉。具体示例如下：</p>
+<pre><code>void Add2(int &amp;n)
+{
+    n++;
+    cout &lt;&lt; &quot;n=&quot; &lt;&lt; n &lt;&lt; endl;
+}
+
+int main()
+{
+    int n=0;
+    thread t1(Add2,ref(n));
+
+    thread t2(move(t1));    ////此时t2正在运行Add2()，t1不再是一个线程了。
+    t2.join();
+    
+    return 0;
+}
+</code></pre>
+<h4 id="detach">detach</h4>
+<p>在使用join等待线程完成时，我们可能会想：创建多个线程完成一些任务,不过需要主线程最后等待所有的子线程完毕才能退出,这样不好。所以,detach()应运而生，<strong>希望主线程可以正常的退出, 子线程被挪到后台运行</strong>。<br>
+<strong>detach</strong>：分离线程的对象。即：<strong>将本线程从调用线程中分离出来，允许本线程独立执行。</strong>(但是当主进程结束的时候，即便是detach出去的子线程不管有没有完成都会被强制杀死)。参考以下示例：</p>
+<pre><code>void pause_thread(int n)
+{
+    this_thread::sleep_for(chrono::seconds(n));
+    cout &lt;&lt; &quot;pause of &quot; &lt;&lt; n &lt;&lt; &quot;s ended&quot; &lt;&lt; endl;
+}
+
+int main()
+{
+    cout &lt;&lt; &quot;Spawning 3 threads...&quot; &lt;&lt; endl;
+    thread(pause_thread, 2).detach();
+    thread(pause_thread, 4).detach();
+    thread(pause_thread, 6).detach();
+
+    cout &lt;&lt; &quot;Done spawning threads.&quot; &lt;&lt; endl;
+
+    cout &lt;&lt; &quot;(the main thread will now pause for 5 seconds)\n&quot;;
+    // give the detached threads time to finish (but not guaranteed!):
+    pause_thread(5);
+
+    return 0;
+}
+/*
+输出：
+Spawning 3 threads...
+Done spawning threads.
+(the main thread will now pause for 5 seconds)
+pause of 2s ended
+pause of 4s ended
+pause of 5s ended
+*/
+</code></pre>
+<p>可见：<strong>当主进程结束的时候，即便是detach出去的子线程不管有没有完成都会被强制杀死</strong>（thread(pause_thread, 6).detach();）在主进程结束时并未完成就被强制结束。<br>
+P.s：detach以后就失去了对线程的所有权，不能再调用join了，因为线程已经分离出去了，不再归该实例管了。当任一结束执行，其资源被释放。</p>
+<h4 id="joinable">joinable</h4>
+<p><strong>joinable</strong>：<strong>判断线程是否还有对线程的所有权</strong>，返回true则有，否则为无。也就是说，joiable可以用来判断当前线程是否能够调用join()或者detach()，可以返回true；不可以返回false。即：调用过join就不能在后面调用detach；调用过detach就不能在后面调用join。其常用方式如下：</p>
+<pre><code>//...exa
+thread t1(fun);
+if (t1.joinable() )
+{	
+	//ok to call join/detach
+}
+else
+{
+	//ban
+}
+</code></pre>
+<h4 id="获取线程id">获取线程ID</h4>
+<p>通过get_id()可以获得线程id信息：</p>
+<pre><code>void thread_function(string &amp;s)
+{
+    cout &lt;&lt; &quot;thread function &quot;;
+    cout &lt;&lt; &quot;message is = &quot; &lt;&lt; s &lt;&lt; endl;
+}
+
+int main(){
+    void thread_function(string &amp;s)
+    {
+        cout &lt;&lt; &quot;thread function &quot;;
+        cout &lt;&lt; &quot;message is = &quot; &lt;&lt; s &lt;&lt; endl;
+        s = &quot;CBA&quot;;
+    }
+    return 0;
+}
+
+//输出：
+main thread message = ABC
+Main thread id is: 0x10994fdc0
+Child thread id is: 0x70000fa4f000
+thread function message is = ABC
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：智能指针总结]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-zong-jie/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-zong-jie/">
+        </link>
+        <updated>2020-06-08T10:15:38.000Z</updated>
+        <summary type="html"><![CDATA[<p>指针和内存管理本来就是C++最令人难以理解，也是最头疼的两部分，而智能指针则正好是这两部分的综合。因此，理解起来难免有些吃力。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>指针和内存管理本来就是C++最令人难以理解，也是最头疼的两部分，而智能指针则正好是这两部分的综合。因此，理解起来难免有些吃力。</p>
+<!-- more -->
+<h2 id="1-为什么会引入智能指针">1. 为什么会引入智能指针</h2>
+<p>首先需要明确的是，智能指针并不是C++11新引入的概念，C++98提供了第一个智能指针：<strong>auto_ptr</strong>。那么，为什么需要引入智能指针？概括的来说，是为了防止内存泄露等问题，用一个对象来管理野指针，使得在该对象构造时获得该指针管理权，析构时自动释放(delete)。为了便于理解，可以参考以下代码：</p>
+<pre><code>void remodel(std::string &amp; str)
+{
+    std::string * ps = new std::string(str);
+    ...
+    if (weird_thing())
+        throw exception();
+    str = *ps; 
+    delete ps;
+    return;
+}
+</code></pre>
+<p>当出现异常时（weird_thing()返回true），delete将不被执行，因此将导致内存泄露。如何避免这种问题？有人会说，直接在“throw exception();”之前加上“delete ps;”不就行了。是的，本应如此，问题是很多人都会忘记在适当的地方加上delete语句（连上述代码中最后的那句delete语句也会有很多人忘记吧）！这时我们会想：当remodel这样的函数终止（不管是正常终止，还是由于出现了异常而终止），本地变量都将自动从栈内存中删除——因此指针ps占据的内存将被释放。</p>
+<p>自然地，我们会想到如果ps指向的内存也被自动释放，那该有多好啊。我们知道析构函数有这个功能。如果ps有一个析构函数，该析构函数将在ps过期时自动释放它指向的内存。但ps的问题在于，它只是一个常规指针，不是有析构凼数的类对象指针。<strong>如果它指向的是对象，则可以在对象过期时，让它的析构函数删除指向的内存。这正是 auto_ptr、unique_ptr和shared_ptr这几个智能指针背后的设计思想</strong>。所以智能指针的核心思想就是：将基本类型指针封装为类对象指针（这个类肯定是个模板，以适应不同基本类型的需求），并在析构函数里编写delete语句删除指针指向的内存空间。下图就很形象地展示了普通指针与智能指针的区别：<br>
+<img src="https://mocuishle0.github.io//post-images/1591612494233.png" alt="" loading="lazy"><br>
+所以，对于我们一开始给出的例子，我们可以做如下改进：</p>
+<pre><code># include &lt;memory&gt;      //包含智能指针的头文件
+void remodel (std::string &amp; str)
+{
+    std::auto_ptr&lt;std::string&gt; ps (new std::string(str))；
+    ...
+    if (weird_thing ())
+        throw exception()； 
+    str = *ps； 
+    // delete ps； NO LONGER NEEDED
+    return;
+}
+</code></pre>
+<h2 id="2-c11的智能指针">2. C++11的智能指针</h2>
+<p>正如我们一开始所说，智能指针并不是C++11新提出的概念，早在C++98就出现了第一个智能指针：<strong>auto_ptr</strong>。但我们也注意到，在C++11中，摒弃了原有的auto_ptr指针，而引入了：<strong>shared_ptr,unique_ptr,weak_ptr</strong>三种新的智能指针。</p>
+<h3 id="21-为什么摒弃auto_ptr">2.1 为什么摒弃auto_ptr</h3>
+<p>自然地，我们会思考：为什么摒弃auto_ptr？我们不妨考虑下列代码：</p>
+<pre><code>auto_ptr&lt; string&gt; ps (new string (&quot;I reigned lonely as a cloud.”）;
+auto_ptr&lt;string&gt; vocation; 
+vocaticn = ps;
+</code></pre>
+<p>上述赋值语句将完成什么工作呢？<strong>如果ps和vocation是常规指针，则两个指针将指向同一个string对象。这是不能接受的，因为程序将试图删除同一个对象两次</strong>——一次是ps过期时，另一次是vocation过期时。要避免这种问题，方法有多种：</p>
+<ul>
+<li>建立所有权（ownership）概念。<strong>对于特定的对象，只能有一个智能指针可拥有，这样只有拥有对象的智能指针的构造函数会删除该对象</strong>。然后让赋值操作转让所有权。<strong>这就是用于auto_ptr和uniqiie_ptr 的策略，但unique_ptr的策略更严格</strong>。</li>
+<li>创建智能更高的指针，跟踪引用特定对象的智能指针数。这称为<strong>引用计数</strong>。例如，赋值时，计数将加1，而指针过期时，计数将减1。当减为0时才调用delete。<strong>这是shared_ptr采用的策略</strong>。</li>
+</ul>
+<p>以上两种策略都各有自己用途，而auto_ptr为什么会被摒弃不妨参考以下示例：</p>
+<pre><code>#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;memory&gt;
+using namespace std;
+
+int main() {
+  auto_ptr&lt;string&gt; films[5] =
+ {
+  auto_ptr&lt;string&gt; (new string(&quot;Fowl Balls&quot;)),
+  auto_ptr&lt;string&gt; (new string(&quot;Duck Walks&quot;)),
+  auto_ptr&lt;string&gt; (new string(&quot;Chicken Runs&quot;)),
+  auto_ptr&lt;string&gt; (new string(&quot;Turkey Errors&quot;)),
+  auto_ptr&lt;string&gt; (new string(&quot;Goose Eggs&quot;))
+ };
+ auto_ptr&lt;string&gt; pwin;
+ pwin = films[2]; // films[2] loses ownership. 将所有权从films[2]转让给pwin，此时films[2]不再引用该字符串从而变成空指针
+
+ cout &lt;&lt; &quot;The nominees for best avian baseballl film are\n&quot;;
+ for(int i = 0; i &lt; 5; ++i)
+  cout &lt;&lt; *films[i] &lt;&lt; endl;
+ cout &lt;&lt; &quot;The winner is &quot; &lt;&lt; *pwin &lt;&lt; endl;
+ cin.get();
+
+ return 0;
+}
+</code></pre>
+<p><strong>运行时发现程序崩溃（Segmentation fault: 11）</strong>，原因在上面注释已经说的很清楚，films[2]已经是空指针了，下面输出访问空指针当然会崩溃了。</p>
+<p>这里如果把auto_ptr换成shared_ptr，程序就不会崩溃。这是由于：<strong>使用shared_ptr时运行正常</strong>，因为shared_ptr采用引用计数，pwin和films[2]都指向同一块内存，在释放空间时因为事先要判断引用计数值的大小因此不会出现多次删除一个对象的错误。</p>
+<p>这里如果把auto_ptr换成unique_ptr，<strong>程序会在编译时出错</strong>，与auto_ptr一样，unique_ptr也采用所有权模型，但在使用unique_ptr时，程序不会等到运行阶段崩溃，而在编译器因下述代码行出现错误，从而指导程序员发现潜在的内存错误。</p>
+<p>因此，我们不难看出，unique_ptr比auto_ptr更加安全。</p>
+<h3 id="22-c11智能指针">2.2 C++11智能指针</h3>
+<ul>
+<li><strong>shared_ptr</strong>，基于<strong>引用计数的智能指针</strong>，会统计当前有多少个对象同时拥有该内部指针；当引用计数降为0时，自动释放；</li>
+<li><strong>weak_ptr</strong>，基于引用计数的智能指针（shared_ptr）在面对循环引用的问题将无能为力，因此C++11还引入weak_ptr与之配套使用，<strong>weak_ptr只引用，不计数</strong>；</li>
+<li><strong>unique_ptr</strong>: 遵循<strong>独占语义的智能指针</strong>，在任何时间点，资源智能唯一地被一个unique_ptr所占有，当其离开作用域时自动析构。<strong>资源所有权的转移只能通过std::move()而不能通过赋值</strong>。</li>
+</ul>
+<p>其实，相较于shared_ptr与unique_ptr而言，weak_ptr的作用显得较为模糊。参照知乎上各位大神的理解来看，<strong>weak_ptr和shared_ptr的最大区别在于weak_ptr在指向一个对象的时候不会增加其引用计数</strong>。因此<strong>可以用weak_ptr去指向一个对象并且在weak_ptr仍然指向这个对象的时候析构它</strong>，此时你再访问weak_ptr的时候，weak_ptr其实返回的会是一个空的shared_ptr。<br>
+为什么要采取weak_ptr来解决刚才所述的环状引用的问题呢？需要注意的是环状引用的本质矛盾是不能通过任何程序设计语言的方式来打破的，为了解决环状引用，第一步首先得打破环，也就是得告诉C++，这个环上哪一个引用是最弱的，是可以被打破的，因此在一个环上只要把原来的某一个shared_ptr改成weak_ptr，实质上这个环就可以被打破了，原有的环状引用带来的无法析构的问题也就随之得到了解决。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：智能指针——weak_ptr]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-weak_ptr/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-weak_ptr/">
+        </link>
+        <updated>2020-06-08T08:37:53.000Z</updated>
+        <summary type="html"><![CDATA[<p>weak_ptr看起来更像shared_ptr的附属品，它从shared_ptr衍生，但不会控制所指向对象的生命周期。weak_ptr的弱就弱在这里。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>weak_ptr看起来更像shared_ptr的附属品，它从shared_ptr衍生，但不会控制所指向对象的生命周期。weak_ptr的弱就弱在这里。</p>
+<!-- more -->
+<h2 id="1-初始化">1. 初始化</h2>
+<p>一共有三种形式，都非常简单，直接看代码：</p>
+<pre><code>shared_ptr&lt;MyString&gt; shpr = make_shared&lt;MyString&gt;(&quot;Hello shared_ptr&quot;);
+cout &lt;&lt; &quot;shpr.get = &quot; &lt;&lt; shpr.get() &lt;&lt; endl;
+cout &lt;&lt; &quot;shpr.use_count = &quot; &lt;&lt; shpr.use_count() &lt;&lt; endl;
+
+//空weak_ptr
+weak_ptr&lt;MyString&gt; wp1;
+cout &lt;&lt; &quot;wp1.use_count = &quot; &lt;&lt; wp1.use_count() &lt;&lt; endl;
+
+//从shared_ptr构造weak_ptr
+weak_ptr&lt;MyString&gt; wp2(shpr);
+cout &lt;&lt; &quot;wp2.use_count = &quot; &lt;&lt; wp2.use_count() &lt;&lt; endl;
+
+//从其他weak_ptr构造weak_ptr
+weak_ptr&lt;MyString&gt; wp3(wp2);
+cout &lt;&lt; &quot;wp3.use_count = &quot; &lt;&lt; wp3.use_count() &lt;&lt; endl;
+
+/*
+输出：
+Constructed (Hello shared_ptr)!
+shpr.get = 0x7fc419504098
+shpr.use_count = 1
+wp1.use_count = 0
+wp2.use_count = 1
+wp3.use_count = 1
+Destructed (Hello shared_ptr)!
+*/
+</code></pre>
+<p>虽然根据shared_ptr构造了两个weak_ptr，引用计数仍然为1。</p>
+<h2 id="2-赋值">2. 赋值</h2>
+<p>相应地，赋值操作同样简单：</p>
+<pre><code>shared_ptr&lt;MyString&gt; shpr = make_shared&lt;MyString&gt;(&quot;Hello shared_ptr&quot;);
+cout &lt;&lt; &quot;shpr.get = &quot; &lt;&lt; shpr.get() &lt;&lt; endl;
+cout &lt;&lt; &quot;shpr.use_count = &quot; &lt;&lt; shpr.use_count() &lt;&lt; endl;
+
+weak_ptr&lt;MyString&gt; wp4;
+weak_ptr&lt;MyString&gt; wp5;
+
+wp4=shpr;
+cout &lt;&lt; &quot;wp4.use_count = &quot; &lt;&lt; wp4.use_count() &lt;&lt; endl;
+
+wp5=wp4;
+cout &lt;&lt; &quot;wp5.use_count = &quot; &lt;&lt; wp5.use_count() &lt;&lt; endl;
+
+cout &lt;&lt; &quot;shpr.get = &quot; &lt;&lt; shpr.get() &lt;&lt; endl;
+cout &lt;&lt; &quot;shpr.use_count = &quot; &lt;&lt; shpr.use_count() &lt;&lt; endl;
+
+输出：
+Constructed (Hello shared_ptr)!
+shpr.get = 0x7f8dcee059b8
+shpr.use_count = 1
+wp4.use_count = 1
+wp5.use_count = 1
+shpr.get = 0x7f8dcee059b8
+shpr.use_count = 1
+Destructed (Hello shared_ptr)!
+*/
+</code></pre>
+<h2 id="3-使用">3. 使用</h2>
+<p>C++11标准库没有提供通过weak_ptr直接访问对象的方法，而是调用weak_ptr的lock方法生成一个shared_ptr，再通过shared_ptr访问对象：<br>
+<img src="https://mocuishle0.github.io//post-images/1591609352184.png" alt="" loading="lazy"><br>
+上述示例输出为“127”，也就是说weak_ptr提供了一种按需锁定对象的手段。</p>
+<p>其实，关于weak_ptr与shared_ptr之间的关系可参考：<a href="https://blog.csdn.net/craftsman1970/article/details/80889084">shared_ptr/weak_ptr示例</a></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：智能指针——unique_ptr]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-unique_ptr/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-unique_ptr/">
+        </link>
+        <updated>2020-06-08T03:18:09.000Z</updated>
+        <summary type="html"><![CDATA[<p>在C++11引入的新智能指针中，shared_ptr指针通过其计数机制实现与其他指针共享内存。此外，在C++11中还存在一个与之相应的智能指针——unique_prt：它同样可以自动管理内存，只是这块内存不和其他的unique_ptr分享。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>在C++11引入的新智能指针中，shared_ptr指针通过其计数机制实现与其他指针共享内存。此外，在C++11中还存在一个与之相应的智能指针——unique_prt：它同样可以自动管理内存，只是这块内存不和其他的unique_ptr分享。</p>
+<!-- more -->
+<h2 id="1-unique_ptr指针的初始化-赋值">1. unique_ptr指针的初始化 &amp; 赋值</h2>
+<p>有了shared_ptr的基础，我们首先介绍unique_ptr指针的初始化、赋值:</p>
+<h3 id="11-初始化">1.1 初始化</h3>
+<p>如果观察unique_ptr的构造函数声明会发现，unique_ptr支持的构造函数和shared_ptr相差无几，这里直接举例：<br>
+1）<strong>初始化为空指针</strong>：<br>
+<img src="https://mocuishle0.github.io//post-images/1591602846333.png" alt="" loading="lazy"><br>
+2）<strong>从指针创建</strong>：<br>
+<img src="https://mocuishle0.github.io//post-images/1591602869282.png" alt="" loading="lazy"><br>
+3）<strong>从右值引用创建</strong>：<br>
+<img src="https://mocuishle0.github.io//post-images/1591602892061.png" alt="" loading="lazy"><br>
+从输出结果可见，内存从p3转到了p4:<br>
+<img src="https://mocuishle0.github.io//post-images/1591603039945.png" alt="" loading="lazy"></p>
+<h3 id="12-赋值">1.2 赋值</h3>
+<p>需要强调的是，由于unique_ptr对于内存的独占特性，<strong>unique_ptr不支持直接的赋值操作，而只能支持右值引用的赋值</strong>，基本形式如下：</p>
+<pre><code>unique_ptr&lt;MyString&gt; p1(new MyString(&quot;hello unique ptr&quot;));
+cout &lt;&lt; &quot;p1.get = &quot; &lt;&lt; p1.get() &lt;&lt; endl;
+
+unique_ptr&lt;MyString&gt; p2;
+cout &lt;&lt; &quot;p2.get = &quot; &lt;&lt; p2.get() &lt;&lt; endl;
+
+p2 = move(p1);
+cout &lt;&lt; &quot;p1.get = &quot; &lt;&lt; p1.get() &lt;&lt; endl;
+cout &lt;&lt; &quot;p2.get = &quot; &lt;&lt; p2.get() &lt;&lt; endl;
+
+/*
+输出：
+Constructed (hello unique ptr)!
+p1.get = 0x7f8381c05a00
+p2.get = 0x0
+p1.get = 0x0
+p2.get = 0x7f8381c05a00
+Destructed (hello unique ptr)!
+*/
+</code></pre>
+<p>需要说明的是，上述代码其实并没有什么实际意义，仅是为了说明unique_ptr采用了所有权独占机制。在真正的项目中，unique_ptr最常见的用法如下：</p>
+<pre><code>unique_ptr&lt;MyString&gt; GetUnique(string ms)
+{
+    unique_ptr&lt;MyString&gt; tmp(new MyString(ms));
+    cout &lt;&lt; tmp.get() &lt;&lt; endl;
+    return tmp;
+}
+
+int main(){
+    unique_ptr&lt;MyString&gt; p1;
+    p1 = GetUnique(&quot;hello unique_ptr&quot;);
+
+    p1-&gt;Output();
+    cout &lt;&lt; p1.get() &lt;&lt; endl;
+    return 0;
+} 
+
+/*
+输出：
+Constructed (hello unique_ptr)!
+0x7fde05405a00
+hello unique_ptr
+0x7fde05405a00
+Destructed (hello unique_ptr)!
+*/
+</code></pre>
+<p>GetUnique()返回一个临时unique_ptr，然后p1接管了原本归返回的unique_ptr所有的对象，而返回时临时的 unique_ptr 被销毁，也就是说没有机会使用unique_ptr 来访问无效的数据，换句话来说，这种赋值是不会出现任何问题的，即没有理由禁止这种赋值。实际上，编译器确实允许这种赋值，这正是unique_ptr更聪明的地方。</p>
+<p><strong>总之，党程序试图将一个 unique_ptr 赋值给另一个时，如果源 unique_ptr 是个临时右值，编译器允许这么做；如果源 unique_ptr 将存在一段时间，编译器将禁止这么做，比如：</strong></p>
+<pre><code>unique_ptr&lt;string&gt; pu1(new string (&quot;hello world&quot;));
+unique_ptr&lt;string&gt; pu2;
+pu2 = pu1;                                      //#1 not allowed---编译器报错
+unique_ptr&lt;string&gt; pu3;
+pu3 = unique_ptr&lt;string&gt;(new string (&quot;You&quot;));   //#2 allowed
+</code></pre>
+<p>其中#1留下悬挂的unique_ptr(pu1)，这可能导致危害。而#2不会留下悬挂的unique_ptr，因为它调用 unique_ptr 的构造函数，该构造函数创建的临时对象在其所有权让给 pu3 后就会被销毁。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：智能指针——shared_ptr]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-shared_ptr/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-shared_ptr/">
+        </link>
+        <updated>2020-06-08T01:19:16.000Z</updated>
+        <summary type="html"><![CDATA[<p><strong>shared_ptr</strong>在内部维护一个相当于<strong>引用计数的机制</strong>，允许多个指针同时指向一个对象。某个指针被销毁之后，引用计数同时较少，当所有指针都被销毁之后，自动释放管理的对象。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p><strong>shared_ptr</strong>在内部维护一个相当于<strong>引用计数的机制</strong>，允许多个指针同时指向一个对象。某个指针被销毁之后，引用计数同时较少，当所有指针都被销毁之后，自动释放管理的对象。</p>
+<!-- more -->
+<p>本文主要内容仍然参照：<a href="https://blog.csdn.net/craftsman1970/article/details/80752044">参考文献</a></p>
+<p>首先，我们需要知道：智能指针的出现是为了便于程序员<strong>对内存进行管理而引入的</strong>。为了解决这个问题，C++11标准库引入了三种智能指针，动作类似于常规指针，同时具备在合适的时机自动释放内存的功能（防止内存泄漏）。其次，我们应该理解：智能指针背后的设计思想，其实是将基本类型指针封装为类对象指针（这个类肯定是个模板，以适应不同基本类型的需求），并在析构函数里编写delete语句删除指针指向的内存空间。</p>
+<p>本文先主要介绍智能指针之一——shared_ptr，<strong>一种采用引用计数机制的智能指针</strong>：</p>
+<h2 id="1-预备工作">1. 预备工作</h2>
+<p>为了更好地展示智能指针shared_ptr的用法及作用，我们首先构造一个类：</p>
+<pre><code>class MyString
+{
+private:
+    string text;
+
+public:
+    MyString(string str) : text(str)
+    {
+        cout &lt;&lt; &quot;Constructed (&quot; &lt;&lt; str &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
+    }
+    ~MyString()
+    {
+        cout &lt;&lt; &quot;Destructed (&quot; &lt;&lt; text &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
+    }
+
+    void Output()
+    {
+        cout &lt;&lt; text &lt;&lt; endl;
+    }
+};
+</code></pre>
+<p>每当这个类的对象被创建和销毁的时候，可以相应的输出Constructed和Destructed字符串，这样我们可以清晰地观察为1变量分配内存和释放内存的时间。</p>
+<h2 id="2-shared_ptr的声明-初始化-赋值">2. shared_ptr的声明、初始化、赋值</h2>
+<p>首先，我们给出一个简单的实例。由于<strong>shared_ptr是一个模版类，在声明时必须声明指向对象的类型：</strong></p>
+<pre><code>shared_ptr&lt;MyString&gt; p1;                //定义了一个空的shared_ptr，未初始化
+
+shared_ptr&lt;MyString&gt; p2=make_shared&lt;MyString&gt;(&quot;Hello ptr -&gt;&quot;);  //初始化，最安全的方式是使用make_shared标准库函数
+p1 = p2;                        //赋值
+</code></pre>
+<p>之所以说make_shared这种方式安全，是因为make_shared虽然也生成了MyString对象，并将这个对象直接装配到shared_ptr上。</p>
+<p>需要强调的是，<strong>shared_prt的本身是一个类，所以它的初始化实际上就是调用shared_ptr类的构造函数</strong>。通过分析shared_ptr的源码，我们可以发现以下构造函数：<br>
+1）<strong>default构造函数</strong>：</p>
+<pre><code>_LIBCPP_CONSTEXPR shared_ptr() _NOEXCEPT;
+//default构造函数：e.g: shared_ptr&lt;int&gt; p;  ———— 声明空shared_ptr
+</code></pre>
+<p>2）<strong>空指针构造</strong>：</p>
+<pre><code>_LIBCPP_CONSTEXPR shared_ptr(nullptr_t) _NOEXCEPT;
+//由空指针构造：e.g: shared_ptr&lt;int&gt; p(nullptr); ———— 通过空指针构造shared_ptr
+</code></pre>
+<p>3）<strong>根据已有指针构造shared_ptr</strong>：</p>
+<pre><code>explicit shared_ptr (U* p);
+//根据已有指针构造shared_ptr：
+//shared_ptr&lt;string&gt; p1(new string(&quot;First&quot;));    ———— 对象创建后直接构造shared_ptr
+
+//string *s=new string(&quot;Second&quot;);
+//shared_ptr&lt;string&gt;  p2(s);              ———— 对象创建后先临时保存，再构造shared_ptr
+</code></pre>
+<p>根据已有指针构造shared_ptr的两种方式都合法，但是在第二种情况中应该理解，一旦构造了share_ptr，就表明<strong>s指向的string对象的内存管理已经交给ps1管理而不应该在通过s访问了</strong>（至少是非常小心的访问）。所以，第二种方式应该尽量避免。</p>
+<p>4）<strong>拷贝构造</strong>：</p>
+<pre><code>shared_ptr(const shared_ptr&amp; __r) _NOEXCEPT;
+//拷贝构造：
+//shared_ptr&lt;string&gt; ps1(new strinng(&quot;Test&quot;)); ———— ps1.use_count()=1;
+//shared_ptr&lt;string&gt; ps2(ps1);  ———— ps1.use_count() = ps2.use_count()=2;  ps1.get()=ps2.get();
+</code></pre>
+<p>拷贝构造函数执行以后，引用计数增加，两个指针指向同一个对象。</p>
+<p>5）<strong>移动构造</strong>：</p>
+<pre><code>shared_ptr(shared_ptr&amp;&amp; __r) _NOEXCEPT;
+//移动构造：由一个已有的shared_ptr创建新的share_ptr。作为参数的shared_pt同时会释放对内存的管理权利，整个构造过程结束后，引用计数不变。
+//shared_ptr&lt;string&gt; ps1(new strinng(&quot;Test&quot;)); ———— ps1.use_count()=1;
+//shared_ptr&lt;string&gt; ps2(move(ps1));  ———— ps1.use_count()=0; ps2.use_count()=1; ps1.get()=0; ps2.get()=****
+</code></pre>
+<p>移动构造中，作为参数的shared_pt同时会释放对内存的管理权利，整个构造过程结束后，引用计数不变。</p>
+<p>此外，对于赋值操作，也有以下几种方式：<br>
+1）<strong>拷贝赋值</strong>：从已有指针赋值给shared_ptr，共享数据管理权。（类似于拷贝构造）</p>
+<pre><code>shared_ptr&amp; operator= (const shared_ptr&amp; x) noexcept;
+</code></pre>
+<p><img src="https://mocuishle0.github.io//post-images/1591583984679.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1591584046154.png" alt="" loading="lazy"></p>
+<p>2）<strong>移动赋值</strong>：从已有指针赋值给shared_ptr，伴随数据管理权的转移。移动赋值和拷贝赋值的区别在于参数是否为右值引用。</p>
+<pre><code>shared_ptr&amp; operator= (shared_ptr&amp;&amp; x) noexcept;
+</code></pre>
+<p><img src="https://mocuishle0.github.io//post-images/1591584194099.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1591584203480.png" alt="" loading="lazy"><br>
+需要注意的是：make_shared也属于移动赋值。<br>
+<img src="https://mocuishle0.github.io//post-images/1591584275145.png" alt="" loading="lazy"></p>
+<h2 id="3-shared_ptr的使用">3. shared_ptr的使用</h2>
+<p>可以像普通指针一样使用shared_ptr:</p>
+<pre><code>p1-&gt;Output();
+p2-&gt;Output();
+</code></pre>
+<p>示例代码：</p>
+<pre><code>#include &lt;iostream&gt;
+#include &lt;memory&gt;
+#include &lt;string&gt;
+
+using namespace std;
+
+class MyString
+{
+private:
+    string text;
+
+public:
+    MyString(string str) : text(str)
+    {
+        cout &lt;&lt; &quot;Constructed (&quot; &lt;&lt; str &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
+    }
+    ~MyString()
+    {
+        cout &lt;&lt; &quot;Destructed (&quot; &lt;&lt; text &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
+    }
+
+    void Output()
+    {
+        cout &lt;&lt; text &lt;&lt; endl;
+    }
+};
+
+int main()
+{
+    MyString mystring(&quot;Hello world :-)&quot;);
+    mystring.Output();
+
+    shared_ptr&lt;MyString&gt; p1;
+    //p1-&gt;Output();
+
+    shared_ptr&lt;MyString&gt; p2=make_shared&lt;MyString&gt;(&quot;Hello ptr -&gt;&quot;);
+    //p2-&gt;Output();
+
+    p1=p2;
+
+    p1-&gt;Output();
+    p2-&gt;Output();
+
+    return 0;
+}
+
+/*输出
+Constructed (Hello world :-))!
+Hello world :-)
+Constructed (Hello ptr -&gt;)!
+Hello ptr -&gt;
+Hello ptr -&gt;
+Destructed (Hello ptr -&gt;)!
+Destructed (Hello world :-))!
+*/
+</code></pre>
+<p>不难发现，代码中没有使用new和delete，但是仍然可以像指针一样使用shared_ptr，而且不需要担心内存泄漏。</p>
+<h2 id="4-小结">4. 小结</h2>
+<p>shared_ptr的核心思想正如其名称一样——共享，即采用计数机制。为了更好的演示其计数机制，引用知乎上的一个例子：</p>
+<pre><code>int main(){
+    //局部作用域
+    {
+        shared_ptr&lt;string&gt; p1(new string(&quot;hello world&quot;));
+        //引用计数=1，即只有一个指针p1引用这块string内存
+
+        {
+            shared_ptr&lt;string&gt; p2=p1;
+            //引用计数=2，此时有p1、p2两个指针1可以访问这块内存
+        }
+        //引用计数=1，超出p2指针作用域，仅p1可访问
+    }
+    //引用计数=0，超出p1作用域，没有指针可以访问，资源被释放。
+    return 0;
+}
+</code></pre>
+<p>具体可参考以下代码：</p>
+<pre><code>#include &lt;iostream&gt;
+#include &lt;memory&gt;
+#include &lt;string&gt;
+
+using namespace std;
+
+class MyString
+{
+private:
+    string text;
+
+public:
+    MyString(string str) : text(str)
+    {
+        cout &lt;&lt; &quot;Constructed (&quot; &lt;&lt; str &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
+    }
+    ~MyString()
+    {
+        cout &lt;&lt; &quot;Destructed (&quot; &lt;&lt; text &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
+    }
+
+    void Output()
+    {
+        cout &lt;&lt; text &lt;&lt; endl;
+    }
+};
+
+int main()
+{
+    int flag1=6,flag2=15;
+
+    if (flag1&gt;5)
+    {
+        shared_ptr&lt;MyString&gt; p1=make_shared&lt;MyString&gt;(&quot;Hello&quot;);
+        cout&lt;&lt;&quot;p1.use_count = &quot;&lt;&lt;p1.use_count()&lt;&lt;endl;
+        cout&lt;&lt;&quot;p1.get = &quot;&lt;&lt;p1.get()&lt;&lt;endl;
+
+        cout&lt;&lt;&quot;==========&quot;&lt;&lt;endl;
+        if (flag2&gt;10)
+        {
+            shared_ptr&lt;MyString&gt; p2=p1;
+
+            cout&lt;&lt;&quot;p1.use_count = &quot;&lt;&lt;p1.use_count()&lt;&lt;endl;
+            cout&lt;&lt;&quot;p2.use_count = &quot;&lt;&lt;p2.use_count()&lt;&lt;endl;
+
+            cout&lt;&lt;&quot;p1.get = &quot;&lt;&lt;p1.get()&lt;&lt;endl;
+            cout&lt;&lt;&quot;p2.get = &quot;&lt;&lt;p2.get()&lt;&lt;endl;
+        }
+        cout&lt;&lt;&quot;==========&quot;&lt;&lt;endl;
+        cout&lt;&lt;&quot;p1.use_count = &quot;&lt;&lt;p1.use_count()&lt;&lt;endl;
+        cout&lt;&lt;&quot;p1.get = &quot;&lt;&lt;p1.get()&lt;&lt;endl;
+        
+    }
+    
+
+    return 0;
+}
+
+/*
+输出：
+Constructed (Hello)!
+p1.use_count = 1
+p1.get = 0x7f948cc05a18
+==========
+p1.use_count = 2
+p2.use_count = 2
+p1.get = 0x7f948cc05a18
+p2.get = 0x7f948cc05a18
+==========
+p1.use_count = 1
+p1.get = 0x7f948cc05a18
+Destructed (Hello)!
+*/
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[C++11 新特征：Lambda表达式（续）]]></title>
         <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-lambda-biao-da-shi-xu/</id>
@@ -360,498 +1167,6 @@ rlist.push_front(Rect(10, 10, 20, 20));
 rlist.emplace_front(10, 10, 20, 20);
 </code></pre>
 <p>用法非常简单，只要保证参数和元素构造函数的参数相同即可。除了emplace_front以外，C++11还提供了emplace和emplace_bak方法，分别对应insert和push_back方法。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[C++11 新特征：右值引用 与 移动语义]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-you-zhi-yin-yong-yu-yi-dong-yu-yi/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-you-zhi-yin-yong-yu-yi-dong-yu-yi/">
-        </link>
-        <updated>2020-06-06T00:59:33.000Z</updated>
-        <summary type="html"><![CDATA[<p>一个新接触到的概念——左值、右值。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>一个新接触到的概念——左值、右值。</p>
-<!-- more -->
-<p>实话实说，关于左值、右值的概念也是这次整理时才第一次接触到。所以就根据看到的相关资料做一个归纳。</p>
-<h2 id="1-左值-右值">1. 左值 &amp; 右值</h2>
-<p>在C++表达式的特性中有一个左值和右值的概念。如果一个表达式可以放在<strong>赋值语句</strong>的左侧，就称之为左值，如果不能放到表达式的左侧，就称之为右值。通俗的来讲，<strong>左值（lvalue）是一个表达式，它表示一个可被标识的（变量或对象的）内存位置，并且允许使用&amp;操作符来获取这块内存的地址</strong>。如果一个表达式不是左值，那它就被定义为右值。</p>
-<pre><code>//赋值操作需要左操作数是一个左值。var 是一个有内存位置的对象，因此它是左值.
-int var;
-var = 4;
-
-4 = var;       // 错误！
-(var + 1) = 4; // 错误！
-</code></pre>
-<p>在上面的例子中，常量 4 和表达式 var + 1 都不是左值（也就是说，它们是右值），因为它们都是表达式的临时结果，而没有可识别的内存位置（也就是说，只存在于计算过程中的每个临时寄存器中）。因此，赋值给它们是没有任何语义上的意义的——我们赋值到了一个不存在的位置。</p>
-<p>不同的运算符对运算对象的要求各不相同，例如：</p>
-<ul>
-<li>赋值运算符的左侧要求是左值，得到的结果还是左值，因此我们可以继续对它赋值；</li>
-<li>取地址符作用于左值运算对象，返回对象的指针为右值，因此取地址运算表达式只能位于赋值语句的右侧。</li>
-</ul>
-<h2 id="2-右值引用">2. 右值引用</h2>
-<p>在介绍C++11 新引入的右值引用概念之前，我们先介绍一下一般的引用类型。需要注意的是，只有左值可以付给引用，如：</p>
-<pre><code>int&amp; ref = 9;   //编译错误
-</code></pre>
-<p>我们只能这样做：</p>
-<pre><code>    int l=9;
-    int &amp;r=l;
-    cout&lt;&lt;l&lt;&lt;&quot; &quot;&lt;&lt;r&lt;&lt;endl;      //9 9
-
-    r++;
-    cout&lt;&lt;l&lt;&lt;&quot; &quot;&lt;&lt;r&lt;&lt;endl;      //10 10
-</code></pre>
-<p>没有问题，l是左值，所以可以将引用类型的r绑定到l上，今后对r的操作就等同于对l的操作。</p>
-<p>C++11引入了右值引用的概念，<strong>使得我们把引用与右值进行绑定。使用两个“取地址符号”</strong>：</p>
-<pre><code>int&amp;&amp; rvalue_ref = 99;
-</code></pre>
-<p>下面的例子更有助于理解：</p>
-<pre><code>#include &lt;iostream&gt;
-
-void f(int&amp; i) { std::cout &lt;&lt; &quot;lvalue ref: &quot; &lt;&lt; i &lt;&lt; &quot;\n&quot;; }
-void f(int&amp;&amp; i) { std::cout &lt;&lt; &quot;rvalue ref: &quot; &lt;&lt; i &lt;&lt; &quot;\n&quot;; }
-
-int main()
-{
-    int i = 77;
-    f(i);    // lvalue ref called
-    f(99);   // rvalue ref called
-
-    f(std::move(i));  
-    
-    /*std::move，这是标准库中提供的方法，它可以将左值显式转换为右值引用类型，从而告诉编译器，可以像右值（临时变量）一样处理它。同时也意味着接下来除了对i赋值或销毁以外，不再使用它。*/
-
-    return 0;
-}
-/*
-    输出：
-        lvalue ref: 77
-        rvalue ref: 99
-        lvalue ref: 77
-*/
-</code></pre>
-<p>还存在更为隐晦的右值，如下例：</p>
-<pre><code>#include &lt;iostream&gt;
-
-int getValue ()     //getValue()是一个右值
-{
-    int ii = 10;
-    return ii;
-}
-
-int main()
-{
-    const int&amp; val = getValue(); // OK
-    int&amp; val = getValue(); // NOT OK
-
-    const int&amp;&amp; val = getValue(); // OK
-    int&amp;&amp; val = getValue(); //  OK
-    return 0;
-}
-
-</code></pre>
-<p>因此，对比以下代码，我们可以发现：</p>
-<pre><code>void printReference (const int&amp; value)  //可以接受参数为左值，也可以接受右值。 
-{
-        cout &lt;&lt; value;
-}
-
-void printReference (int&amp;&amp; value)   //只能接受右值引用作为参数。
-{
-        cout &lt;&lt; value;
-}
-</code></pre>
-<h2 id="3-移动语义">3. 移动语义</h2>
-<p>了解了右值引用的基本概念后，其实我也很纠结：C++11引入这样一个令人头大的特征到底有什么用？在<a href="https://blog.csdn.net/craftsman1970/article/details/80397276">参考文献</a>中作者的解释其实是挺容易让我理解的：</p>
-<h3 id="31-实例演示">3.1 实例演示</h3>
-<p>在C++语言中，引用是作为一种高效，安全的传递数据的方式而存在的。除了一般的引用类型，还可以声明const引用。例如，我们有以下一个Image类：</p>
-<pre><code>class Image
-{
-    private:
-       int width = 0;
-       int height = 0;
-       char *data = nullptr;
-public:
-
-   Image(int w, int h): width(w), height(h){
-       data = new char[getSize()];
-    }
-
-   int getSize(){
-       return width * height;
-    }
-
-   virtual ~Image(){
-        if (data != nullptr){
-            delete data;
-            data = nullptr;
-            width = 0;
-            height = 0;        
-        }  
-    }
-}
-</code></pre>
-<p>上面只是这个类的雏形，只有构造函数，析构函数和取得数据大小的功能。接下来添加比较两个Image是否相同的函数。最简单的形式大致如下。</p>
-<pre><code>bool isSame(Image&amp; img)
-{
-    if(width == img.width
-      &amp;&amp; height == img.height){
-        return (memcmp(data,img.data,getSize())==0);
-    }
-    else{
-        return false;
-    }
-}
-</code></pre>
-<p>这里使用引用类型的参数，避免了没有必要的拷贝动作。当然我们还可以做得更好：<strong>由于比较函数没有必要也不应该对比较对象的内容进行修改，所以还可用下面的形式进行承诺</strong>：</p>
-<pre><code>bool isSame(const Image&amp; img)
-{
-    if(width == img.width
-      &amp;&amp; height == img.height){
-        char* in = static_cast&lt;char*&gt;(img.data);
-        return (memcmp(data,in,getSize())==0);
-    }
-    else{
-        return false;
-    }
-}
-</code></pre>
-<p>这里，<strong>通过在参数前面增加const修饰符，向isSame方法的调用者保证，不会修改img的内容</strong>。</p>
-<hr>
-<p>到此为止都是我们所熟悉的内容。然而，如果我们希望继续添加将一个Image的一部分merge到另一个Image上的方法，函数的内容大致如下(这里忽略处理的细节)：</p>
-<pre><code>void merge(Image&amp; img){
-    //接管img中的数据。
-    img.height = 0;
-    img.width = 0;
-    img.data = nullptr;
-}
-</code></pre>
-<p>类似的操作在处理在输入对象时一般有两种处理方式。有时希望只是参照而不破坏输入数据，这时可以使用前面讲到的为参数增加const修饰符的方式来承诺；有时为了提高效率或者其他的原因希望可以<strong>接管输入的数据，就像上面代码的状态</strong>。这时的行为更像是数据移动。对于第二种方式，如果仅仅定义一般的引用类型，<strong>利用者根本没有办法通过方法声明来确定这个操作是否会接管参数中的数据。这种不确定性会造成很大的麻烦</strong>。解决这个问题的方法就是利用右值引用：</p>
-<pre><code>void merge(Image&amp;&amp; img){
-    //接管img中的数据。
-    img.height = 0;
-    img.width = 0;
-    img.data = nullptr;
-}
-</code></pre>
-<p>我们将参数声明为右值引用，要求像一个临时变量一样任性地使用数据。使用这个函数的方法如下：</p>
-<pre><code>Image img1(100, 100);
-Image img2(100, 200);
-img1.merge(std::move(img2));
-</code></pre>
-<p>注意代码中的std::move，这是标准库中提供的方法，它可以将左值显式转换为右值引用类型，从而告诉编译器，可以像右值（临时变量）一样处理它。同时也意味着接下来除了对img2赋值或销毁以外，不再使用它。C++11通过使用右值引用提供了一种接管数据的标准方法。</p>
-<h3 id="32-移动语义的功能">3.2 移动语义的功能</h3>
-<p>当一个函数的参数<strong>按值传递</strong>时，这就会进行<strong>拷贝</strong>。当然，编译器懂得如何去拷贝。 而对于我们自定义的类型，我们也许需要提供拷贝构造函数。但是不得不说，拷贝的代价是昂贵的。所以我们需要寻找一个避免不必要拷贝的方法，即C++11提供的移动语义。</p>
-<p>实际上，我们在第2部分介绍的右值引用，其主要目的是用于<strong>创建移动构造函数</strong>和<strong>移动赋值运算</strong>。</p>
-<p>移动构造函数类似于拷贝构造函数，把类的实例对象作为参数，并创建一个新的实例对象。但是，移动构造函数可以避免内存的重新分配，因为我们知道右值引用提供了一个暂时的对象，而不是进行copy，所以我们可以进行移动。换言之，<strong>在涉及到关于临时对象时，右值引用和移动语义允许我们避免不必要的拷贝</strong>。我们不想拷贝将要消失的临时对象，所以这个临时对象的资源可以被我们用作于其他的对象。<strong>右值就是典型的临时变量，并且他们可以被修改。如果我们知道一个函数的参数是一个右值，我们可以把它当做一个临时存储。这就意味着我们要移动而不是拷贝右值参数的内容</strong>。这就会节省很多的空间。</p>
-<p>更详细的解释可参考：<a href="https://www.kancloud.cn/wangshubo1989/new-characteristics/99718">文献</a></p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[C++11 新特征：array容器]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-array-rong-qi/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-array-rong-qi/">
-        </link>
-        <updated>2020-06-06T00:29:41.000Z</updated>
-        <summary type="html"><![CDATA[<p>STL容器的新成员，更高效的数组。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>STL容器的新成员，更高效的数组。</p>
-<!-- more -->
-<p>就我个人而言，原生内置数组时常感觉用起来并不十分顺手。一是大小没有管理，二是越界操作没有检查。虽然C/C++也提供了一些解决办法，但总是不够完美。例如下面的代码：</p>
-<pre><code>int ary[5];
-memset(ary, 0, sizeof(ary));
-unsigned int i = 0;
-while(i&lt;sizeof(ary)/sizeof(ary[0])){
-    ary[i] = i;
-    i++;
-}
-</code></pre>
-<p>C++11后，标准库引入了更现代化的数组std::array。与内置数组相比，array是一种更安全、更容易使用的数组类型。与内置数组类似，array对象的大小是固定的。因此，array<strong>不支持添加和删除元素以及改变容器大小的操作</strong>。与内置数组一样，标准库array的大小也是类型的一部分。<strong>当定义一个array时，除了指定元素类型，还要指定容器大小</strong>（array&lt;T,N&gt; 模板定义了一种相当于标准数组的容器类型。它是一个<strong>有 N 个 T 类型元素的固定序列</strong>）。为了使用array类型，我们必须同时指定元素类型和大小。array仅仅是为普通数组添加了一些成员或全局函数，这使得数组能够被当成标准容器来使用。array不能被动态地扩展或压缩。</p>
-<p>和标准数组相比，array 容器的额外开销很小，但提供了两个优点：<strong>1）如果使用 at()，当用一个非法的索引访问数组元素时，能够被检测到，因为容器知道它有多少个元素；2）这也就意味着数组容器可以作为参数传给函数，而不再需要单独去指定数组元素的个数。</strong></p>
-<p>使用 array 容器类型时，需要在源文件中包含头文件 array。下面展示了如何创建具有 10 个 double 型元素的 array&lt;&gt;，该实例定义了一个 array 容器，却没有为元素指定初始值，那么元素就不会被初始化：</p>
-<pre><code>std::array&lt;double,10&gt; arr;
-</code></pre>
-<p>但是可以如下所示，将它们初始化为 0 或者和默认元素类型等效的值。使用下面语句初始化后，容器中所有的元素都会变为 0.0。</p>
-<pre><code>std::array&lt;double,10&gt; arr{};
-</code></pre>
-<p>当然，当创建 array 容器的实例时，要像创建常规数组那样，对元素进行初始化：</p>
-<pre><code>std::array&lt;double, 10&gt; arr {0.5, 1.0, 1.5, 2.0};
-</code></pre>
-<p>初始化器列表中的 4 个值用于初始化前 4 个元素，其余的元素都将为 0。</p>
-<p>回到我们最初的原生内置数组代码，我们可以利用array编写如下代码：</p>
-<pre><code>std::array&lt;int, 5&gt; c11ary;
-c11ary.fill(0);
-unsigned int i = 0;
-while(i&lt;c11ary.size()){
-    c11ary.at(i) = i;
-    i++;
-}
-</code></pre>
-<p>这段代码中:</p>
-<ul>
-<li>使用fill方法实现了数据填充。</li>
-<li>使用size方法取得数组的大小。</li>
-<li>虽然at(i)方法实现带有越界检查的读写。</li>
-</ul>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[C++11 新特征：返回类型后置]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-fan-hui-lei-xing-hou-zhi/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-fan-hui-lei-xing-hou-zhi/">
-        </link>
-        <updated>2020-06-05T07:46:07.000Z</updated>
-        <summary type="html"><![CDATA[<p>利用返回类型后置可以令一个函数返回值为“auto”</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>利用返回类型后置可以令一个函数返回值为“auto”</p>
-<!-- more -->
-<p>除了构造函数和析构函数以外，函数声明都需要明确函数的返回类型，在传统的C或者C++中，函数声明大致是这个样子：</p>
-<pre><code>int getSum(int a, int b);
-</code></pre>
-<p>第一个int就是函数的返回类型，它表明函数的返回值类型为整数。在新的C++11以后，我们也可以这样声明：</p>
-<pre><code>auto getSum(int a, int b)-&gt;int;
-</code></pre>
-<p>在原来放返回值类型的位置写auto，在函数声明结束以后接一个'-&gt;'再跟着写函数的返回值类型。两种方式的效果是一样的。</p>
-<hr>
-<p><strong>更优雅的用法：</strong></p>
-<p>在介绍返回类型后置之前，我们先来再谈一组令人头大的概念：<strong>数组指针</strong>和<strong>指针数组</strong>......（回想起了被指针常量和常量指针支配的恐惧 -_-）</p>
-<ul>
-<li><strong>数组指针</strong>：可以理解为**“数组的指针”<strong>，即首先这个变量是一个</strong>指针**，其次，“数组”修饰这个指针，意思是说这个指针存放着一个数组的首地址，或者说这个指针指向一个数组的首地址。
-<ul>
-<li>e.g：*<em>char (<em>pa)[4];</em></em></li>
-<li>pa是一个指针指向一个char [4]的数组，每个数组元素是一个char类型的变量，所以我们不妨可以写成：char[4] (*pa);这样就可以直观的看出pa的指向的类型。（不过在编辑器中不要这么写，因为编译器根本不认识，这样写只是帮助我们理解。）</li>
-</ul>
-</li>
-<li><strong>指针数组</strong>：可以理解为**“指针的数组”<strong>，首先这个变量是一个</strong>数组**，其次，“指针”修饰这个数组，意思是说这个数组的所有元素都是指针类型。
-<ul>
-<li>e.g：*<em>char <em>arr[4] = {&quot;hello&quot;, &quot;world&quot;, &quot;shannxi&quot;, &quot;xian&quot;};</em></em></li>
-<li>arr就是定义的一个指针数组，它有四个元素，每个元素是一个char *类型的指针，这些指针存放着其对应字符串的首地址。</li>
-</ul>
-</li>
-</ul>
-<p>P.s：<strong>指针数组和数组指针的形成的根本原因就是运算符的优先级问题</strong>，所以定义变量是一定要注意这个问题，否则定义变量会有根本性差别！</p>
-<p>在明白了<strong>数组指针</strong>和<strong>指针数组</strong>的概念后，我们来聊聊返回类型后置的一种优雅的用法：</p>
-<p>一般情况下，当函数要返回多个数据时，会选择将数据封装在类（或结构体）中返回，或者直接返回一个指针。这两种方式要么麻烦，要么没有办法取得数据的数量。其实我们真正的需求就是返回一个数组（可以计算维度的）指针。这种方法是存在的：</p>
-<blockquote>
-<p>e.g:int (*getResultArray(int mode))[10];</p>
-</blockquote>
-<p>结合数组指针和指针数组的定义，上面的是数组指针还是指针数组呢？应该是<strong>数组指针</strong>。通过上面的形式，声明了一个返回包含10个整数的数组的指针。对于这样一个指针，我们可以像数组一样使用：</p>
-<pre><code>auto arr = getResultArray(1);
-cout &lt;&lt; sizeof(*arr)/sizeof(**arr) &lt;&lt; endl; //可以正确计算维度。
-</code></pre>
-<p>我们其实也可以这样做：</p>
-<pre><code>typedef int arr10[10];
-arr10* getResultArray(int mode)
-</code></pre>
-<p>C++11增加了返回类型后置以后，我们有了新的选择：</p>
-<pre><code>auto getResultArray(int mode)-&gt;int(*)[10]；
-</code></pre>
-<p>比第一种形式容易理解很多。也不需要自定义类型。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[C++11 新特征：容器的cbegin和cend函数 ]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-rong-qi-de-cbegin-he-cend-han-shu/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-rong-qi-de-cbegin-he-cend-han-shu/">
-        </link>
-        <updated>2020-06-05T03:41:53.000Z</updated>
-        <summary type="html"><![CDATA[<p>小众的常量迭代器</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>小众的常量迭代器</p>
-<!-- more -->
-<p>这个新特征其实是偶尔在别人的总结中看到的，但觉得确实很有趣，就做个记录：</p>
-<h2 id="1-需求">1. 需求</h2>
-<p>我们一般在使用STL容器时，下面代码是非常常见的：</p>
-<pre><code>int sum = 0;
-vector&lt;int&gt; v{1, 2, 3, 4, 5, 6};
-vector&lt;int&gt;::iterator it = v.begin();
-while(it != v.end()){
-       sum += *it;
-       it++;
- }
-</code></pre>
-<p>但是，如果我们一旦定义容器为常量，就必须注意迭代器也需要声明为常量：</p>
-<pre><code>int sum = 0;
-
-//编译错误：原因是定义的vector是const类型，所以迭代器必须也是const类型
-const vector&lt;int&gt; cv{1, 2, 3, 4, 5, 6};
-vector&lt;int&gt;::iterator cit = cv.begin();
-while(cit != v.end()){
-       sum += *cit;
-       cit++;
- }
-
-//正确写法：
-const vector&lt;int&gt; cv{1, 2, 3, 4, 5, 6};
-vector&lt;int&gt;::const_iterator cit = cv.begin();
-while(cit != v.end()){
-       sum += *cit;
-       cit++;
-}
-</code></pre>
-<p>这显然很麻烦，一个简单的方法是直接使用auto来自动推断迭代器类型（想必大家都更倾向于这样，毕竟...有了auto还要啥自行车）：</p>
-<pre><code>auto ait = cv.begin();
-while(ait != cv.end()){ 
-       sum += *ait;
-       ait++;
- }
-</code></pre>
-<h2 id="2-优势">2. 优势</h2>
-<p>但我们也不难想到存在这样一种情形：<strong>数据本身不是const类型，但是从设计的角度来讲有些处理不应该修改该数据</strong>。这时也应该要求const类型的迭代器，以避免数据被意外修改。所以，C++11为此提供了cbegin和cend方法。</p>
-<pre><code>vector&lt;int&gt; v{1, 2, 3, 4, 5, 6};
-auto ait = v.cbegin();
-while(ait != v.cend()){
-           sum += *ait;
-           *ait = sum;  //编译错误
-           ait++;
-}
-</code></pre>
-<p>cbegin()/cend()决定了返回的迭代器类型为const。这时即使vector的类型不是const，也可以防止对该数据的误操作。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[C++11 新特征：常量表达式]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-chang-liang-biao-da-shi/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-chang-liang-biao-da-shi/">
-        </link>
-        <updated>2020-06-05T02:05:16.000Z</updated>
-        <summary type="html"><![CDATA[<p>常量+指针......可真是太难了</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>常量+指针......可真是太难了</p>
-<!-- more -->
-<p>总体而言，常量本身并不难理解：使用<strong>const</strong>关键词限定的量被认为是常量；常量一旦初始化便不允许修改。然而，C++中最让人头疼的概念莫过于指针了，因此常量一旦结合指针......极致的快乐就来了。单单脑补一下这两个名词：指针常量、常量指针......就够头大了。因此，在正式开始之前，我还是得复习一下C++中指针的概念。</p>
-<h2 id="1-指针">1. 指针</h2>
-<p>首先，所谓指针，其本质仍然是一个变量，但其值为另一个变量的地址，即，内存位置的直接地址。<br>
-提到指针，其实理解的关键在于理解两个运算符——<strong>“*”和“&amp;”</strong>：</p>
-<ul>
-<li>** “*”**：被称为间接值或解除引用运算符，将其用于指针，<strong>可得到该地址处所存储的值</strong>。（由于指针<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>p</mi></mrow><annotation encoding="application/x-tex">p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">p</span></span></span></span>的值就是一个变量的地址，因此，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>∗</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">*p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6597200000000001em;vertical-align:-0.19444em;"></span><span class="mord">∗</span><span class="mord mathdefault">p</span></span></span></span>就是该指针所指向变量的值）。</li>
-<li><strong>“&amp;”</strong>：地址运算符，用于访问变量的地址。</li>
-</ul>
-<p>所以，根据指针的定义以及“*”和“&amp;”的用法，我们可以更好地理解C++中指针的声明和初始化：</p>
-<pre><code>//初始化方式1：先声明，后初始化——更好理解
-int a = 25;
-int *ptr_a;
-ptr_a = &amp;a;
-
-//初始化方式2：声明同时初始化——更常用，也更安全
-int b = 20;
-int *ptr_b = &amp;b;        /P.s:是将ptr_b初始化，即：将ptr_b（而不是*ptr_b）的值设置为&amp;b。
-
-//初始化方式3：数组初始化
-int c[10];
-int *ptr_c1 = c;  
-int *ptr_c2 = &amp;c[0];
-</code></pre>
-<p>为了加深理解，再给几个例子，你品，你细品：</p>
-<pre><code>//错误示例：p仅声明了而没有初始化，所以p所指向的内存位置是随机的。
-int  *p;
-*p = 7;
-
-//正确示例：
-int k = 1, m = 3;
-
-int *p;
-p = &amp;k; //给p赋值
-cout &lt;&lt; &amp;k &lt;&lt; &quot; &quot; &lt;&lt; p &lt;&lt; &quot; &quot; &lt;&lt; &amp;m &lt;&lt; endl;
-cout &lt;&lt; k &lt;&lt; &quot; &quot; &lt;&lt; *p &lt;&lt; &quot; &quot; &lt;&lt; m &lt;&lt; endl;
-
-*p = 7; //给p所指向的内存赋值，即k= 7
-cout &lt;&lt; &amp;k &lt;&lt; &quot; &quot; &lt;&lt; p &lt;&lt; &quot; &quot; &lt;&lt; &amp;m &lt;&lt; endl;
-cout &lt;&lt; k &lt;&lt; &quot; &quot; &lt;&lt; *p &lt;&lt; &quot; &quot; &lt;&lt; m &lt;&lt; endl;
-
-p = &amp;m;
-cout &lt;&lt; &amp;k &lt;&lt; &quot; &quot; &lt;&lt; p &lt;&lt; &quot; &quot; &lt;&lt; &amp;m &lt;&lt; endl;
-cout &lt;&lt; k &lt;&lt; &quot; &quot; &lt;&lt; *p &lt;&lt; &quot; &quot; &lt;&lt; m &lt;&lt; endl;
-
-/*
-最终输出：
-0x7ffee6e7974c 0x7ffee6e7974c 0x7ffee6e79748
-1 1 3
-0x7ffee6e7974c 0x7ffee6e7974c 0x7ffee6e79748
-7 7 3
-0x7ffee6e7974c 0x7ffee6e79748 0x7ffee6e79748
-7 3 3
-*/
-</code></pre>
-<h2 id="2-指针常量-常量指针">2. “指针常量” &amp; “常量指针”</h2>
-<p>如果，到这里还顶得住，那我们来谈谈一开始我们说的“指针常量”和“常量指针”：<br>
-这两个概念其实从本科一直到研究生我都一直在“懂了”-“晕了”之间反复横跳～直到在<a href="https://www.zhihu.com/question/19829354">知乎</a>看到一个非常有趣的解释，突然之间———我觉得我又可以了：<br>
-其实，常量和指针的结合方式共有6种：<br>
-①const int p;<br>
-②const int* p;<br>
-③int const* p<br>
-④int * const p;<br>
-⑤const int * const p;<br>
-⑥int const * const p;</p>
-<p>①其实没什么好说的，平平无奇的一个常量整数。然而，后面几个，emmm...老千层饼了，直接劝退。<br>
-先别怕，这里其实有一套实用的技巧：</p>
-<ul>
-<li>从右往左读；</li>
-<li>遇到p就替换成“p is a ”；</li>
-<li>遇到*就替换成“point to”。</li>
-</ul>
-<p>例如：<br>
-②读作：“p is a point to int const.”--这说明p是一个指向整型常量的指针。<br>
-③读作：“p is a point to const int.” --意思跟②相同。<br>
-④读作：“p is a const point to int.”--p是一个常量指针，指向整型。<br>
-⑤读作：“p is a const point to int const.”<br>
-⑥读作：“p is a const point to const int.”--⑤和⑥的意思相同，p都是常量指针，指向整型常量。<br>
-这里再说明一下：如果p是一个指针，指向常量，说明指向的常量的值是不能更改的；如果p是一个常量指针，指向整型，说明p的值（存的地址）是不能更改的（老千层饼*2）。可以再给一个例子：</p>
-<pre><code>const double pi = 3.14;
-const double  *cptr = &amp;pi;    //指向常量的指针
-*cptr = 4;            //cptr存的是常量pi的地址，所以*cptr常量pi的地址所指向的值。因此，该语句其实是企图更改常量的值——编译错误
-
-
-double var1 = 45, var2=50;
-double *const  pvar = &amp;var1;  //常量指针，指向double变量。
-*pvar = 40;       //与上一个例子相同，这里是企图改变var1的值，而不是改变常量指针存储的值——正确
-
-pvar = &amp;var2;   //该语句实质是想改变常量指针里面存储的地址——编译错误
-</code></pre>
-<p>到这里，应该说清楚了吧......</p>
-<h2 id="3-常量表达式">3. 常量表达式</h2>
-<h3 id="31-什么是常量表达式">3.1 什么是常量表达式</h3>
-<p>常量表达式是指值不会改变并且在<strong>编译过程</strong>就能够得到计算结果的表达式。显然，字面值属于常量表达式，用常量表达式初始化的 const 对象也是常量表达式。如下：</p>
-<pre><code>const int max_num = 20;           // max_num是常量表达式
-const int limit = max_num + 1;    // limit 是常量表达式
-int staff_size = 2;               // staff_size 不是常量表达式，因为staff_size没有用const修饰
-const int zs = get_size();        // sz 不是常量表达式，虽然sz是个常量，但它的值在运行时才能确定
-</code></pre>
-<p>可见：<strong>一个对象（或表达式）是不是常量表达式由它的数据类型（是否const）和初始值共同决定。</strong></p>
-<h3 id="32-constexprconst-expression">3.2 constexpr(const expression)：</h3>
-<p>const可以用来修饰常量，可是只有当其初始值是个常量表达式时，const修饰的对象才是个常量表达式。一般来说，在日益复杂的系统中确定变量的初始值到底是不是常量表达式并不是一件容易的事。为了解决这个问题C++11允许将变量声明为<strong>constexpr</strong>类型以便由编译器验证变量的值是否是一个常量表达式。一般而言，<strong>如果你认定变量是一个常量表达式，那就把它声明成 constexpr 类型。constexpr 变量在定义时必须初始化</strong>。</p>
-<pre><code>constexpr int mf = 20;		// mf是常量表达式
-constexpr int limit = mf + 1;	// limit 是常量表达式
-constexpr int sz = get_sz();	// 只有当 get_sz() 是一个 constexpr 函数时才是一条正确的声明语句
-</code></pre>
-<h3 id="33-指针和constexpr">3.3 指针和constexpr</h3>
-<p>从上面的介绍不难看出，变量声明为constexpr类型，就意味着<strong>一方面变量本身是常量，也意味着它必须用常量表达式来初始化</strong>。所以，当 constexpr 修饰指针时，constexpr 仅对指针有效，与指针所指的对象无关：</p>
-<pre><code>const int *p = nullptr;		// p 是指向常量的指针
-constexpr int *q = nullptr;	// q 是常指针，constexpr 仅对指针有效
-</code></pre>
-<p>当然，const 和 constptr 可以一起来修饰一个指针，用于表明指向常量的常指针:</p>
-<pre><code>constexpr const int *p = &amp;i;	
-// 指向常量的常指针，注意 &amp;i 必须是常量表达式，i可以是全局变量或静态变量等等。。这些变量的地址在编译时就确定了
-</code></pre>
-<h3 id="34-constexpr函数">3.4 constexpr函数</h3>
-<p>除了能用常量表达式初始化constexpr变量以外，还可以使用constexpr函数。它是指<strong>能用于常量表达式的函数，也就是说它的计算结果可以在编译时确定</strong>。定义的方法就是在<strong>返回值类型前加constexpr关键字</strong>。但是为了保证计算结果可以在编译是确定，必须满足以下条件：</p>
-<ul>
-<li>返回值和形参必须都是字面值类型。</li>
-<li>函数中只能有一条return语句。</li>
-</ul>
-<pre><code>constexpr long long factorial(int n){
-
-   return n &lt;= 1? 1 : (n * factorial(n - 1));
-
-}
-
-constexpr long long f18 = factorial(20);
-</code></pre>
-<h3 id="35-总结">3.5 总结</h3>
-<p>constexpr可以：</p>
-<ul>
-<li>加强初始值的检查</li>
-<li>计算的时机从运行时提前到编译时，比宏定义效率更高。</li>
-</ul>
 ]]></content>
     </entry>
 </feed>

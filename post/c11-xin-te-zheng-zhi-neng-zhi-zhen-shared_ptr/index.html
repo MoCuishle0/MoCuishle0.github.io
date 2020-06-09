@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>C++11 新特征：智能指针——shared_ptr | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591687960550">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="shared_ptr在内部维护一个相当于引用计数的机制，允许多个指针同时指向一个对象。某个指针被销毁之后，引用计数同时较少，当所有指针都被销毁之后，自动释放管理的对象。
+
+本文主要内容仍然参照：参考文献
+首先，我们需要知道：智能指针的出现是..." />
+    <meta name="keywords" content="C++" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591687960550" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">C++11 新特征：智能指针——shared_ptr</h2>
+            <div class="post-date">2020-06-08</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/c11-xin-te-zheng-zhi-neng-zhi-zhen-shared_ptr.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p><strong>shared_ptr</strong>在内部维护一个相当于<strong>引用计数的机制</strong>，允许多个指针同时指向一个对象。某个指针被销毁之后，引用计数同时较少，当所有指针都被销毁之后，自动释放管理的对象。</p>
+<!-- more -->
+<p>本文主要内容仍然参照：<a href="https://blog.csdn.net/craftsman1970/article/details/80752044">参考文献</a></p>
+<p>首先，我们需要知道：智能指针的出现是为了便于程序员<strong>对内存进行管理而引入的</strong>。为了解决这个问题，C++11标准库引入了三种智能指针，动作类似于常规指针，同时具备在合适的时机自动释放内存的功能（防止内存泄漏）。其次，我们应该理解：智能指针背后的设计思想，其实是将基本类型指针封装为类对象指针（这个类肯定是个模板，以适应不同基本类型的需求），并在析构函数里编写delete语句删除指针指向的内存空间。</p>
+<p>本文先主要介绍智能指针之一——shared_ptr，<strong>一种采用引用计数机制的智能指针</strong>：</p>
+<h2 id="1-预备工作">1. 预备工作</h2>
+<p>为了更好地展示智能指针shared_ptr的用法及作用，我们首先构造一个类：</p>
+<pre><code>class MyString
+{
+private:
+    string text;
+
+public:
+    MyString(string str) : text(str)
+    {
+        cout &lt;&lt; &quot;Constructed (&quot; &lt;&lt; str &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
+    }
+    ~MyString()
+    {
+        cout &lt;&lt; &quot;Destructed (&quot; &lt;&lt; text &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
+    }
+
+    void Output()
+    {
+        cout &lt;&lt; text &lt;&lt; endl;
+    }
+};
+</code></pre>
+<p>每当这个类的对象被创建和销毁的时候，可以相应的输出Constructed和Destructed字符串，这样我们可以清晰地观察为1变量分配内存和释放内存的时间。</p>
+<h2 id="2-shared_ptr的声明-初始化-赋值">2. shared_ptr的声明、初始化、赋值</h2>
+<p>首先，我们给出一个简单的实例。由于<strong>shared_ptr是一个模版类，在声明时必须声明指向对象的类型：</strong></p>
+<pre><code>shared_ptr&lt;MyString&gt; p1;                //定义了一个空的shared_ptr，未初始化
+
+shared_ptr&lt;MyString&gt; p2=make_shared&lt;MyString&gt;(&quot;Hello ptr -&gt;&quot;);  //初始化，最安全的方式是使用make_shared标准库函数
+p1 = p2;                        //赋值
+</code></pre>
+<p>之所以说make_shared这种方式安全，是因为make_shared虽然也生成了MyString对象，并将这个对象直接装配到shared_ptr上。</p>
+<p>需要强调的是，<strong>shared_prt的本身是一个类，所以它的初始化实际上就是调用shared_ptr类的构造函数</strong>。通过分析shared_ptr的源码，我们可以发现以下构造函数：<br>
+1）<strong>default构造函数</strong>：</p>
+<pre><code>_LIBCPP_CONSTEXPR shared_ptr() _NOEXCEPT;
+//default构造函数：e.g: shared_ptr&lt;int&gt; p;  ———— 声明空shared_ptr
+</code></pre>
+<p>2）<strong>空指针构造</strong>：</p>
+<pre><code>_LIBCPP_CONSTEXPR shared_ptr(nullptr_t) _NOEXCEPT;
+//由空指针构造：e.g: shared_ptr&lt;int&gt; p(nullptr); ———— 通过空指针构造shared_ptr
+</code></pre>
+<p>3）<strong>根据已有指针构造shared_ptr</strong>：</p>
+<pre><code>explicit shared_ptr (U* p);
+//根据已有指针构造shared_ptr：
+//shared_ptr&lt;string&gt; p1(new string(&quot;First&quot;));    ———— 对象创建后直接构造shared_ptr
+
+//string *s=new string(&quot;Second&quot;);
+//shared_ptr&lt;string&gt;  p2(s);              ———— 对象创建后先临时保存，再构造shared_ptr
+</code></pre>
+<p>根据已有指针构造shared_ptr的两种方式都合法，但是在第二种情况中应该理解，一旦构造了share_ptr，就表明<strong>s指向的string对象的内存管理已经交给ps1管理而不应该在通过s访问了</strong>（至少是非常小心的访问）。所以，第二种方式应该尽量避免。</p>
+<p>4）<strong>拷贝构造</strong>：</p>
+<pre><code>shared_ptr(const shared_ptr&amp; __r) _NOEXCEPT;
+//拷贝构造：
+//shared_ptr&lt;string&gt; ps1(new strinng(&quot;Test&quot;)); ———— ps1.use_count()=1;
+//shared_ptr&lt;string&gt; ps2(ps1);  ———— ps1.use_count() = ps2.use_count()=2;  ps1.get()=ps2.get();
+</code></pre>
+<p>拷贝构造函数执行以后，引用计数增加，两个指针指向同一个对象。</p>
+<p>5）<strong>移动构造</strong>：</p>
+<pre><code>shared_ptr(shared_ptr&amp;&amp; __r) _NOEXCEPT;
+//移动构造：由一个已有的shared_ptr创建新的share_ptr。作为参数的shared_pt同时会释放对内存的管理权利，整个构造过程结束后，引用计数不变。
+//shared_ptr&lt;string&gt; ps1(new strinng(&quot;Test&quot;)); ———— ps1.use_count()=1;
+//shared_ptr&lt;string&gt; ps2(move(ps1));  ———— ps1.use_count()=0; ps2.use_count()=1; ps1.get()=0; ps2.get()=****
+</code></pre>
+<p>移动构造中，作为参数的shared_pt同时会释放对内存的管理权利，整个构造过程结束后，引用计数不变。</p>
+<p>此外，对于赋值操作，也有以下几种方式：<br>
+1）<strong>拷贝赋值</strong>：从已有指针赋值给shared_ptr，共享数据管理权。（类似于拷贝构造）</p>
+<pre><code>shared_ptr&amp; operator= (const shared_ptr&amp; x) noexcept;
+</code></pre>
+<p><img src="https://mocuishle0.github.io//post-images/1591583984679.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1591584046154.png" alt="" loading="lazy"></p>
+<p>2）<strong>移动赋值</strong>：从已有指针赋值给shared_ptr，伴随数据管理权的转移。移动赋值和拷贝赋值的区别在于参数是否为右值引用。</p>
+<pre><code>shared_ptr&amp; operator= (shared_ptr&amp;&amp; x) noexcept;
+</code></pre>
+<p><img src="https://mocuishle0.github.io//post-images/1591584194099.png" alt="" loading="lazy"><br>
+<img src="https://mocuishle0.github.io//post-images/1591584203480.png" alt="" loading="lazy"><br>
+需要注意的是：make_shared也属于移动赋值。<br>
+<img src="https://mocuishle0.github.io//post-images/1591584275145.png" alt="" loading="lazy"></p>
+<h2 id="3-shared_ptr的使用">3. shared_ptr的使用</h2>
+<p>可以像普通指针一样使用shared_ptr:</p>
+<pre><code>p1-&gt;Output();
+p2-&gt;Output();
+</code></pre>
+<p>示例代码：</p>
+<pre><code>#include &lt;iostream&gt;
+#include &lt;memory&gt;
+#include &lt;string&gt;
+
+using namespace std;
+
+class MyString
+{
+private:
+    string text;
+
+public:
+    MyString(string str) : text(str)
+    {
+        cout &lt;&lt; &quot;Constructed (&quot; &lt;&lt; str &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
+    }
+    ~MyString()
+    {
+        cout &lt;&lt; &quot;Destructed (&quot; &lt;&lt; text &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
+    }
+
+    void Output()
+    {
+        cout &lt;&lt; text &lt;&lt; endl;
+    }
+};
+
+int main()
+{
+    MyString mystring(&quot;Hello world :-)&quot;);
+    mystring.Output();
+
+    shared_ptr&lt;MyString&gt; p1;
+    //p1-&gt;Output();
+
+    shared_ptr&lt;MyString&gt; p2=make_shared&lt;MyString&gt;(&quot;Hello ptr -&gt;&quot;);
+    //p2-&gt;Output();
+
+    p1=p2;
+
+    p1-&gt;Output();
+    p2-&gt;Output();
+
+    return 0;
+}
+
+/*输出
+Constructed (Hello world :-))!
+Hello world :-)
+Constructed (Hello ptr -&gt;)!
+Hello ptr -&gt;
+Hello ptr -&gt;
+Destructed (Hello ptr -&gt;)!
+Destructed (Hello world :-))!
+*/
+</code></pre>
+<p>不难发现，代码中没有使用new和delete，但是仍然可以像指针一样使用shared_ptr，而且不需要担心内存泄漏。</p>
+<h2 id="4-小结">4. 小结</h2>
+<p>shared_ptr的核心思想正如其名称一样——共享，即采用计数机制。为了更好的演示其计数机制，引用知乎上的一个例子：</p>
+<pre><code>int main(){
+    //局部作用域
+    {
+        shared_ptr&lt;string&gt; p1(new string(&quot;hello world&quot;));
+        //引用计数=1，即只有一个指针p1引用这块string内存
+
+        {
+            shared_ptr&lt;string&gt; p2=p1;
+            //引用计数=2，此时有p1、p2两个指针1可以访问这块内存
+        }
+        //引用计数=1，超出p2指针作用域，仅p1可访问
+    }
+    //引用计数=0，超出p1作用域，没有指针可以访问，资源被释放。
+    return 0;
+}
+</code></pre>
+<p>具体可参考以下代码：</p>
+<pre><code>#include &lt;iostream&gt;
+#include &lt;memory&gt;
+#include &lt;string&gt;
+
+using namespace std;
+
+class MyString
+{
+private:
+    string text;
+
+public:
+    MyString(string str) : text(str)
+    {
+        cout &lt;&lt; &quot;Constructed (&quot; &lt;&lt; str &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
+    }
+    ~MyString()
+    {
+        cout &lt;&lt; &quot;Destructed (&quot; &lt;&lt; text &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
+    }
+
+    void Output()
+    {
+        cout &lt;&lt; text &lt;&lt; endl;
+    }
+};
+
+int main()
+{
+    int flag1=6,flag2=15;
+
+    if (flag1&gt;5)
+    {
+        shared_ptr&lt;MyString&gt; p1=make_shared&lt;MyString&gt;(&quot;Hello&quot;);
+        cout&lt;&lt;&quot;p1.use_count = &quot;&lt;&lt;p1.use_count()&lt;&lt;endl;
+        cout&lt;&lt;&quot;p1.get = &quot;&lt;&lt;p1.get()&lt;&lt;endl;
+
+        cout&lt;&lt;&quot;==========&quot;&lt;&lt;endl;
+        if (flag2&gt;10)
+        {
+            shared_ptr&lt;MyString&gt; p2=p1;
+
+            cout&lt;&lt;&quot;p1.use_count = &quot;&lt;&lt;p1.use_count()&lt;&lt;endl;
+            cout&lt;&lt;&quot;p2.use_count = &quot;&lt;&lt;p2.use_count()&lt;&lt;endl;
+
+            cout&lt;&lt;&quot;p1.get = &quot;&lt;&lt;p1.get()&lt;&lt;endl;
+            cout&lt;&lt;&quot;p2.get = &quot;&lt;&lt;p2.get()&lt;&lt;endl;
+        }
+        cout&lt;&lt;&quot;==========&quot;&lt;&lt;endl;
+        cout&lt;&lt;&quot;p1.use_count = &quot;&lt;&lt;p1.use_count()&lt;&lt;endl;
+        cout&lt;&lt;&quot;p1.get = &quot;&lt;&lt;p1.get()&lt;&lt;endl;
+        
+    }
+    
+
+    return 0;
+}
+
+/*
+输出：
+Constructed (Hello)!
+p1.use_count = 1
+p1.get = 0x7f948cc05a18
+==========
+p1.use_count = 2
+p2.use_count = 2
+p1.get = 0x7f948cc05a18
+p2.get = 0x7f948cc05a18
+==========
+p1.use_count = 1
+p1.get = 0x7f948cc05a18
+Destructed (Hello)!
+*/
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/Yz3MZw1Sl/" class="tag">
+                    C++
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/c11-xin-te-zheng-lambda-biao-da-shi-xu/">
+                  <h3 class="post-title">
+                    C++11 新特征：Lambda表达式（续）
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>C++11 新特征：线程（1） | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591687960550">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="C++11最引人注目的特征之一便是其引入了对线程的支持
+
+1. 基础知识回顾
+1.1 线程 &amp; 进程
+
+进程是资源分配和调度的一个独立单位。而线程是进程的一个实体，是CPU调度和分派的基本单位。
+一个进程至少拥有一个线程。
+在同一个..." />
+    <meta name="keywords" content="C++" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591687960550" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">C++11 新特征：线程（1）</h2>
+            <div class="post-date">2020-06-09</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/c11-xin-te-zheng-xian-cheng-1.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>C++11最引人注目的特征之一便是其引入了对线程的支持</p>
+<!-- more -->
+<h2 id="1-基础知识回顾">1. 基础知识回顾</h2>
+<h3 id="11-线程-进程">1.1 线程 &amp; 进程</h3>
+<ul>
+<li>进程是<strong>资源分配和调度</strong>的一个独立单位。而线程是<strong>进程的一个实体，是CPU调度和分派</strong>的基本单位。</li>
+<li>一个进程至少拥有一个线程。</li>
+<li>在<strong>同一个进程中的多个线程的内存资源是共享的，也就是说各线程都可以改变进程中的变量</strong>。因此在执行多线程运算的时候要注意执行顺序。</li>
+</ul>
+<h3 id="12-并发-并行">1.2 并发 &amp; 并行</h3>
+<ul>
+<li><strong>并行（parallellism）<strong>指的是多个任务在</strong>同一时刻同时在执行</strong>。</li>
+<li><strong>并发（concurrency）<strong>是指在一个时间段内，多个任务</strong>交替进行</strong>。虽然看起来像在同时执行，但其实是交替的。</li>
+</ul>
+<h2 id="2-c11-线程">2. C++11 线程</h2>
+<p>C++11提供了一套精练的线程库，小巧且易用。运行一个线程，可以直接创建一个std::thread的实例，线程在实例成功构造时启动。下面给出一个简单的示例：</p>
+<pre><code>#include &lt;thread&gt;
+#include &lt;iostream&gt;
+
+using namespace std;
+
+void foo() {
+    cout &lt;&lt; &quot;Hello C++11&quot; &lt;&lt; endl;
+}
+
+int main() {
+    thread thread1(foo);  // 启动线程foo
+    thread1.join();  // 等待线程执行完成
+
+    return 0;
+}
+
+/*
+输出：
+Hello C++11
+*/
+</code></pre>
+<h3 id="21-线程参数传入">2.1 线程参数传入</h3>
+<p>查看源代码我们不难发现以下代码：</p>
+<pre><code>explicit thread(_Fp&amp;&amp; __f, _Args&amp;&amp;... __args);
+</code></pre>
+<p>其中：fn，可以指向函数，指向成员，或是移动构造函数；args，是传递给fn的参数，这些参数可以移动赋值构造。如果fn是一个成员指针，那么第一个args参数就必须是一个对象，或是引用，或是指向该对象的指针。下面的样例代码是对最开始的代码的改进：</p>
+<pre><code>void foo(string str)
+{
+    cout &lt;&lt; &quot;Hello C++11 &quot; + str &lt;&lt; endl;
+}
+
+int main()
+{
+    thread thread1(foo,&quot;thread&quot;); // 启动线程foo
+    thread1.join();      // 等待线程执行完成
+
+    return 0;
+}
+
+//输出：Hello C++11 thread
+</code></pre>
+<p>同理，将类成员函数作为线程入口也是可以的——只需要<strong>将this作为第一个参数进行传递</strong>，即可：</p>
+<pre><code>#include &lt;thread&gt;
+#include &lt;iostream&gt;
+
+class Greet
+{
+    const char *owner = &quot;Greet&quot;;
+public:
+    void SayHello(const char *name) {
+        std::cout &lt;&lt; &quot;Hello &quot; &lt;&lt; name &lt;&lt; &quot; from &quot; &lt;&lt; this-&gt;owner &lt;&lt; std::endl;
+    }
+};
+int main() {
+    Greet greet;
+
+    std::thread thread(&amp;Greet::SayHello, &amp;greet, &quot;C++11&quot;);  ////注意在调用非静态类成员函数时，需要加上实例变量。
+    thread.join();
+
+    return 0;
+}
+
+//输出：Hello C++11 from Greet
+</code></pre>
+<p>此外，需要额外注意的是：当调用函数的参数为引用参数时，线程调用需要加上ref关键字表示引用。并且线程函数会改变引用的变量值。</p>
+<pre><code>void Add1(int n)
+{
+    n++;
+    cout &lt;&lt; &quot;n=&quot; &lt;&lt; n &lt;&lt; endl;
+}
+
+void Add2(int &amp;n)
+{
+    n++;
+    cout &lt;&lt; &quot;n=&quot; &lt;&lt; n &lt;&lt; endl;
+}
+
+int main()
+{
+    int n = 0;
+
+    thread t1(Add1, n);
+    t1.join();
+    cout &lt;&lt; &quot;n=&quot; &lt;&lt; n &lt;&lt; endl;
+
+    thread t2(Add2, ref(n));
+    t2.join();
+    cout &lt;&lt; &quot;n=&quot; &lt;&lt; n &lt;&lt; endl;
+
+    return 0;
+}
+/*
+输出：
+n=1
+n=0
+n=1
+n=1
+*/
+</code></pre>
+<h3 id="22-线程管理">2.2 线程管理</h3>
+<h4 id="等待线程完成">等待线程完成</h4>
+<p>一般来说,我们在主线程中开辟出一些子线程来完成我们的任务。正常情况下，需要在主线程的最后调用join()，用于阻塞主线程，避免主线程先于其他子线程执行完毕退出，然后导致整个进程的异常。其中，<strong>join的作用就是等待线程执行完成</strong>。也就是说，join函数返回时，说明子线程执行完成。</p>
+<p><strong>join</strong>：<strong>阻塞当前线程</strong>，直至 *this 所标识的线程完成其执行。*this 所标识的线程的完成同步于从 join() 的成功返回。该方法简单暴力，主线程等待子进程期间什么都不能做。thread::join()会清理子线程相关的内存空间，此后thread object将不再和这个子线程相关了，即thread object不再joinable了，所以join对于一个子线程来说只可以被调用一次，为了实现更精细的线程等待机制，可以使用条件变量等机制。我们不妨参考以下示例：</p>
+<pre><code>void pause_thread(int n)
+{
+    cout&lt;&lt;&quot;No.&quot;&lt;&lt;n&lt;&lt;&quot; starting...&quot;&lt;&lt;endl;
+    this_thread::sleep_for(chrono::seconds(n));
+    cout &lt;&lt; &quot;\t pause of &quot; &lt;&lt; n &lt;&lt; &quot;s ended&quot; &lt;&lt; endl;
+    cout&lt;&lt;&quot;No.&quot;&lt;&lt;n&lt;&lt;&quot; finished&quot;&lt;&lt;endl;
+}
+
+int main()
+{
+    cout &lt;&lt; &quot;Spawning 3 threads...&quot; &lt;&lt; endl;
+    thread t1(pause_thread, 2);
+
+    thread t2(pause_thread, 4);
+
+    thread t3(pause_thread, 6);
+
+    //cout &lt;&lt; &quot;Done spawning threads. Waiting them join...&quot; &lt;&lt; endl;
+
+    t1.join();
+    t2.join();
+    t3.join();
+
+    cout &lt;&lt; &quot;All threads done!&quot; &lt;&lt; endl;
+
+    return 0;
+}
+
+/*
+输出：
+Spawning 3 threads...
+No.2 starting...
+No.4 starting...
+No.6 starting...
+         pause of 2s ended
+No.2 finished
+         pause of 4s ended
+No.4 finished
+         pause of 6s ended
+No.6 finished
+All threads done!
+*/
+</code></pre>
+<h4 id="线程暂停">线程暂停</h4>
+<p>从外部让线程暂停，会引发很多并发问题。这大概也是std::thread并没有直接提供pause函数的原因。但有时线程在运行时，确实需要“停顿”一段时间怎么办呢？可以<strong>使用std::this_thread::sleep_for或std::this_thread::sleep_until</strong>。如下：</p>
+<pre><code>void pause_thread(int n)
+{
+    this_thread::sleep_for(chrono::seconds(n));
+    cout &lt;&lt; &quot;pause of &quot; &lt;&lt; n &lt;&lt; &quot;s ended&quot; &lt;&lt; endl;
+    this_thread::sleep_until(chrono::system_clock::now() + chrono::seconds(n));
+    cout &lt;&lt; &quot;continue&quot; &lt;&lt; endl;
+}
+
+int main()
+{
+    cout &lt;&lt; &quot;Spawning 3 threads...&quot; &lt;&lt; endl;
+    thread th1(pause_thread, 2);
+    thread th2(pause_thread, 4);
+    thread th3(pause_thread, 6);
+
+    cout &lt;&lt; &quot;Done spawning threads. Now waiting for them to join:&quot; &lt;&lt; endl;
+
+    th1.join();
+    th2.join();
+    th3.join();
+
+    cout &lt;&lt; &quot;All threads joined!&quot; &lt;&lt; endl;
+
+    return 0;
+}
+
+/*
+输出：
+Spawning 3 threads...
+Done spawning threads. Now waiting for them to join:
+pause of 2s ended
+continue
+pause of 4s ended
+pause of 6s ended
+continue
+continue
+All threads joined!
+*/
+</code></pre>
+<h4 id="线程拷贝">线程拷贝</h4>
+<pre><code>std::thread a(foo);
+std::thread b;
+b = a;
+</code></pre>
+<p>当执行以上代码时，foo线程最终是由b来管理。std::thread被设计为<strong>只能由一个实例来维护线程状态，以及对线程进行操作</strong>。因此当发生赋值操作时，会发生<strong>线程所有权转移</strong>。赋完值后，原来由a管理的线程改为由b管理，b不再指向任何线程(相当于执行了detach操作)。如果b原本指向了一个线程，那么这个线程会被终止掉。具体示例如下：</p>
+<pre><code>void Add2(int &amp;n)
+{
+    n++;
+    cout &lt;&lt; &quot;n=&quot; &lt;&lt; n &lt;&lt; endl;
+}
+
+int main()
+{
+    int n=0;
+    thread t1(Add2,ref(n));
+
+    thread t2(move(t1));    ////此时t2正在运行Add2()，t1不再是一个线程了。
+    t2.join();
+    
+    return 0;
+}
+</code></pre>
+<h4 id="detach">detach</h4>
+<p>在使用join等待线程完成时，我们可能会想：创建多个线程完成一些任务,不过需要主线程最后等待所有的子线程完毕才能退出,这样不好。所以,detach()应运而生，<strong>希望主线程可以正常的退出, 子线程被挪到后台运行</strong>。<br>
+<strong>detach</strong>：分离线程的对象。即：<strong>将本线程从调用线程中分离出来，允许本线程独立执行。</strong>(但是当主进程结束的时候，即便是detach出去的子线程不管有没有完成都会被强制杀死)。参考以下示例：</p>
+<pre><code>void pause_thread(int n)
+{
+    this_thread::sleep_for(chrono::seconds(n));
+    cout &lt;&lt; &quot;pause of &quot; &lt;&lt; n &lt;&lt; &quot;s ended&quot; &lt;&lt; endl;
+}
+
+int main()
+{
+    cout &lt;&lt; &quot;Spawning 3 threads...&quot; &lt;&lt; endl;
+    thread(pause_thread, 2).detach();
+    thread(pause_thread, 4).detach();
+    thread(pause_thread, 6).detach();
+
+    cout &lt;&lt; &quot;Done spawning threads.&quot; &lt;&lt; endl;
+
+    cout &lt;&lt; &quot;(the main thread will now pause for 5 seconds)\n&quot;;
+    // give the detached threads time to finish (but not guaranteed!):
+    pause_thread(5);
+
+    return 0;
+}
+/*
+输出：
+Spawning 3 threads...
+Done spawning threads.
+(the main thread will now pause for 5 seconds)
+pause of 2s ended
+pause of 4s ended
+pause of 5s ended
+*/
+</code></pre>
+<p>可见：<strong>当主进程结束的时候，即便是detach出去的子线程不管有没有完成都会被强制杀死</strong>（thread(pause_thread, 6).detach();）在主进程结束时并未完成就被强制结束。<br>
+P.s：detach以后就失去了对线程的所有权，不能再调用join了，因为线程已经分离出去了，不再归该实例管了。当任一结束执行，其资源被释放。</p>
+<h4 id="joinable">joinable</h4>
+<p><strong>joinable</strong>：<strong>判断线程是否还有对线程的所有权</strong>，返回true则有，否则为无。也就是说，joiable可以用来判断当前线程是否能够调用join()或者detach()，可以返回true；不可以返回false。即：调用过join就不能在后面调用detach；调用过detach就不能在后面调用join。其常用方式如下：</p>
+<pre><code>//...exa
+thread t1(fun);
+if (t1.joinable() )
+{	
+	//ok to call join/detach
+}
+else
+{
+	//ban
+}
+</code></pre>
+<h4 id="获取线程id">获取线程ID</h4>
+<p>通过get_id()可以获得线程id信息：</p>
+<pre><code>void thread_function(string &amp;s)
+{
+    cout &lt;&lt; &quot;thread function &quot;;
+    cout &lt;&lt; &quot;message is = &quot; &lt;&lt; s &lt;&lt; endl;
+}
+
+int main(){
+    void thread_function(string &amp;s)
+    {
+        cout &lt;&lt; &quot;thread function &quot;;
+        cout &lt;&lt; &quot;message is = &quot; &lt;&lt; s &lt;&lt; endl;
+        s = &quot;CBA&quot;;
+    }
+    return 0;
+}
+
+//输出：
+main thread message = ABC
+Main thread id is: 0x10994fdc0
+Child thread id is: 0x70000fa4f000
+thread function message is = ABC
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/Yz3MZw1Sl/" class="tag">
+                    C++
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-zong-jie/">
+                  <h3 class="post-title">
+                    C++11 新特征：智能指针总结
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>
