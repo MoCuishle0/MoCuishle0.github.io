@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>C++：HelloWorld被我们忽略了什么 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1597310925003">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="想必每个程序员的初始代码都是从Helloworld程序开始的，但在这个简单程序的背后，我们往往忽视了编译器为我们做的大量工作...
+
+#include &lt;iostream&gt;
+using namespace std;
+
+int m..." />
+    <meta name="keywords" content="C++" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1597310925003" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">C++：HelloWorld被我们忽略了什么</h2>
+            <div class="post-date">2020-06-10</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/chelloworld-bei-wo-men-hu-lue-liao-shi-me.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>想必每个程序员的初始代码都是从Helloworld程序开始的，但在这个简单程序的背后，我们往往忽视了编译器为我们做的大量工作...</p>
+<!-- more -->
+<pre><code>#include &lt;iostream&gt;
+using namespace std;
+
+int main(){
+    cout&lt;&lt;&quot;Hello World.&quot;&lt;&lt;endl;
+    return 0;
+}
+</code></pre>
+<p>上述是使用C++编写的一个简单的HelloWorld程序。通常，在Windows的IDE环境下我们往往只需要点击运行即可看到程序的输出结果，即使在Linux的命令行环境下，我们也只需要输入以下命令即可：</p>
+<pre><code>gcc hello.cpp -o hello
+./hello
+</code></pre>
+<p>然而，在这一些简单操作的背后其实存在大量的工作：预编译、编译、汇编、链接。</p>
+<h2 id="1-预编译">1. 预编译</h2>
+<p>简而言之，预编译主要用于处理源代码中以&quot;#&quot;开始的预编译指令，如：“#include”、“#define”等。经过预编译，C++程序的.cpp文件将生成一个.ii文件</p>
+<p>P.s：预编译过程中，处理所需头文件；展开宏定义；删除注释；添加行号、文件名标识等</p>
+<h2 id="2-编译">2. 编译</h2>
+<p>简而言之，编译过程主要是将预处理完的文件进行一系列词法分析、语法分析、语义分析以及优化后，生成汇编代码文件(.s文件)。<br>
+P.s:</p>
+<ul>
+<li>词法分析：识别记号（Token）——关键字、标识符、字面量和特殊符号；</li>
+<li>语法分析：生成语法树——确定运算符优先级、确定运算符含义（部分运算符具有多重含义）；</li>
+<li>语义分析：分析静态语言——编译器剑客确定的语义；</li>
+<li>中间语言生成：优化代码（编译器前端，与机器无关）</li>
+<li>目标代码生成与优化：
+<ul>
+<li>代码生成器——将中间代码转换成目标机器代码</li>
+<li>目标代码优化器——对生成的目标代码进行优化，如：选择合适的寻址方式、删除多余指令等</li>
+</ul>
+</li>
+</ul>
+<h2 id="3-汇编">3. 汇编</h2>
+<p>在汇编阶段，汇编器将汇编代码转换成机器可以执行的指令。每一条汇编指令几乎都对应一条机器指令，由于该过程没有复杂的语法、语义，也不需要优化，因此只需要汇编器逐句翻译即可。该过程会生成目标文件(Object file, .o文件)</p>
+<h2 id="4-链接">4. 链接</h2>
+<p>概括而言，编译器可以将一个源代码文件编译成一个未链接的目标文件，链接器负责最终将这些目标文件链接起来形成可执行文件。</p>
+<p>众所周知的是，现如今的代码大都是模块化的，以便于代码的阅读、理解、重用等。因此，链接的作用就是将各模块组合成一个单一的程序。所以，组装模块的过程其实就是链接。其主要内容是将各个模块之间相互引用的部分处理好，使得各个模块之间能够正确的衔接。其主要包括：</p>
+<ul>
+<li>地址和空间分配；</li>
+<li>符号决议</li>
+<li>重定位</li>
+</ul>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/Yz3MZw1Sl/" class="tag">
+                    C++
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/c11-xin-te-zheng-xian-cheng-1/">
+                  <h3 class="post-title">
+                    C++11 新特征：线程
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

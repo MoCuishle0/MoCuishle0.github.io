@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>数据库：数据库系统概述 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1597310925003">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="从今天开始逐步整理一些关于数据库系统的知识，以应对面试中的一些相关问题。今天就先从系统概述开始：
+
+本文主要内容：
+
+四大概念
+数据库管理系统主要功能
+数据库系统特点
+
+1. 四大概念：
+
+数据（Data）；
+数据库（DataBase）：长..." />
+    <meta name="keywords" content="数据库" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1597310925003" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">数据库：数据库系统概述</h2>
+            <div class="post-date">2020-07-04</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/shu-ju-ku-shu-ju-ku-xi-tong-gai-shu.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>从今天开始逐步整理一些关于数据库系统的知识，以应对面试中的一些相关问题。今天就先从系统概述开始：</p>
+<!-- more -->
+<p>本文主要内容：</p>
+<ul>
+<li>四大概念</li>
+<li>数据库管理系统主要功能</li>
+<li>数据库系统特点</li>
+</ul>
+<h2 id="1-四大概念">1. 四大概念：</h2>
+<ol>
+<li>数据（Data）；</li>
+<li>数据库（DataBase）：<strong>长期存储</strong>在计算机内，<strong>有组织、可共享</strong>的大量数据的集合；</li>
+<li>数据库管理系统（DBMS）：科学地<strong>组织和存储</strong>数据，并高效地<strong>获取和维护</strong>数据；</li>
+<li>数据库系统（DBS）：不引起混淆的情况下，常将数据库系统简称为数据库；</li>
+</ol>
+<h2 id="2-数据库管理系统主要功能">2. 数据库管理系统主要功能：</h2>
+<ol>
+<li>数据定义功能</li>
+<li>数据组织、存储和管理；</li>
+<li>数据操纵功能（查询、插入、删除、修改等）</li>
+<li>数据库的事务管理和运行功能</li>
+<li>数据库的建立和维护功能</li>
+<li>其他功能</li>
+</ol>
+<h2 id="3-数据库系统特点">3. 数据库系统特点</h2>
+<ol>
+<li>数据结构化</li>
+<li>数据共享性高、冗余度低、易扩充</li>
+<li>数据独立性高</li>
+<li>数据有数据库管理系统统一管理；</li>
+</ol>
+<p>P.s：<strong>关于数据独立性</strong><br>
+所谓数据库中的数据独立性包括：物理独立性、逻辑独立性两个方面：</p>
+<ul>
+<li>物理独立性：用户的应用程序与数据库中数据的物理存储是相互独立的——数据的物理存储改变，不影响应用程序；</li>
+<li>逻辑独立性：用户的应用程序与数据库的逻辑结构是相互独立的——数据的逻辑结构改变了，不影响应用程序。</li>
+<li><strong>数据独立性有数据库管理系统的二级映像功能来保证。</strong></li>
+</ul>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/YM4S9NV8b/" class="tag">
+                    数据库
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/shu-ju-jie-gou-ha-xi-hash/">
+                  <h3 class="post-title">
+                    数据结构：哈希 Hash
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

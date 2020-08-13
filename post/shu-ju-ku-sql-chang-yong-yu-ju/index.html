@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>数据库：SQL常用语句 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1597310925003">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="本文整理一下常用的SQL语句
+
+在本文中，我们主要是用以下实例数据库：
+学生-课程模式S-T：
+
+学生表（学号，姓名，性别，年龄，院系）：Student（Sno，Sname，Ssex，Sage，Sdept）
+课程表（课程号，课程名，先行课，..." />
+    <meta name="keywords" content="数据库" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1597310925003" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">数据库：SQL常用语句</h2>
+            <div class="post-date">2020-07-04</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/shu-ju-ku-sql-chang-yong-yu-ju.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>本文整理一下常用的SQL语句</p>
+<!-- more -->
+<p>在本文中，我们主要是用以下实例数据库：<br>
+学生-课程模式S-T：</p>
+<ul>
+<li>学生表（学号，姓名，性别，年龄，院系）：Student（Sno，Sname，Ssex，Sage，Sdept）</li>
+<li>课程表（课程号，课程名，先行课，学分）：Course（Cno，Cname，Cpno，Ccredit）</li>
+<li>学生选课表（学号，课程号，成绩）：SC（Sno，Cno，Grade）</li>
+</ul>
+<h2 id="1-sql的动词">1. SQL的动词</h2>
+<ul>
+<li>数据查询：SELECT；</li>
+<li>数据定义：CREATE；DROP；ALTER；</li>
+<li>数据操纵：INSERT；UPDATE；DELETE；</li>
+<li>数据控制：GRANT；REVOKE；</li>
+</ul>
+<h2 id="2-数据定义">2. 数据定义</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">操作对象</th>
+<th style="text-align:center">创建</th>
+<th style="text-align:center">删除</th>
+<th style="text-align:center">修改</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">模式</td>
+<td style="text-align:center">CREATE SCHEMA</td>
+<td style="text-align:center">DROP SCHEMA</td>
+<td style="text-align:center">\</td>
+</tr>
+<tr>
+<td style="text-align:center">表</td>
+<td style="text-align:center">CREATE TABLE</td>
+<td style="text-align:center">DROP TABLE</td>
+<td style="text-align:center">ALTER TABLE</td>
+</tr>
+<tr>
+<td style="text-align:center">视图</td>
+<td style="text-align:center">CREATE VIEW</td>
+<td style="text-align:center">DROP VIEW</td>
+<td style="text-align:center">\</td>
+</tr>
+<tr>
+<td style="text-align:center">索引</td>
+<td style="text-align:center">CREATE INDEX</td>
+<td style="text-align:center">DROP INDEX</td>
+<td style="text-align:center">ALTER INDEX</td>
+</tr>
+</tbody>
+</table>
+<h3 id="21-关于模式">2.1 关于模式：</h3>
+<h4 id="211-定义模式">2.1.1 定义模式</h4>
+<blockquote>
+<p>CREATE SCHEMA &lt;模式名&gt; AUTHORIZATION &lt;用户名&gt; [&lt;表定义子句&gt;|&lt;视图定义子句&gt;|&lt;授权定义子句&gt;]</p>
+</blockquote>
+<p>--为用户User定义一个学生-课程模式S-T<br>
+<strong>CREATE SCHEMA S-T AUTHORIZATION User；</strong></p>
+<p>P.s:</p>
+<ol>
+<li>若未指定&lt;模式名&gt;，则&lt;模式名&gt;隐含为&lt;用户名&gt;；</li>
+<li>定义模式实际上定义了一个命名空间，在该命名空间中可定义该模式包含的数据库对象，如：基本表、视图、索引等。</li>
+</ol>
+<h4 id="212-删除模式">2.1.2 删除模式</h4>
+<blockquote>
+<p>DROP SCHEMA &lt;模式名&gt; &lt;CASCADE（级联）|RESTRICT（限制）&gt;</p>
+</blockquote>
+<ul>
+<li>CASCADE（级联）：删除模式的同时把模式中所有数据库对象全部删除；</li>
+<li>RESTRICT（限制）：若该模式中定义了下属数据库对象（表、视图等），则拒绝该删除语句的执行。</li>
+</ul>
+<p>--级联删除模式User<br>
+<strong>DROP SCHEMA User CASCADE;</strong></p>
+<h3 id="22-关于表">2.2 关于表</h3>
+<h4 id="221-创建表">2.2.1 创建表：</h4>
+<p>CREATE TABLE &lt;表名&gt;<br>
+(&lt;列名&gt;&lt;数据类型&gt;[&lt;列级完整性约束&gt;]<br>
+[,&lt;列名&gt;&lt;数据类型&gt;[&lt;列级完整性约束&gt;]<br>
+...<br>
+[,&lt;表级完整性约束&gt;]<br>
+)</p>
+<ul>
+<li>&lt;列级完整性约束&gt;：设计相应属性列的完整性约束条件；</li>
+<li>&lt;表级完整性约束&gt;：设计一个或多个属性列的完整性约束条件；</li>
+</ul>
+<p>--建立学生表<br>
+CREATE TABLE Student<br>
+(<br>
+Sno         CAHR(9)     PRIMARY KEY,<br>
+Sname     CHAR(20)   UNIQUE,<br>
+Ssex        CHAR(2),<br>
+Sage        SMALLINT,<br>
+Sdept       CHAR(20)<br>
+);<br>
+--建立课程表<br>
+CREATE TABLE Course<br>
+(<br>
+Cno     CHAR(4) PRIMARY KEY,<br>
+Cname CHAR(40),<br>
+Cpno    CHAR(4),<br>
+Ccredit SMALLINT,<br>
+FOREIGN KEY (Cpno) REFERENCES Course(Cno)<br>
+);</p>
+<p>--建立学生选课表<br>
+CREATE TABLE SC<br>
+(<br>
+Sno     CHAR(9),<br>
+Cno     CHAR(4),<br>
+Grade   SMALLINT,<br>
+PRIMARY KEY (Sno,Cno),<br>
+FOREIGN KEY (Sno) REFERENCES Student (Sno),<br>
+FOREIGN KEY (Cno) REFERENCES Course (Cno)<br>
+)</p>
+<h4 id="222-修改表">2.2.2 修改表</h4>
+<p>ALTER TABLE &lt;表名&gt;<br>
+[ADD [COLUMN] &lt;列名&gt;&lt;数据类型&gt;[完整性约束]]<br>
+[ADD &lt;表级完整性约束&gt;]<br>
+[DROP [COLUMN] &lt;列名&gt; [CASCADE|RESTRICT]]<br>
+[DROP CONSTRAINT &lt;完整性约束名&gt; [CASCADE|RESTRICT]]<br>
+[ALTER COLUMN &lt;列名&gt;&lt;数据类型&gt;];</p>
+<p>--向Student表中加入“入学时间”列，数据类型为日期（新增的一列均为空值）<br>
+ALTER TABLE Student ADD S_entrance DATE;</p>
+<p>--修改年龄数据类型为整数<br>
+ALTER TABLE Student ALTER COLUMN Sage INT;</p>
+<p>--增加课程名称必为唯一值的约束<br>
+ALTER TABLE Course ADD UNIQUE(Cname);</p>
+<h4 id="223-删除表">2.2.3 删除表</h4>
+<p>DROP TABLE &lt;表名&gt; [CASCADE|RESTRICT]</p>
+<ul>
+<li>CASCADE：删除表时将相关依赖对象（索引、视图等）一起删除；</li>
+<li>RESTRICT：删除的表不能被其他表的约束引用，否则不能删除；</li>
+</ul>
+<h3 id="23-模式与表">2.3 模式与表</h3>
+<p>每个基本表需属于某个模式。定义基本表所属模式有如下方式：</p>
+<ul>
+<li>表名中显式给出：CREATE TABLE &quot;S-T&quot;.Student（...）;</li>
+<li>创建模式同时创建表；</li>
+<li>设置所属模式；</li>
+</ul>
+<p>创建基本表时，若未指定模式，系统会根据搜索路径来确定该对象所属的模式。设置搜索路径的方式：<br>
+<strong>SET search_path TO &quot;S-T&quot;, PUBLIC；</strong></p>
+<h3 id="24-关于索引">2.4 关于索引</h3>
+<p>数据库管理系统中常见的索引：</p>
+<ul>
+<li>顺序文件上的索引</li>
+<li>B+树索引</li>
+<li>Hash索引</li>
+<li>位图索引</li>
+</ul>
+<p>其中，B+树索引具有动态平衡的优点，Hash索引具有查找速度快的特点。</p>
+<h4 id="241-建立索引">2.4.1 建立索引</h4>
+<p>索引可以建立在表的一列或多列上：</p>
+<p>CREATE [UNIQUE][CLUSTER] INDEX &lt;索引名&gt;<br>
+ON &lt;表名&gt;(&lt;列名&gt;[&lt;次序&gt;][,&lt;列名&gt;[&lt;次序&gt;]]...)</p>
+<ul>
+<li>表名：要建立索引的基本表的名字；</li>
+<li>次序：制定索引值的排列次序——升序：ASC；降序：DESC。缺省值为ASC。</li>
+<li>UNIQUE：索引的每一个索引值只对应唯一的数据记录</li>
+<li>CLUSTER： 聚簇索引</li>
+</ul>
+<p>--为Student，Course，SC三个表建立索引。其中Student按学号升序建立唯一索引，Course按课程号升序建立唯一索引，SC按学号升序和课程号降序建立唯一索引：<br>
+CREATE UNIQUE INDEX Stusno ON Student(Sno);<br>
+CREATE UNIQUE INDEX Coucno ON Course(Cno);<br>
+CREATE UNIQUE INDEX SCno ON SC(Sno ASC,Cno DESC);</p>
+<h4 id="242-修改删除索引">2.4.2 修改/删除索引</h4>
+<p>ALTER INDEX &lt;旧索引名&gt; RENAME TO &lt;新索引名&gt;<br>
+E.g：ALTER INDEX SCno RENAME TO SCSno;</p>
+<p>DROP INDEX &lt;索引名&gt;<br>
+E.g：DROP INDEX Stusname;</p>
+<h2 id="3-数据查询">3. 数据查询</h2>
+<p>SELECT [ALL|DISTINCT] &lt;目标表达式&gt;[,&lt;目标表达式&gt;]...<br>
+FROM &lt;表/视图名&gt;[,&lt;表/视图名&gt;]...|(SELECT 语句) [AS] &lt;别名&gt;<br>
+[WHERE &lt;条件表达式&gt;]<br>
+[GROUP &lt;列名1&gt;[HAVING &lt;条件表达式&gt;]]<br>
+[ORDER BY &lt;列名2&gt; [ASC|DESC]]</p>
+<ul>
+<li>SELECT：指定要显示的属性列；</li>
+<li>FROM：指定查询对象</li>
+<li>WHERE：指定查询条件</li>
+<li>GROUP BY：对查询结果按指定列分组</li>
+<li>HAVING：只有满足指定条件的组才输出</li>
+<li>ORDER  BY：对查询结果按列值的升序或降序排列</li>
+</ul>
+<h3 id="31-基础单表查询">3.1 基础单表查询</h3>
+<p>E.g：<br>
+“查询全体学生姓名及出生年份”：<br>
+SELECT Sname，2020-Sage From Student；</p>
+<p>“查询全体学生姓名，出生年份和所在院系（小写字母表示系名）”：<br>
+SELECT Sname，2020-Sage，LOWER(Sdept) FROM Student；</p>
+<p>【使用别名】：<br>
+SELECT Sname NAME，2020-Sage BIRTHDAY FROM Student；</p>
+<p>【消除重复行】（不指定DISTINCT关键词，则缺省为ALL）：<br>
+SELECT DISTINCT Sno FROM SC；</p>
+<p>【大小比较】：<br>
+SELECT Sname FROM Student WHERE Sdept=‘CS’；<br>
+SELECT Sname，Sage FROM Student WHERE Sage&lt;20 AND Sage&gt;17；</p>
+<p>【范围】：<br>
+SELECT Sname，Sage FROM Student WHERE Sage （NOT） BETWEEN 20 AND 23；</p>
+<p>【集合】：<br>
+SELECT Sname，Sage FROM Student WHERE Sdept （NOT） IN（‘CS’，‘MA’，‘IS’）；</p>
+<p>【字符匹配】（‘%’：任意长度字符；‘<em>’：任意单个字符）：<br>
+SELECT * FROM Student WHERE Sno （NOT）LIKE ‘2018216020’；<br>
+SELECT * FROM Student WHERE Sno （NOT）LIKE ‘刘%’；<br>
+SELECT * FROM Course WHERE Cname （NOT）LIKE ‘DB_%i</em> <em>’ ESCAPE ‘\’；（查询以‘DB</em>’开头且倒数第三个字符为i的课程信息，ESCAPE ‘\’说明\为转码符号）。</p>
+<p>【空值】<br>
+SELECT Sno，Cno FROM SC WHERE Grade IS（NOT）NULL；</p>
+<h3 id="32-进阶单表查询">3.2 进阶单表查询：</h3>
+<h4 id="321-order-by-子句">3.2.1 ORDER BY 子句</h4>
+<p>【ORDER BY】按一个或多个属性排序（ASC——升序（默认）；DESC——降序）：<br>
+SELECT Sno，Grade<br>
+FROM SC<br>
+WHERE Cno=‘3’<br>
+ORDER BY Grade DESC；</p>
+<h4 id="322-聚集函数">3.2.2 聚集函数</h4>
+<ul>
+<li>统计元组个数：COUNT（*）</li>
+<li>统计一列中值得个数：COUNT （[DISTINCT｜ALL]&lt;列名&gt;）</li>
+<li>计算一列总和：SUM（[DISTINCT｜ALL]&lt;列名&gt;）</li>
+<li>计算一列平均值：AVG（[DISTINCT｜ALL]&lt;列名&gt;）</li>
+<li>求一列最值：MAX/MIN（[DISTINCT｜ALL]&lt;列名&gt;）</li>
+</ul>
+<p>SELECT COUNT（*）FROM Student；<br>
+SELECT COUNT（DISTINCT Sno） FROM SC；<br>
+SELECT AVG（Grade）FROM SC WHERE Cno=‘1’；</p>
+<h4 id="323-group-by-子句">3.2.3 GROUP BY 子句</h4>
+<p>细化聚集函数作用对象：</p>
+<ul>
+<li>未对查询结果分组，<strong>聚集函数将作用在整个查询结果</strong>；</li>
+<li>对查询结果分组，<strong>聚集函数会作用在每个组</strong>；</li>
+</ul>
+<p>求各门课程相应的选课人数：<br>
+SELECT Cno，COUNT（Sno）<br>
+FROM SC<br>
+GROUP BY Cno；<br>
+<img src="https://mocuishle0.github.io//post-images/1594609759383.png" alt="" loading="lazy"></p>
+<p>查询选了三门以上课程的学生学号<br>
+SELECT Sno<br>
+FROM SC<br>
+GROUP BY Sno<br>
+HAVING COUNT（*）&gt;3;</p>
+<blockquote>
+<p>P.s：WHERE 与 HAVING 区别<br>
+作用对象不同<br>
+WHERE子句作用于基本表或视图，从中选择满足条件的元组；<br>
+HAVING短语作用于组，从中选择满足条件的组；<br>
+WHERE子句中不能用聚集函数作为条件表达式；</p>
+</blockquote>
+<h2 id="33-连接查询">3.3 连接查询</h2>
+<h3 id="331-等值非等值连接查询">3.3.1 等值&amp;非等值连接查询</h3>
+<p><strong>等值连接</strong>：<br>
+SELECT Student.<em>, SC.</em><br>
+FROM Student, SC<br>
+WHERE Student.Sno=SC.Sno;<br>
+<img src="https://mocuishle0.github.io//post-images/1594610358294.png" alt="" loading="lazy"></p>
+<p><strong>自然连接</strong>：<br>
+SELECT Student.Sno,Sname,Ssex,Sage,Sdept,Cno,Grade<br>
+FROM Student,SC<br>
+WHERE Student.Sno=SC.Sno;</p>
+<blockquote>
+<p><strong>连接操作执行过程：</strong><br>
+（1）嵌套循环：多重循环嵌套<br>
+（2）排序合并（常用于等值连接）：先排序后连接<br>
+（3）索引连接：建立索引进而连接</p>
+</blockquote>
+<h3 id="332-自身连接">3.3.2 自身连接</h3>
+<p>一个表与自身进行连接。需要通过别名以示区别：<br>
+SELECT FIRST.Cname,SECOND.Cname<br>
+FROM Course FIRST,Course SECOND<br>
+WHERE FIRST.Cpno=SECOND.cno;<br>
+<img src="https://mocuishle0.github.io//post-images/1594610926638.png" alt="" loading="lazy"></p>
+<h3 id="333-外连接">3.3.3 外连接</h3>
+<p>普通连接仅输出满足连接条件的元组，而外连接则以指定表为连接主体，将主体表中不满足的元组一并输出：</p>
+<ul>
+<li>左外连接：列出左边关系中所有的元组；</li>
+<li>右外连接：列出右边关系中所有的元组；</li>
+</ul>
+<p>SELECT Student.Sno,Sname,Ssex,Sage,Sdept,Cno,Grade<br>
+FROM Student LEFT OUT JOIN SC ON（Student.Sno=SC.Sno）;<br>
+<img src="https://mocuishle0.github.io//post-images/1594611164461.png" alt="" loading="lazy"></p>
+<h2 id="4-数据更新">4. 数据更新</h2>
+<h3 id="41-插入数据">4.1 插入数据</h3>
+<p><strong>A. 插入元组</strong><br>
+INSERT INTO &lt;表名&gt;[(&lt;属性1&gt;[,&lt;属性2&gt;]...)]<br>
+VALUES (&lt;常量1&gt;[,&lt;常量2&gt;]...)；</p>
+<p>E.g：<br>
+INSERT INTO Student（Sno，Sname，Ssex，Sdept，Sage）<br>
+VALUES （‘2018216020’，‘Li’，‘男’，‘CS’，‘18’）；</p>
+<p><strong>B. 插入子查询结果</strong><br>
+INSERT INTO &lt;表名&gt;[(&lt;属性1&gt;[,&lt;属性2&gt;]...)]<br>
+子查询</p>
+<p>E.g：<br>
+INSERT INTO Dept_age（Sdept，Avg_age）<br>
+SELECT Sdept，AVG（Sage）<br>
+FROM Student<br>
+GROUP BY Sdept；</p>
+<h3 id="42-数据修改">4.2 数据修改</h3>
+<p>UPDATE &lt;表名&gt;<br>
+SET &lt;列名&gt;=&lt;表达式&gt;[,&lt;列名&gt;=&lt;表达式&gt;]...<br>
+[WHERE &lt;条件&gt;];</p>
+<p>存在三种修改方式：</p>
+<ul>
+<li>修改某一个元组的值；</li>
+<li>修改多个元组的值；</li>
+<li>带子查询的修改语句；</li>
+</ul>
+<p>【将学号为2018216020的年龄改为24岁】：<br>
+UPDATE Student<br>
+SET Sage=24<br>
+WHERE Sno=‘2018216020’；</p>
+<p>【将所有学生年龄+1】<br>
+UPDATE Student<br>
+SET Sage=Sage+1；</p>
+<p>【将计算机专业全体学生成绩置0】<br>
+UPDATE SC<br>
+SET Grade=0<br>
+WHERE Sno IN<br>
+（SELECT Sno FROM WHERE Sdept=‘CS’）；</p>
+<h3 id="43-删除数据">4.3 删除数据</h3>
+<p>DELETE FROM &lt;表名&gt;<br>
+[WHERE &lt;条件&gt;]</p>
+<p>功能：删除指定表中满足WHERE子句条件的元组<br>
+存在三种删除方式：</p>
+<ul>
+<li>删除某一个元组的值</li>
+<li>删除多个元组的值；</li>
+<li>带子查询的删除语句；</li>
+</ul>
+<p>【将学号为2018216020学生记录删除】<br>
+DELETE FROM Student<br>
+WHERE Sno=‘2018216020’；</p>
+<p>【删除所有学生的选课记录】<br>
+DELETE FROM SC；</p>
+<p>【删除计算机系所有学生的选课记录】<br>
+DELETE FROM SC<br>
+WHERE Sno IN<br>
+（SELECT Sno FROM Student WHERE Sdept=‘CS’）；</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/YM4S9NV8b/" class="tag">
+                    数据库
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/shu-ju-ku-shu-ju-ku-xi-tong-jie-gou/">
+                  <h3 class="post-title">
+                    数据库：数据库系统结构
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

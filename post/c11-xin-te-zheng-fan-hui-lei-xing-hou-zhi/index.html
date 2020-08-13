@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1591687960550">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1597310925003">
 <link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
 
 
@@ -33,7 +33,7 @@ int getSum(int a, int b);
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://mocuishle0.github.io/">
-        <img src="https://mocuishle0.github.io//images/avatar.png?v=1591687960550" class="site-logo">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1597310925003" class="site-logo">
         <h1 class="site-title">MoCuishle</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -114,15 +114,15 @@ int getSum(int a, int b);
 <p>在原来放返回值类型的位置写auto，在函数声明结束以后接一个'-&gt;'再跟着写函数的返回值类型。两种方式的效果是一样的。</p>
 <hr>
 <p><strong>更优雅的用法：</strong></p>
-<p>在介绍返回类型后置之前，我们先来再谈一组令人头大的概念：<strong>数组指针</strong>和<strong>指针数组</strong>......（回想起了被指针常量和常量指针支配的恐惧 -_-）</p>
+<p>在介绍返回类型后置之前，我们先来再谈一组令人头大的概念：<strong>数组指针</strong> 和 <strong>指针数组</strong> ......（回想起了被指针常量和常量指针支配的恐惧 -_-）</p>
 <ul>
-<li><strong>数组指针</strong>：可以理解为**“数组的指针”<strong>，即首先这个变量是一个</strong>指针**，其次，“数组”修饰这个指针，意思是说这个指针存放着一个数组的首地址，或者说这个指针指向一个数组的首地址。
+<li><strong>数组指针</strong>：可以理解为 <strong>“数组的指针”</strong> ，即首先这个变量是一个 <strong>指针</strong> ，其次，“数组”修饰这个指针，意思是说这个指针存放着一个数组的首地址，或者说这个指针指向一个数组的首地址。
 <ul>
 <li>e.g：*<em>char (<em>pa)[4];</em></em></li>
 <li>pa是一个指针指向一个char [4]的数组，每个数组元素是一个char类型的变量，所以我们不妨可以写成：char[4] (*pa);这样就可以直观的看出pa的指向的类型。（不过在编辑器中不要这么写，因为编译器根本不认识，这样写只是帮助我们理解。）</li>
 </ul>
 </li>
-<li><strong>指针数组</strong>：可以理解为**“指针的数组”<strong>，首先这个变量是一个</strong>数组**，其次，“指针”修饰这个数组，意思是说这个数组的所有元素都是指针类型。
+<li><strong>指针数组</strong>：可以理解为 <strong>“指针的数组”</strong> ，首先这个变量是一个 <strong>数组</strong> ，其次，“指针”修饰这个数组，意思是说这个数组的所有元素都是指针类型。
 <ul>
 <li>e.g：*<em>char <em>arr[4] = {&quot;hello&quot;, &quot;world&quot;, &quot;shannxi&quot;, &quot;xian&quot;};</em></em></li>
 <li>arr就是定义的一个指针数组，它有四个元素，每个元素是一个char *类型的指针，这些指针存放着其对应字符串的首地址。</li>

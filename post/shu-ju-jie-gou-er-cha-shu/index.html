@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>数据结构：二叉树 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1597310925003">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="二叉树向来都是一个极其重要的数据结构。此外，二叉树还衍生出众多数据结构，如：B树、B+树、红黑树等。本文将根据近期看到的一些讲解，对该专题进行一个归纳。
+
+1. 二叉查找树（BST）
+1.1 特点
+
+左子树上所有结点的值均小于或等于它的根结..." />
+    <meta name="keywords" content="数据结构" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1597310925003" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">数据结构：二叉树</h2>
+            <div class="post-date">2020-06-11</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/shu-ju-jie-gou-er-cha-shu.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>二叉树向来都是一个极其重要的数据结构。此外，二叉树还衍生出众多数据结构，如：B树、B+树、红黑树等。本文将根据近期看到的一些讲解，对该专题进行一个归纳。</p>
+<!-- more -->
+<h2 id="1-二叉查找树bst">1. 二叉查找树（BST）</h2>
+<h3 id="11-特点">1.1 特点</h3>
+<ul>
+<li>左子树上所有结点的值均小于或等于它的根结点的值。</li>
+<li>右子树上所有结点的值均大于或等于它的根结点的值。</li>
+<li>左、右子树也分别为二叉排序树。<br>
+示例如图：<br>
+<img src="https://mocuishle0.github.io//post-images/1591845027043.webp" alt="" loading="lazy"></li>
+</ul>
+<h3 id="12-缺陷">1.2 缺陷</h3>
+<p>单纯的二叉查找树不包含“调节功能”，这使得在一些极端情况下导致其查询效率大打折扣，甚至退回到线性查找，如图：<br>
+<img src="https://mocuishle0.github.io//post-images/1591845396453.webp" alt="" loading="lazy"><br>
+该示例虽然满足二叉查找树的特征，但显然其查询效率近似于线性查找。</p>
+<h2 id="2-平衡二叉树">2. 平衡二叉树</h2>
+<h3 id="21-特点">2.1 特点</h3>
+<p>平衡二叉树实质仍然是一棵二叉查找树。其采用二分法思维把数据按规则组装成一个树形结构的数据，用这个树形结构的数据减少无关数据的检索，大大的提升了数据检索的速度；平衡二叉树的数据结构组装过程有以下规则：</p>
+<ul>
+<li>非叶子节点只能允许最多两个子节点存在；</li>
+<li>每一个非叶子节点数据分布规则为左边的子节点小当前节点的值，右边的子节点大于当前节点的值(这里值是基于自己的算法规则而定的，比如hash值)；</li>
+<li><strong>树的左右两边的节点层级相差不会大于1</strong>。</li>
+</ul>
+<figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1591845534214.png" alt="" loading="lazy"></figure>
+<h3 id="22-层级结构">2.2 层级结构</h3>
+<p>因为平衡二叉树查询性能和树的层级（h高度）成反比，h值越小查询越快、为了保证树的结构左右两端数据大致平衡降低二叉树的查询难度一般会采用一种算法机制实现节点数据结构的平衡，实现了这种算法的有比如Treap、红黑树。<strong>使用平衡二叉树能保证数据的左右两边的节点层级相差不会大于1</strong>，通过这样避免树形结构由于删除增加变成线性链表影响查询效率，保证数据平衡的情况下查找数据的速度近于二分法查找；</p>
+<h3 id="23-小结">2.3 小结</h3>
+<ul>
+<li>非叶子节点最多拥有两个子节点；</li>
+<li>非叶子节值大于左边子节点、小于右边子节点；</li>
+<li>树的左右两边的层级数相差不会大于1;</li>
+<li>没有值相等重复的节点;</li>
+</ul>
+<h2 id="3-红黑树">3 红黑树</h2>
+<h3 id="31-红黑树特性">3.1 红黑树特性</h3>
+<p>红黑树其实质是一棵平衡二叉树。只是红黑树增加了一些特性来保证其平衡性：</p>
+<ul>
+<li>结点是红色或黑色。</li>
+<li>根结点是黑色。</li>
+<li>每个叶子结点都是黑色的空结点（NIL结点）。</li>
+<li><strong>每个红色结点的两个子结点都是黑色</strong>。(从每个叶子到根的所有路径上不能有两个连续的红色结点)</li>
+<li><strong>从任一结点到其每个叶子的所有路径都包含相同数目的黑色结点</strong>。<br>
+<img src="https://mocuishle0.github.io//post-images/1591845904948.webp" alt="" loading="lazy"></li>
+</ul>
+<p>P.s：正是由于上述规则的限制，才保证了红黑树的自平衡，并保证了红黑树上从根到叶子最长路径不超过最短路径的2倍。</p>
+<h3 id="32-红黑树的自平衡">3.2 红黑树的自平衡</h3>
+<p>正如之前我们所说，平衡二叉树的核心是：<strong>树的左右两边的节点层级相差不会大于1</strong>。红黑树作为一棵特殊的平衡二叉树，其在插入/删除节点时容易打破其规则约束，此时需要对树的结构进行一些调整来维护其仍然满足红黑素性质。<br>
+红黑树维护自平衡性的方法总结来看有两种：</p>
+<ul>
+<li>变色</li>
+<li>旋转：
+<ul>
+<li>左旋</li>
+<li>右旋</li>
+</ul>
+</li>
+</ul>
+<p>由于红黑树的自平衡维护需要根据不同情况具体分析，参考文献：<a href="https://mp.weixin.qq.com/s/X3zYwQXxq93P_XUzFmKluQ">红黑树</a>中对这一过程有具体的说明，此处便不详细展开了。</p>
+<h2 id="4-b树">4. B树</h2>
+<p>B树和平衡二叉树稍有不同的是，<strong>B树属于多叉树又名平衡多路查找树（查找路径不只两个）</strong>。B树和B+树被广泛应用于数据库索引技术中。</p>
+<h3 id="41-b树特性">4.1 B树特性</h3>
+<ul>
+<li>排序方式：所有节点<strong>关键字是按递增次序排列</strong>，并遵循左小右大原则；</li>
+<li>子节点数：**非叶节点的子节点数&gt;1，且&lt;=M **，且M&gt;=2，空树除外（注：<strong>M代表一个树节点最多有多少个查找路径，M=M路,当M=2则是2叉树,M=3则是3叉</strong>）；</li>
+<li>关键字数：<strong>枝节点的关键字数量大于等于ceil(m/2)-1个且小于等于M-1个</strong>（注：ceil()向上取整的函数 如ceil(1.1)结果为2);</li>
+<li><strong>所有叶子节点均在同一层、叶子节点除了包含了关键字和关键字记录的指针外也有指向其子节点的指针只不过其指针地址都为null对应下图最后一层节点的空格子</strong>;</li>
+</ul>
+<figure data-type="image" tabindex="2"><img src="https://mocuishle0.github.io//post-images/1591846623300.jpg" alt="" loading="lazy"></figure>
+<h3 id="42-b树查询">4.2 B树查询</h3>
+<p>其查询过程类似于二分查找</p>
+<h3 id="43-b树插入">4.3 B树插入</h3>
+<p>例如：定义一个5阶树（平衡5路查找树;），现在我们要把3、8、31、11、23、29、50、28 这些数字构建出一个5阶树出来；我们需要遵循以下规则：</p>
+<ul>
+<li>节点拆分规则：当前是要组成一个5路查找树，那么此时m=5,关键字数必须&lt;=5-1（这里关键字数&gt;4就要进行节点拆分）；</li>
+<li>排序规则：满足节点本身比左边节点大，比右边节点小的排序规则;</li>
+</ul>
+<p>我们首先插入 3、8、31、11：<br>
+<img src="https://mocuishle0.github.io//post-images/1591847056750.jpg" alt="" loading="lazy"><br>
+再插入23、29<br>
+<img src="https://mocuishle0.github.io//post-images/1591847098035.jpg" alt="" loading="lazy"><br>
+再插入50、28<br>
+<img src="https://mocuishle0.github.io//post-images/1591847122970.jpg" alt="" loading="lazy"></p>
+<h3 id="44-b树删除">4.4 B树删除</h3>
+<p>当我们需要删除B树中的节点时，需遵循以下规则：</p>
+<ul>
+<li>节点合并规则：当前是要组成一个5路查找树，那么此时m=5,关键字数必须大于等于ceil（5/2）（这里关键字数&lt;2就要进行节点合并）；</li>
+<li>满足节点本身比左边节点大，比右边节点小的排序规则;</li>
+<li>关键字数小于二时先从子节点取，子节点没有符合条件时就向向父节点取，取中间值往父节点放；</li>
+</ul>
+<figure data-type="image" tabindex="3"><img src="https://mocuishle0.github.io//post-images/1591847499673.png" alt="" loading="lazy"></figure>
+<h3 id="45-b树小结">4.5 B树小结</h3>
+<p>B树相对于平衡二叉树的不同是，每个<strong>节点包含的关键字增多了</strong>，特别是在B树应用到数据库中的时候，数据库充分利用了磁盘块的原理（磁盘数据存储是采用块的形式存储的，每个块的大小为4K，每次IO进行数据读取时，同一个磁盘块的数据可以一次性读取出来）把节点大小限制在充分使用在磁盘快大小范围；把树的节点关键字增多后树的层级比原来的二叉树少了，减少数据查找的次数和复杂度;</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/HEBVkFVzq/" class="tag">
+                    数据结构
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/chelloworld-bei-wo-men-hu-lue-liao-shi-me/">
+                  <h3 class="post-title">
+                    C++：HelloWorld被我们忽略了什么
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

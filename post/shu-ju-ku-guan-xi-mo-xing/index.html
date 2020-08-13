@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>数据库：关系模型 | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1597310925003">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="数据模型是对现实世界数据特征的抽象，其可被分为：概念模型、逻辑模型和物理模型两类。本文主要介绍最为常用的一类数据模型——关系模型。
+
+本文主要内容：
+
+关系模型数据结构
+关系模型的数据操纵
+关系模型的完整性约束
+
+首先需要明确的是：关系数据..." />
+    <meta name="keywords" content="数据库" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1597310925003" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">数据库：关系模型</h2>
+            <div class="post-date">2020-07-04</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/shu-ju-ku-guan-xi-mo-xing.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>数据模型是对现实世界数据特征的抽象，其可被分为：概念模型、逻辑模型和物理模型两类。本文主要介绍最为常用的一类数据模型——关系模型。</p>
+<!-- more -->
+<p>本文主要内容：</p>
+<ul>
+<li>关系模型数据结构</li>
+<li>关系模型的数据操纵</li>
+<li>关系模型的完整性约束</li>
+</ul>
+<p>首先需要明确的是：<strong>关系数据库系统采用关系模型作为数据的组织方式</strong>。</p>
+<h2 id="1-关系模型的数据结构">1. 关系模型的数据结构：</h2>
+<p>在用户观点下，关系模型中的逻辑结构是一张<strong>二维表</strong>：</p>
+<ul>
+<li>关系（Relation）：一张表；</li>
+<li>元组（Tuple）：表中一行即为一个元组；</li>
+<li>属性（Attribute）：表中一列即为一个属性；</li>
+<li>主键（Key）：某个属性组，可用于确定一个元组；</li>
+<li>域（Domain）：一组具有相同数据类型的值的集合；</li>
+<li>分量：元组中的一个属性值；</li>
+<li>关系模式：对关系的描述</li>
+</ul>
+<p>P.s：关系必须是规范化的，最基本的规范条件——关系中的每个分量必须是一个不可分的数据项。具体参见后续关于范式的介绍。</p>
+<h2 id="2-关系模型的数据操纵">2. 关系模型的数据操纵</h2>
+<p>数据操作是集合操作，操作对象与结果均为关系：</p>
+<ul>
+<li>查询</li>
+<li>插入</li>
+<li>删除</li>
+<li>更新</li>
+</ul>
+<h2 id="3-关系模型的完整性约束">3. 关系模型的完整性约束</h2>
+<ul>
+<li>实体完整性</li>
+<li>参照完整性</li>
+<li>用户定义完整性</li>
+</ul>
+<h3 id="31-实体完整性">3.1 实体完整性</h3>
+<p>主属性（候选码的诸项属性）不能为空值；<br>
+P.s：</p>
+<ul>
+<li>候选码——关系中某一属性组能唯一表示一个元组。</li>
+<li>现实世界中实体都是可区分的，若主属性为空值说明存在不可区分的实体。</li>
+</ul>
+<h3 id="32-参照完整性">3.2 参照完整性</h3>
+<p>即关系间的参照关系——外码。<br>
+P.s：外码可取空值。</p>
+<h2 id="4-关系模型的优缺点">4. 关系模型的优缺点</h2>
+<ul>
+<li>
+<p>优点：</p>
+<ul>
+<li>建立在严格的数学概念上；</li>
+<li>概念单一——实体和各类联系均用关系表示，检索结果也是关系；</li>
+<li>关系模型存取路径对用户透明</li>
+</ul>
+</li>
+<li>
+<p>缺点：</p>
+<ul>
+<li>查询效率往往不如格式化数据模型</li>
+<li>对用户给定的查询请求往往会进行优化，增加了开发难度</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/YM4S9NV8b/" class="tag">
+                    数据库
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/shu-ju-ku-shu-ju-ku-xi-tong-gai-shu/">
+                  <h3 class="post-title">
+                    数据库：数据库系统概述
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://mocuishle0.github.io/</id>
     <title>MoCuishle</title>
-    <updated>2020-06-09T09:01:04.694Z</updated>
+    <updated>2020-08-13T09:28:51.827Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://mocuishle0.github.io/"/>
     <link rel="self" href="https://mocuishle0.github.io/atom.xml"/>
@@ -12,1161 +12,973 @@
     <icon>https://mocuishle0.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, MoCuishle</rights>
     <entry>
-        <title type="html"><![CDATA[C++11 新特征：线程（1）]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-xian-cheng-1/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-xian-cheng-1/">
+        <title type="html"><![CDATA[数据库：规范化]]></title>
+        <id>https://mocuishle0.github.io/post/shu-ju-ku-gui-fan-hua/</id>
+        <link href="https://mocuishle0.github.io/post/shu-ju-ku-gui-fan-hua/">
         </link>
-        <updated>2020-06-09T01:42:53.000Z</updated>
-        <summary type="html"><![CDATA[<p>C++11最引人注目的特征之一便是其引入了对线程的支持</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>C++11最引人注目的特征之一便是其引入了对线程的支持</p>
-<!-- more -->
-<h2 id="1-基础知识回顾">1. 基础知识回顾</h2>
-<h3 id="11-线程-进程">1.1 线程 &amp; 进程</h3>
+        <updated>2020-07-14T02:28:52.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="1-范式种类">1. 范式种类：</h2>
 <ul>
-<li>进程是<strong>资源分配和调度</strong>的一个独立单位。而线程是<strong>进程的一个实体，是CPU调度和分派</strong>的基本单位。</li>
-<li>一个进程至少拥有一个线程。</li>
-<li>在<strong>同一个进程中的多个线程的内存资源是共享的，也就是说各线程都可以改变进程中的变量</strong>。因此在执行多线程运算的时候要注意执行顺序。</li>
+<li>第一范式（1NF）；</li>
+<li>第二范式（2NF）；</li>
+<li>第三范式（3NF）；</li>
+<li>BC范式（BCNF）；</li>
+<li>第四范式（4NF）；</li>
+<li>第五范式（5NF）；</li>
 </ul>
-<h3 id="12-并发-并行">1.2 并发 &amp; 并行</h3>
+<h2 id="2-第一范式1nf">2. 第一范式（1NF）：</h2>
+<blockquote>
+<p>如果一个关系模式R的所有属性都是不可分的基本数据项，则R属于1NF。</p>
+</blockquote>
+<h2 id="3-第二范式2nf">3. 第二范式（2NF）：</h2>
+<p>如果关系模式R属于1NF，且每一个非主属性都完全函数依赖于R的码，则R属于2NF；</p>
+<h2 id="4-第三范式3nf">4. 第三范式（3NF）：</h2>
+<p>对于满足第三范式的关系模式R，R的每一个非主属性既不部分函数依赖于候选码也不传递依赖于候选码；（非定义，仅为个人理解）</p>
+<h2 id="bc范式">BC范式：</h2>
+<p>关系模式R中，如果每个决定因素都包含码，则R属于BC范式。</p>
+<figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1594694936100.jpeg" alt="" loading="lazy"></figure>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[数据库：视图]]></title>
+        <id>https://mocuishle0.github.io/post/shu-ju-ku-shi-tu/</id>
+        <link href="https://mocuishle0.github.io/post/shu-ju-ku-shi-tu/">
+        </link>
+        <updated>2020-07-14T01:46:45.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="1-视图">1. 视图</h2>
+<h3 id="11-视图特点">1.1 视图特点</h3>
 <ul>
-<li><strong>并行（parallellism）<strong>指的是多个任务在</strong>同一时刻同时在执行</strong>。</li>
-<li><strong>并发（concurrency）<strong>是指在一个时间段内，多个任务</strong>交替进行</strong>。虽然看起来像在同时执行，但其实是交替的。</li>
+<li>虚表，是从一个或几个基本表（或视图）导出的表；</li>
+<li>只存放视图的定义，不存放视图对应的数据；</li>
+<li>基本表改变，从视图中查询的数据也改变；</li>
 </ul>
-<h2 id="2-c11-线程">2. C++11 线程</h2>
-<p>C++11提供了一套精练的线程库，小巧且易用。运行一个线程，可以直接创建一个std::thread的实例，线程在实例成功构造时启动。下面给出一个简单的示例：</p>
-<pre><code>#include &lt;thread&gt;
-#include &lt;iostream&gt;
-
-using namespace std;
-
-void foo() {
-    cout &lt;&lt; &quot;Hello C++11&quot; &lt;&lt; endl;
-}
-
-int main() {
-    thread thread1(foo);  // 启动线程foo
-    thread1.join();  // 等待线程执行完成
-
-    return 0;
-}
-
-/*
-输出：
-Hello C++11
-*/
-</code></pre>
-<h3 id="21-线程参数传入">2.1 线程参数传入</h3>
-<p>查看源代码我们不难发现以下代码：</p>
-<pre><code>explicit thread(_Fp&amp;&amp; __f, _Args&amp;&amp;... __args);
-</code></pre>
-<p>其中：fn，可以指向函数，指向成员，或是移动构造函数；args，是传递给fn的参数，这些参数可以移动赋值构造。如果fn是一个成员指针，那么第一个args参数就必须是一个对象，或是引用，或是指向该对象的指针。下面的样例代码是对最开始的代码的改进：</p>
-<pre><code>void foo(string str)
-{
-    cout &lt;&lt; &quot;Hello C++11 &quot; + str &lt;&lt; endl;
-}
-
-int main()
-{
-    thread thread1(foo,&quot;thread&quot;); // 启动线程foo
-    thread1.join();      // 等待线程执行完成
-
-    return 0;
-}
-
-//输出：Hello C++11 thread
-</code></pre>
-<p>同理，将类成员函数作为线程入口也是可以的——只需要<strong>将this作为第一个参数进行传递</strong>，即可：</p>
-<pre><code>#include &lt;thread&gt;
-#include &lt;iostream&gt;
-
-class Greet
-{
-    const char *owner = &quot;Greet&quot;;
-public:
-    void SayHello(const char *name) {
-        std::cout &lt;&lt; &quot;Hello &quot; &lt;&lt; name &lt;&lt; &quot; from &quot; &lt;&lt; this-&gt;owner &lt;&lt; std::endl;
-    }
-};
-int main() {
-    Greet greet;
-
-    std::thread thread(&amp;Greet::SayHello, &amp;greet, &quot;C++11&quot;);  ////注意在调用非静态类成员函数时，需要加上实例变量。
-    thread.join();
-
-    return 0;
-}
-
-//输出：Hello C++11 from Greet
-</code></pre>
-<p>此外，需要额外注意的是：当调用函数的参数为引用参数时，线程调用需要加上ref关键字表示引用。并且线程函数会改变引用的变量值。</p>
-<pre><code>void Add1(int n)
-{
-    n++;
-    cout &lt;&lt; &quot;n=&quot; &lt;&lt; n &lt;&lt; endl;
-}
-
-void Add2(int &amp;n)
-{
-    n++;
-    cout &lt;&lt; &quot;n=&quot; &lt;&lt; n &lt;&lt; endl;
-}
-
-int main()
-{
-    int n = 0;
-
-    thread t1(Add1, n);
-    t1.join();
-    cout &lt;&lt; &quot;n=&quot; &lt;&lt; n &lt;&lt; endl;
-
-    thread t2(Add2, ref(n));
-    t2.join();
-    cout &lt;&lt; &quot;n=&quot; &lt;&lt; n &lt;&lt; endl;
-
-    return 0;
-}
-/*
-输出：
-n=1
-n=0
-n=1
-n=1
-*/
-</code></pre>
-<h3 id="22-线程管理">2.2 线程管理</h3>
-<h4 id="等待线程完成">等待线程完成</h4>
-<p>一般来说,我们在主线程中开辟出一些子线程来完成我们的任务。正常情况下，需要在主线程的最后调用join()，用于阻塞主线程，避免主线程先于其他子线程执行完毕退出，然后导致整个进程的异常。其中，<strong>join的作用就是等待线程执行完成</strong>。也就是说，join函数返回时，说明子线程执行完成。</p>
-<p><strong>join</strong>：<strong>阻塞当前线程</strong>，直至 *this 所标识的线程完成其执行。*this 所标识的线程的完成同步于从 join() 的成功返回。该方法简单暴力，主线程等待子进程期间什么都不能做。thread::join()会清理子线程相关的内存空间，此后thread object将不再和这个子线程相关了，即thread object不再joinable了，所以join对于一个子线程来说只可以被调用一次，为了实现更精细的线程等待机制，可以使用条件变量等机制。我们不妨参考以下示例：</p>
-<pre><code>void pause_thread(int n)
-{
-    cout&lt;&lt;&quot;No.&quot;&lt;&lt;n&lt;&lt;&quot; starting...&quot;&lt;&lt;endl;
-    this_thread::sleep_for(chrono::seconds(n));
-    cout &lt;&lt; &quot;\t pause of &quot; &lt;&lt; n &lt;&lt; &quot;s ended&quot; &lt;&lt; endl;
-    cout&lt;&lt;&quot;No.&quot;&lt;&lt;n&lt;&lt;&quot; finished&quot;&lt;&lt;endl;
-}
-
-int main()
-{
-    cout &lt;&lt; &quot;Spawning 3 threads...&quot; &lt;&lt; endl;
-    thread t1(pause_thread, 2);
-
-    thread t2(pause_thread, 4);
-
-    thread t3(pause_thread, 6);
-
-    //cout &lt;&lt; &quot;Done spawning threads. Waiting them join...&quot; &lt;&lt; endl;
-
-    t1.join();
-    t2.join();
-    t3.join();
-
-    cout &lt;&lt; &quot;All threads done!&quot; &lt;&lt; endl;
-
-    return 0;
-}
-
-/*
-输出：
-Spawning 3 threads...
-No.2 starting...
-No.4 starting...
-No.6 starting...
-         pause of 2s ended
-No.2 finished
-         pause of 4s ended
-No.4 finished
-         pause of 6s ended
-No.6 finished
-All threads done!
-*/
-</code></pre>
-<h4 id="线程暂停">线程暂停</h4>
-<p>从外部让线程暂停，会引发很多并发问题。这大概也是std::thread并没有直接提供pause函数的原因。但有时线程在运行时，确实需要“停顿”一段时间怎么办呢？可以<strong>使用std::this_thread::sleep_for或std::this_thread::sleep_until</strong>。如下：</p>
-<pre><code>void pause_thread(int n)
-{
-    this_thread::sleep_for(chrono::seconds(n));
-    cout &lt;&lt; &quot;pause of &quot; &lt;&lt; n &lt;&lt; &quot;s ended&quot; &lt;&lt; endl;
-    this_thread::sleep_until(chrono::system_clock::now() + chrono::seconds(n));
-    cout &lt;&lt; &quot;continue&quot; &lt;&lt; endl;
-}
-
-int main()
-{
-    cout &lt;&lt; &quot;Spawning 3 threads...&quot; &lt;&lt; endl;
-    thread th1(pause_thread, 2);
-    thread th2(pause_thread, 4);
-    thread th3(pause_thread, 6);
-
-    cout &lt;&lt; &quot;Done spawning threads. Now waiting for them to join:&quot; &lt;&lt; endl;
-
-    th1.join();
-    th2.join();
-    th3.join();
-
-    cout &lt;&lt; &quot;All threads joined!&quot; &lt;&lt; endl;
-
-    return 0;
-}
-
-/*
-输出：
-Spawning 3 threads...
-Done spawning threads. Now waiting for them to join:
-pause of 2s ended
-continue
-pause of 4s ended
-pause of 6s ended
-continue
-continue
-All threads joined!
-*/
-</code></pre>
-<h4 id="线程拷贝">线程拷贝</h4>
-<pre><code>std::thread a(foo);
-std::thread b;
-b = a;
-</code></pre>
-<p>当执行以上代码时，foo线程最终是由b来管理。std::thread被设计为<strong>只能由一个实例来维护线程状态，以及对线程进行操作</strong>。因此当发生赋值操作时，会发生<strong>线程所有权转移</strong>。赋完值后，原来由a管理的线程改为由b管理，b不再指向任何线程(相当于执行了detach操作)。如果b原本指向了一个线程，那么这个线程会被终止掉。具体示例如下：</p>
-<pre><code>void Add2(int &amp;n)
-{
-    n++;
-    cout &lt;&lt; &quot;n=&quot; &lt;&lt; n &lt;&lt; endl;
-}
-
-int main()
-{
-    int n=0;
-    thread t1(Add2,ref(n));
-
-    thread t2(move(t1));    ////此时t2正在运行Add2()，t1不再是一个线程了。
-    t2.join();
-    
-    return 0;
-}
-</code></pre>
-<h4 id="detach">detach</h4>
-<p>在使用join等待线程完成时，我们可能会想：创建多个线程完成一些任务,不过需要主线程最后等待所有的子线程完毕才能退出,这样不好。所以,detach()应运而生，<strong>希望主线程可以正常的退出, 子线程被挪到后台运行</strong>。<br>
-<strong>detach</strong>：分离线程的对象。即：<strong>将本线程从调用线程中分离出来，允许本线程独立执行。</strong>(但是当主进程结束的时候，即便是detach出去的子线程不管有没有完成都会被强制杀死)。参考以下示例：</p>
-<pre><code>void pause_thread(int n)
-{
-    this_thread::sleep_for(chrono::seconds(n));
-    cout &lt;&lt; &quot;pause of &quot; &lt;&lt; n &lt;&lt; &quot;s ended&quot; &lt;&lt; endl;
-}
-
-int main()
-{
-    cout &lt;&lt; &quot;Spawning 3 threads...&quot; &lt;&lt; endl;
-    thread(pause_thread, 2).detach();
-    thread(pause_thread, 4).detach();
-    thread(pause_thread, 6).detach();
-
-    cout &lt;&lt; &quot;Done spawning threads.&quot; &lt;&lt; endl;
-
-    cout &lt;&lt; &quot;(the main thread will now pause for 5 seconds)\n&quot;;
-    // give the detached threads time to finish (but not guaranteed!):
-    pause_thread(5);
-
-    return 0;
-}
-/*
-输出：
-Spawning 3 threads...
-Done spawning threads.
-(the main thread will now pause for 5 seconds)
-pause of 2s ended
-pause of 4s ended
-pause of 5s ended
-*/
-</code></pre>
-<p>可见：<strong>当主进程结束的时候，即便是detach出去的子线程不管有没有完成都会被强制杀死</strong>（thread(pause_thread, 6).detach();）在主进程结束时并未完成就被强制结束。<br>
-P.s：detach以后就失去了对线程的所有权，不能再调用join了，因为线程已经分离出去了，不再归该实例管了。当任一结束执行，其资源被释放。</p>
-<h4 id="joinable">joinable</h4>
-<p><strong>joinable</strong>：<strong>判断线程是否还有对线程的所有权</strong>，返回true则有，否则为无。也就是说，joiable可以用来判断当前线程是否能够调用join()或者detach()，可以返回true；不可以返回false。即：调用过join就不能在后面调用detach；调用过detach就不能在后面调用join。其常用方式如下：</p>
-<pre><code>//...exa
-thread t1(fun);
-if (t1.joinable() )
-{	
-	//ok to call join/detach
-}
-else
-{
-	//ban
-}
-</code></pre>
-<h4 id="获取线程id">获取线程ID</h4>
-<p>通过get_id()可以获得线程id信息：</p>
-<pre><code>void thread_function(string &amp;s)
-{
-    cout &lt;&lt; &quot;thread function &quot;;
-    cout &lt;&lt; &quot;message is = &quot; &lt;&lt; s &lt;&lt; endl;
-}
-
-int main(){
-    void thread_function(string &amp;s)
-    {
-        cout &lt;&lt; &quot;thread function &quot;;
-        cout &lt;&lt; &quot;message is = &quot; &lt;&lt; s &lt;&lt; endl;
-        s = &quot;CBA&quot;;
-    }
-    return 0;
-}
-
-//输出：
-main thread message = ABC
-Main thread id is: 0x10994fdc0
-Child thread id is: 0x70000fa4f000
-thread function message is = ABC
-</code></pre>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[C++11 新特征：智能指针总结]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-zong-jie/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-zong-jie/">
-        </link>
-        <updated>2020-06-08T10:15:38.000Z</updated>
-        <summary type="html"><![CDATA[<p>指针和内存管理本来就是C++最令人难以理解，也是最头疼的两部分，而智能指针则正好是这两部分的综合。因此，理解起来难免有些吃力。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>指针和内存管理本来就是C++最令人难以理解，也是最头疼的两部分，而智能指针则正好是这两部分的综合。因此，理解起来难免有些吃力。</p>
-<!-- more -->
-<h2 id="1-为什么会引入智能指针">1. 为什么会引入智能指针</h2>
-<p>首先需要明确的是，智能指针并不是C++11新引入的概念，C++98提供了第一个智能指针：<strong>auto_ptr</strong>。那么，为什么需要引入智能指针？概括的来说，是为了防止内存泄露等问题，用一个对象来管理野指针，使得在该对象构造时获得该指针管理权，析构时自动释放(delete)。为了便于理解，可以参考以下代码：</p>
-<pre><code>void remodel(std::string &amp; str)
-{
-    std::string * ps = new std::string(str);
-    ...
-    if (weird_thing())
-        throw exception();
-    str = *ps; 
-    delete ps;
-    return;
-}
-</code></pre>
-<p>当出现异常时（weird_thing()返回true），delete将不被执行，因此将导致内存泄露。如何避免这种问题？有人会说，直接在“throw exception();”之前加上“delete ps;”不就行了。是的，本应如此，问题是很多人都会忘记在适当的地方加上delete语句（连上述代码中最后的那句delete语句也会有很多人忘记吧）！这时我们会想：当remodel这样的函数终止（不管是正常终止，还是由于出现了异常而终止），本地变量都将自动从栈内存中删除——因此指针ps占据的内存将被释放。</p>
-<p>自然地，我们会想到如果ps指向的内存也被自动释放，那该有多好啊。我们知道析构函数有这个功能。如果ps有一个析构函数，该析构函数将在ps过期时自动释放它指向的内存。但ps的问题在于，它只是一个常规指针，不是有析构凼数的类对象指针。<strong>如果它指向的是对象，则可以在对象过期时，让它的析构函数删除指向的内存。这正是 auto_ptr、unique_ptr和shared_ptr这几个智能指针背后的设计思想</strong>。所以智能指针的核心思想就是：将基本类型指针封装为类对象指针（这个类肯定是个模板，以适应不同基本类型的需求），并在析构函数里编写delete语句删除指针指向的内存空间。下图就很形象地展示了普通指针与智能指针的区别：<br>
-<img src="https://mocuishle0.github.io//post-images/1591612494233.png" alt="" loading="lazy"><br>
-所以，对于我们一开始给出的例子，我们可以做如下改进：</p>
-<pre><code># include &lt;memory&gt;      //包含智能指针的头文件
-void remodel (std::string &amp; str)
-{
-    std::auto_ptr&lt;std::string&gt; ps (new std::string(str))；
-    ...
-    if (weird_thing ())
-        throw exception()； 
-    str = *ps； 
-    // delete ps； NO LONGER NEEDED
-    return;
-}
-</code></pre>
-<h2 id="2-c11的智能指针">2. C++11的智能指针</h2>
-<p>正如我们一开始所说，智能指针并不是C++11新提出的概念，早在C++98就出现了第一个智能指针：<strong>auto_ptr</strong>。但我们也注意到，在C++11中，摒弃了原有的auto_ptr指针，而引入了：<strong>shared_ptr,unique_ptr,weak_ptr</strong>三种新的智能指针。</p>
-<h3 id="21-为什么摒弃auto_ptr">2.1 为什么摒弃auto_ptr</h3>
-<p>自然地，我们会思考：为什么摒弃auto_ptr？我们不妨考虑下列代码：</p>
-<pre><code>auto_ptr&lt; string&gt; ps (new string (&quot;I reigned lonely as a cloud.”）;
-auto_ptr&lt;string&gt; vocation; 
-vocaticn = ps;
-</code></pre>
-<p>上述赋值语句将完成什么工作呢？<strong>如果ps和vocation是常规指针，则两个指针将指向同一个string对象。这是不能接受的，因为程序将试图删除同一个对象两次</strong>——一次是ps过期时，另一次是vocation过期时。要避免这种问题，方法有多种：</p>
+<h3 id="12-定义视图">1.2 定义视图</h3>
+<h4 id="121-创建">1.2.1 创建</h4>
+<p>CREATE VIEW &lt;视图名&gt;[(&lt;列名&gt;&lt;列名&gt;...)]<br>
+AS &lt;子查询&gt;<br>
+[WITH CHECK OPTION]；</p>
+<p>P.s：</p>
 <ul>
-<li>建立所有权（ownership）概念。<strong>对于特定的对象，只能有一个智能指针可拥有，这样只有拥有对象的智能指针的构造函数会删除该对象</strong>。然后让赋值操作转让所有权。<strong>这就是用于auto_ptr和uniqiie_ptr 的策略，但unique_ptr的策略更严格</strong>。</li>
-<li>创建智能更高的指针，跟踪引用特定对象的智能指针数。这称为<strong>引用计数</strong>。例如，赋值时，计数将加1，而指针过期时，计数将减1。当减为0时才调用delete。<strong>这是shared_ptr采用的策略</strong>。</li>
+<li>WITH CHECK OPTION：对视图进行UPDATE，INSERT和DELETE时候，需要保证更新、插入和删除的行满足视图定义中的谓词条件（即子查询中的条件表达式）；</li>
+<li>执行CREATE VIEW语句时，只是将视图定义存入数据字典，并不执行其中的SELECT语句；对视图查询时，按视图定义从基本表中查出数据。</li>
 </ul>
-<p>以上两种策略都各有自己用途，而auto_ptr为什么会被摒弃不妨参考以下示例：</p>
-<pre><code>#include &lt;iostream&gt;
-#include &lt;string&gt;
-#include &lt;memory&gt;
-using namespace std;
-
-int main() {
-  auto_ptr&lt;string&gt; films[5] =
- {
-  auto_ptr&lt;string&gt; (new string(&quot;Fowl Balls&quot;)),
-  auto_ptr&lt;string&gt; (new string(&quot;Duck Walks&quot;)),
-  auto_ptr&lt;string&gt; (new string(&quot;Chicken Runs&quot;)),
-  auto_ptr&lt;string&gt; (new string(&quot;Turkey Errors&quot;)),
-  auto_ptr&lt;string&gt; (new string(&quot;Goose Eggs&quot;))
- };
- auto_ptr&lt;string&gt; pwin;
- pwin = films[2]; // films[2] loses ownership. 将所有权从films[2]转让给pwin，此时films[2]不再引用该字符串从而变成空指针
-
- cout &lt;&lt; &quot;The nominees for best avian baseballl film are\n&quot;;
- for(int i = 0; i &lt; 5; ++i)
-  cout &lt;&lt; *films[i] &lt;&lt; endl;
- cout &lt;&lt; &quot;The winner is &quot; &lt;&lt; *pwin &lt;&lt; endl;
- cin.get();
-
- return 0;
-}
-</code></pre>
-<p><strong>运行时发现程序崩溃（Segmentation fault: 11）</strong>，原因在上面注释已经说的很清楚，films[2]已经是空指针了，下面输出访问空指针当然会崩溃了。</p>
-<p>这里如果把auto_ptr换成shared_ptr，程序就不会崩溃。这是由于：<strong>使用shared_ptr时运行正常</strong>，因为shared_ptr采用引用计数，pwin和films[2]都指向同一块内存，在释放空间时因为事先要判断引用计数值的大小因此不会出现多次删除一个对象的错误。</p>
-<p>这里如果把auto_ptr换成unique_ptr，<strong>程序会在编译时出错</strong>，与auto_ptr一样，unique_ptr也采用所有权模型，但在使用unique_ptr时，程序不会等到运行阶段崩溃，而在编译器因下述代码行出现错误，从而指导程序员发现潜在的内存错误。</p>
-<p>因此，我们不难看出，unique_ptr比auto_ptr更加安全。</p>
-<h3 id="22-c11智能指针">2.2 C++11智能指针</h3>
+<p>【建立计算机系学生视图】<br>
+CREATE VIEW CS_Student<br>
+AS<br>
+SELECT  Sno，Sname，Sage<br>
+FROM Student<br>
+WHERE Sdept=‘CS’；</p>
+<p>【建立计算机系学生视图，并要求对视图进行修改和插入操作是仍保证该视图只有计算机系学生】<br>
+CREATE VIEW CS_Student<br>
+AS<br>
+SELECT  Sno，Sname，Sage<br>
+FROM Student<br>
+WHERE Sdept=‘CS’<br>
+WITH CHECK OPTION；</p>
+<h4 id="122-删除">1.2.2 删除</h4>
+<p>DROP VIEW &lt;视图名&gt;[CASCADE];</p>
+<h3 id="13-查询视图">1.3 查询视图</h3>
+<p>类似于基本表</p>
+<h3 id="14-更新视图">1.4 更新视图</h3>
+<p>类似于基本表</p>
+<h3 id="15-视图的作用">1.5 视图的作用</h3>
 <ul>
-<li><strong>shared_ptr</strong>，基于<strong>引用计数的智能指针</strong>，会统计当前有多少个对象同时拥有该内部指针；当引用计数降为0时，自动释放；</li>
-<li><strong>weak_ptr</strong>，基于引用计数的智能指针（shared_ptr）在面对循环引用的问题将无能为力，因此C++11还引入weak_ptr与之配套使用，<strong>weak_ptr只引用，不计数</strong>；</li>
-<li><strong>unique_ptr</strong>: 遵循<strong>独占语义的智能指针</strong>，在任何时间点，资源智能唯一地被一个unique_ptr所占有，当其离开作用域时自动析构。<strong>资源所有权的转移只能通过std::move()而不能通过赋值</strong>。</li>
-</ul>
-<p>其实，相较于shared_ptr与unique_ptr而言，weak_ptr的作用显得较为模糊。参照知乎上各位大神的理解来看，<strong>weak_ptr和shared_ptr的最大区别在于weak_ptr在指向一个对象的时候不会增加其引用计数</strong>。因此<strong>可以用weak_ptr去指向一个对象并且在weak_ptr仍然指向这个对象的时候析构它</strong>，此时你再访问weak_ptr的时候，weak_ptr其实返回的会是一个空的shared_ptr。<br>
-为什么要采取weak_ptr来解决刚才所述的环状引用的问题呢？需要注意的是环状引用的本质矛盾是不能通过任何程序设计语言的方式来打破的，为了解决环状引用，第一步首先得打破环，也就是得告诉C++，这个环上哪一个引用是最弱的，是可以被打破的，因此在一个环上只要把原来的某一个shared_ptr改成weak_ptr，实质上这个环就可以被打破了，原有的环状引用带来的无法析构的问题也就随之得到了解决。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[C++11 新特征：智能指针——weak_ptr]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-weak_ptr/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-weak_ptr/">
-        </link>
-        <updated>2020-06-08T08:37:53.000Z</updated>
-        <summary type="html"><![CDATA[<p>weak_ptr看起来更像shared_ptr的附属品，它从shared_ptr衍生，但不会控制所指向对象的生命周期。weak_ptr的弱就弱在这里。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>weak_ptr看起来更像shared_ptr的附属品，它从shared_ptr衍生，但不会控制所指向对象的生命周期。weak_ptr的弱就弱在这里。</p>
-<!-- more -->
-<h2 id="1-初始化">1. 初始化</h2>
-<p>一共有三种形式，都非常简单，直接看代码：</p>
-<pre><code>shared_ptr&lt;MyString&gt; shpr = make_shared&lt;MyString&gt;(&quot;Hello shared_ptr&quot;);
-cout &lt;&lt; &quot;shpr.get = &quot; &lt;&lt; shpr.get() &lt;&lt; endl;
-cout &lt;&lt; &quot;shpr.use_count = &quot; &lt;&lt; shpr.use_count() &lt;&lt; endl;
-
-//空weak_ptr
-weak_ptr&lt;MyString&gt; wp1;
-cout &lt;&lt; &quot;wp1.use_count = &quot; &lt;&lt; wp1.use_count() &lt;&lt; endl;
-
-//从shared_ptr构造weak_ptr
-weak_ptr&lt;MyString&gt; wp2(shpr);
-cout &lt;&lt; &quot;wp2.use_count = &quot; &lt;&lt; wp2.use_count() &lt;&lt; endl;
-
-//从其他weak_ptr构造weak_ptr
-weak_ptr&lt;MyString&gt; wp3(wp2);
-cout &lt;&lt; &quot;wp3.use_count = &quot; &lt;&lt; wp3.use_count() &lt;&lt; endl;
-
-/*
-输出：
-Constructed (Hello shared_ptr)!
-shpr.get = 0x7fc419504098
-shpr.use_count = 1
-wp1.use_count = 0
-wp2.use_count = 1
-wp3.use_count = 1
-Destructed (Hello shared_ptr)!
-*/
-</code></pre>
-<p>虽然根据shared_ptr构造了两个weak_ptr，引用计数仍然为1。</p>
-<h2 id="2-赋值">2. 赋值</h2>
-<p>相应地，赋值操作同样简单：</p>
-<pre><code>shared_ptr&lt;MyString&gt; shpr = make_shared&lt;MyString&gt;(&quot;Hello shared_ptr&quot;);
-cout &lt;&lt; &quot;shpr.get = &quot; &lt;&lt; shpr.get() &lt;&lt; endl;
-cout &lt;&lt; &quot;shpr.use_count = &quot; &lt;&lt; shpr.use_count() &lt;&lt; endl;
-
-weak_ptr&lt;MyString&gt; wp4;
-weak_ptr&lt;MyString&gt; wp5;
-
-wp4=shpr;
-cout &lt;&lt; &quot;wp4.use_count = &quot; &lt;&lt; wp4.use_count() &lt;&lt; endl;
-
-wp5=wp4;
-cout &lt;&lt; &quot;wp5.use_count = &quot; &lt;&lt; wp5.use_count() &lt;&lt; endl;
-
-cout &lt;&lt; &quot;shpr.get = &quot; &lt;&lt; shpr.get() &lt;&lt; endl;
-cout &lt;&lt; &quot;shpr.use_count = &quot; &lt;&lt; shpr.use_count() &lt;&lt; endl;
-
-输出：
-Constructed (Hello shared_ptr)!
-shpr.get = 0x7f8dcee059b8
-shpr.use_count = 1
-wp4.use_count = 1
-wp5.use_count = 1
-shpr.get = 0x7f8dcee059b8
-shpr.use_count = 1
-Destructed (Hello shared_ptr)!
-*/
-</code></pre>
-<h2 id="3-使用">3. 使用</h2>
-<p>C++11标准库没有提供通过weak_ptr直接访问对象的方法，而是调用weak_ptr的lock方法生成一个shared_ptr，再通过shared_ptr访问对象：<br>
-<img src="https://mocuishle0.github.io//post-images/1591609352184.png" alt="" loading="lazy"><br>
-上述示例输出为“127”，也就是说weak_ptr提供了一种按需锁定对象的手段。</p>
-<p>其实，关于weak_ptr与shared_ptr之间的关系可参考：<a href="https://blog.csdn.net/craftsman1970/article/details/80889084">shared_ptr/weak_ptr示例</a></p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[C++11 新特征：智能指针——unique_ptr]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-unique_ptr/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-unique_ptr/">
-        </link>
-        <updated>2020-06-08T03:18:09.000Z</updated>
-        <summary type="html"><![CDATA[<p>在C++11引入的新智能指针中，shared_ptr指针通过其计数机制实现与其他指针共享内存。此外，在C++11中还存在一个与之相应的智能指针——unique_prt：它同样可以自动管理内存，只是这块内存不和其他的unique_ptr分享。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>在C++11引入的新智能指针中，shared_ptr指针通过其计数机制实现与其他指针共享内存。此外，在C++11中还存在一个与之相应的智能指针——unique_prt：它同样可以自动管理内存，只是这块内存不和其他的unique_ptr分享。</p>
-<!-- more -->
-<h2 id="1-unique_ptr指针的初始化-赋值">1. unique_ptr指针的初始化 &amp; 赋值</h2>
-<p>有了shared_ptr的基础，我们首先介绍unique_ptr指针的初始化、赋值:</p>
-<h3 id="11-初始化">1.1 初始化</h3>
-<p>如果观察unique_ptr的构造函数声明会发现，unique_ptr支持的构造函数和shared_ptr相差无几，这里直接举例：<br>
-1）<strong>初始化为空指针</strong>：<br>
-<img src="https://mocuishle0.github.io//post-images/1591602846333.png" alt="" loading="lazy"><br>
-2）<strong>从指针创建</strong>：<br>
-<img src="https://mocuishle0.github.io//post-images/1591602869282.png" alt="" loading="lazy"><br>
-3）<strong>从右值引用创建</strong>：<br>
-<img src="https://mocuishle0.github.io//post-images/1591602892061.png" alt="" loading="lazy"><br>
-从输出结果可见，内存从p3转到了p4:<br>
-<img src="https://mocuishle0.github.io//post-images/1591603039945.png" alt="" loading="lazy"></p>
-<h3 id="12-赋值">1.2 赋值</h3>
-<p>需要强调的是，由于unique_ptr对于内存的独占特性，<strong>unique_ptr不支持直接的赋值操作，而只能支持右值引用的赋值</strong>，基本形式如下：</p>
-<pre><code>unique_ptr&lt;MyString&gt; p1(new MyString(&quot;hello unique ptr&quot;));
-cout &lt;&lt; &quot;p1.get = &quot; &lt;&lt; p1.get() &lt;&lt; endl;
-
-unique_ptr&lt;MyString&gt; p2;
-cout &lt;&lt; &quot;p2.get = &quot; &lt;&lt; p2.get() &lt;&lt; endl;
-
-p2 = move(p1);
-cout &lt;&lt; &quot;p1.get = &quot; &lt;&lt; p1.get() &lt;&lt; endl;
-cout &lt;&lt; &quot;p2.get = &quot; &lt;&lt; p2.get() &lt;&lt; endl;
-
-/*
-输出：
-Constructed (hello unique ptr)!
-p1.get = 0x7f8381c05a00
-p2.get = 0x0
-p1.get = 0x0
-p2.get = 0x7f8381c05a00
-Destructed (hello unique ptr)!
-*/
-</code></pre>
-<p>需要说明的是，上述代码其实并没有什么实际意义，仅是为了说明unique_ptr采用了所有权独占机制。在真正的项目中，unique_ptr最常见的用法如下：</p>
-<pre><code>unique_ptr&lt;MyString&gt; GetUnique(string ms)
-{
-    unique_ptr&lt;MyString&gt; tmp(new MyString(ms));
-    cout &lt;&lt; tmp.get() &lt;&lt; endl;
-    return tmp;
-}
-
-int main(){
-    unique_ptr&lt;MyString&gt; p1;
-    p1 = GetUnique(&quot;hello unique_ptr&quot;);
-
-    p1-&gt;Output();
-    cout &lt;&lt; p1.get() &lt;&lt; endl;
-    return 0;
-} 
-
-/*
-输出：
-Constructed (hello unique_ptr)!
-0x7fde05405a00
-hello unique_ptr
-0x7fde05405a00
-Destructed (hello unique_ptr)!
-*/
-</code></pre>
-<p>GetUnique()返回一个临时unique_ptr，然后p1接管了原本归返回的unique_ptr所有的对象，而返回时临时的 unique_ptr 被销毁，也就是说没有机会使用unique_ptr 来访问无效的数据，换句话来说，这种赋值是不会出现任何问题的，即没有理由禁止这种赋值。实际上，编译器确实允许这种赋值，这正是unique_ptr更聪明的地方。</p>
-<p><strong>总之，党程序试图将一个 unique_ptr 赋值给另一个时，如果源 unique_ptr 是个临时右值，编译器允许这么做；如果源 unique_ptr 将存在一段时间，编译器将禁止这么做，比如：</strong></p>
-<pre><code>unique_ptr&lt;string&gt; pu1(new string (&quot;hello world&quot;));
-unique_ptr&lt;string&gt; pu2;
-pu2 = pu1;                                      //#1 not allowed---编译器报错
-unique_ptr&lt;string&gt; pu3;
-pu3 = unique_ptr&lt;string&gt;(new string (&quot;You&quot;));   //#2 allowed
-</code></pre>
-<p>其中#1留下悬挂的unique_ptr(pu1)，这可能导致危害。而#2不会留下悬挂的unique_ptr，因为它调用 unique_ptr 的构造函数，该构造函数创建的临时对象在其所有权让给 pu3 后就会被销毁。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[C++11 新特征：智能指针——shared_ptr]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-shared_ptr/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-zhi-neng-zhi-zhen-shared_ptr/">
-        </link>
-        <updated>2020-06-08T01:19:16.000Z</updated>
-        <summary type="html"><![CDATA[<p><strong>shared_ptr</strong>在内部维护一个相当于<strong>引用计数的机制</strong>，允许多个指针同时指向一个对象。某个指针被销毁之后，引用计数同时较少，当所有指针都被销毁之后，自动释放管理的对象。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p><strong>shared_ptr</strong>在内部维护一个相当于<strong>引用计数的机制</strong>，允许多个指针同时指向一个对象。某个指针被销毁之后，引用计数同时较少，当所有指针都被销毁之后，自动释放管理的对象。</p>
-<!-- more -->
-<p>本文主要内容仍然参照：<a href="https://blog.csdn.net/craftsman1970/article/details/80752044">参考文献</a></p>
-<p>首先，我们需要知道：智能指针的出现是为了便于程序员<strong>对内存进行管理而引入的</strong>。为了解决这个问题，C++11标准库引入了三种智能指针，动作类似于常规指针，同时具备在合适的时机自动释放内存的功能（防止内存泄漏）。其次，我们应该理解：智能指针背后的设计思想，其实是将基本类型指针封装为类对象指针（这个类肯定是个模板，以适应不同基本类型的需求），并在析构函数里编写delete语句删除指针指向的内存空间。</p>
-<p>本文先主要介绍智能指针之一——shared_ptr，<strong>一种采用引用计数机制的智能指针</strong>：</p>
-<h2 id="1-预备工作">1. 预备工作</h2>
-<p>为了更好地展示智能指针shared_ptr的用法及作用，我们首先构造一个类：</p>
-<pre><code>class MyString
-{
-private:
-    string text;
-
-public:
-    MyString(string str) : text(str)
-    {
-        cout &lt;&lt; &quot;Constructed (&quot; &lt;&lt; str &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
-    }
-    ~MyString()
-    {
-        cout &lt;&lt; &quot;Destructed (&quot; &lt;&lt; text &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
-    }
-
-    void Output()
-    {
-        cout &lt;&lt; text &lt;&lt; endl;
-    }
-};
-</code></pre>
-<p>每当这个类的对象被创建和销毁的时候，可以相应的输出Constructed和Destructed字符串，这样我们可以清晰地观察为1变量分配内存和释放内存的时间。</p>
-<h2 id="2-shared_ptr的声明-初始化-赋值">2. shared_ptr的声明、初始化、赋值</h2>
-<p>首先，我们给出一个简单的实例。由于<strong>shared_ptr是一个模版类，在声明时必须声明指向对象的类型：</strong></p>
-<pre><code>shared_ptr&lt;MyString&gt; p1;                //定义了一个空的shared_ptr，未初始化
-
-shared_ptr&lt;MyString&gt; p2=make_shared&lt;MyString&gt;(&quot;Hello ptr -&gt;&quot;);  //初始化，最安全的方式是使用make_shared标准库函数
-p1 = p2;                        //赋值
-</code></pre>
-<p>之所以说make_shared这种方式安全，是因为make_shared虽然也生成了MyString对象，并将这个对象直接装配到shared_ptr上。</p>
-<p>需要强调的是，<strong>shared_prt的本身是一个类，所以它的初始化实际上就是调用shared_ptr类的构造函数</strong>。通过分析shared_ptr的源码，我们可以发现以下构造函数：<br>
-1）<strong>default构造函数</strong>：</p>
-<pre><code>_LIBCPP_CONSTEXPR shared_ptr() _NOEXCEPT;
-//default构造函数：e.g: shared_ptr&lt;int&gt; p;  ———— 声明空shared_ptr
-</code></pre>
-<p>2）<strong>空指针构造</strong>：</p>
-<pre><code>_LIBCPP_CONSTEXPR shared_ptr(nullptr_t) _NOEXCEPT;
-//由空指针构造：e.g: shared_ptr&lt;int&gt; p(nullptr); ———— 通过空指针构造shared_ptr
-</code></pre>
-<p>3）<strong>根据已有指针构造shared_ptr</strong>：</p>
-<pre><code>explicit shared_ptr (U* p);
-//根据已有指针构造shared_ptr：
-//shared_ptr&lt;string&gt; p1(new string(&quot;First&quot;));    ———— 对象创建后直接构造shared_ptr
-
-//string *s=new string(&quot;Second&quot;);
-//shared_ptr&lt;string&gt;  p2(s);              ———— 对象创建后先临时保存，再构造shared_ptr
-</code></pre>
-<p>根据已有指针构造shared_ptr的两种方式都合法，但是在第二种情况中应该理解，一旦构造了share_ptr，就表明<strong>s指向的string对象的内存管理已经交给ps1管理而不应该在通过s访问了</strong>（至少是非常小心的访问）。所以，第二种方式应该尽量避免。</p>
-<p>4）<strong>拷贝构造</strong>：</p>
-<pre><code>shared_ptr(const shared_ptr&amp; __r) _NOEXCEPT;
-//拷贝构造：
-//shared_ptr&lt;string&gt; ps1(new strinng(&quot;Test&quot;)); ———— ps1.use_count()=1;
-//shared_ptr&lt;string&gt; ps2(ps1);  ———— ps1.use_count() = ps2.use_count()=2;  ps1.get()=ps2.get();
-</code></pre>
-<p>拷贝构造函数执行以后，引用计数增加，两个指针指向同一个对象。</p>
-<p>5）<strong>移动构造</strong>：</p>
-<pre><code>shared_ptr(shared_ptr&amp;&amp; __r) _NOEXCEPT;
-//移动构造：由一个已有的shared_ptr创建新的share_ptr。作为参数的shared_pt同时会释放对内存的管理权利，整个构造过程结束后，引用计数不变。
-//shared_ptr&lt;string&gt; ps1(new strinng(&quot;Test&quot;)); ———— ps1.use_count()=1;
-//shared_ptr&lt;string&gt; ps2(move(ps1));  ———— ps1.use_count()=0; ps2.use_count()=1; ps1.get()=0; ps2.get()=****
-</code></pre>
-<p>移动构造中，作为参数的shared_pt同时会释放对内存的管理权利，整个构造过程结束后，引用计数不变。</p>
-<p>此外，对于赋值操作，也有以下几种方式：<br>
-1）<strong>拷贝赋值</strong>：从已有指针赋值给shared_ptr，共享数据管理权。（类似于拷贝构造）</p>
-<pre><code>shared_ptr&amp; operator= (const shared_ptr&amp; x) noexcept;
-</code></pre>
-<p><img src="https://mocuishle0.github.io//post-images/1591583984679.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1591584046154.png" alt="" loading="lazy"></p>
-<p>2）<strong>移动赋值</strong>：从已有指针赋值给shared_ptr，伴随数据管理权的转移。移动赋值和拷贝赋值的区别在于参数是否为右值引用。</p>
-<pre><code>shared_ptr&amp; operator= (shared_ptr&amp;&amp; x) noexcept;
-</code></pre>
-<p><img src="https://mocuishle0.github.io//post-images/1591584194099.png" alt="" loading="lazy"><br>
-<img src="https://mocuishle0.github.io//post-images/1591584203480.png" alt="" loading="lazy"><br>
-需要注意的是：make_shared也属于移动赋值。<br>
-<img src="https://mocuishle0.github.io//post-images/1591584275145.png" alt="" loading="lazy"></p>
-<h2 id="3-shared_ptr的使用">3. shared_ptr的使用</h2>
-<p>可以像普通指针一样使用shared_ptr:</p>
-<pre><code>p1-&gt;Output();
-p2-&gt;Output();
-</code></pre>
-<p>示例代码：</p>
-<pre><code>#include &lt;iostream&gt;
-#include &lt;memory&gt;
-#include &lt;string&gt;
-
-using namespace std;
-
-class MyString
-{
-private:
-    string text;
-
-public:
-    MyString(string str) : text(str)
-    {
-        cout &lt;&lt; &quot;Constructed (&quot; &lt;&lt; str &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
-    }
-    ~MyString()
-    {
-        cout &lt;&lt; &quot;Destructed (&quot; &lt;&lt; text &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
-    }
-
-    void Output()
-    {
-        cout &lt;&lt; text &lt;&lt; endl;
-    }
-};
-
-int main()
-{
-    MyString mystring(&quot;Hello world :-)&quot;);
-    mystring.Output();
-
-    shared_ptr&lt;MyString&gt; p1;
-    //p1-&gt;Output();
-
-    shared_ptr&lt;MyString&gt; p2=make_shared&lt;MyString&gt;(&quot;Hello ptr -&gt;&quot;);
-    //p2-&gt;Output();
-
-    p1=p2;
-
-    p1-&gt;Output();
-    p2-&gt;Output();
-
-    return 0;
-}
-
-/*输出
-Constructed (Hello world :-))!
-Hello world :-)
-Constructed (Hello ptr -&gt;)!
-Hello ptr -&gt;
-Hello ptr -&gt;
-Destructed (Hello ptr -&gt;)!
-Destructed (Hello world :-))!
-*/
-</code></pre>
-<p>不难发现，代码中没有使用new和delete，但是仍然可以像指针一样使用shared_ptr，而且不需要担心内存泄漏。</p>
-<h2 id="4-小结">4. 小结</h2>
-<p>shared_ptr的核心思想正如其名称一样——共享，即采用计数机制。为了更好的演示其计数机制，引用知乎上的一个例子：</p>
-<pre><code>int main(){
-    //局部作用域
-    {
-        shared_ptr&lt;string&gt; p1(new string(&quot;hello world&quot;));
-        //引用计数=1，即只有一个指针p1引用这块string内存
-
-        {
-            shared_ptr&lt;string&gt; p2=p1;
-            //引用计数=2，此时有p1、p2两个指针1可以访问这块内存
-        }
-        //引用计数=1，超出p2指针作用域，仅p1可访问
-    }
-    //引用计数=0，超出p1作用域，没有指针可以访问，资源被释放。
-    return 0;
-}
-</code></pre>
-<p>具体可参考以下代码：</p>
-<pre><code>#include &lt;iostream&gt;
-#include &lt;memory&gt;
-#include &lt;string&gt;
-
-using namespace std;
-
-class MyString
-{
-private:
-    string text;
-
-public:
-    MyString(string str) : text(str)
-    {
-        cout &lt;&lt; &quot;Constructed (&quot; &lt;&lt; str &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
-    }
-    ~MyString()
-    {
-        cout &lt;&lt; &quot;Destructed (&quot; &lt;&lt; text &lt;&lt; &quot;)!&quot; &lt;&lt; endl;
-    }
-
-    void Output()
-    {
-        cout &lt;&lt; text &lt;&lt; endl;
-    }
-};
-
-int main()
-{
-    int flag1=6,flag2=15;
-
-    if (flag1&gt;5)
-    {
-        shared_ptr&lt;MyString&gt; p1=make_shared&lt;MyString&gt;(&quot;Hello&quot;);
-        cout&lt;&lt;&quot;p1.use_count = &quot;&lt;&lt;p1.use_count()&lt;&lt;endl;
-        cout&lt;&lt;&quot;p1.get = &quot;&lt;&lt;p1.get()&lt;&lt;endl;
-
-        cout&lt;&lt;&quot;==========&quot;&lt;&lt;endl;
-        if (flag2&gt;10)
-        {
-            shared_ptr&lt;MyString&gt; p2=p1;
-
-            cout&lt;&lt;&quot;p1.use_count = &quot;&lt;&lt;p1.use_count()&lt;&lt;endl;
-            cout&lt;&lt;&quot;p2.use_count = &quot;&lt;&lt;p2.use_count()&lt;&lt;endl;
-
-            cout&lt;&lt;&quot;p1.get = &quot;&lt;&lt;p1.get()&lt;&lt;endl;
-            cout&lt;&lt;&quot;p2.get = &quot;&lt;&lt;p2.get()&lt;&lt;endl;
-        }
-        cout&lt;&lt;&quot;==========&quot;&lt;&lt;endl;
-        cout&lt;&lt;&quot;p1.use_count = &quot;&lt;&lt;p1.use_count()&lt;&lt;endl;
-        cout&lt;&lt;&quot;p1.get = &quot;&lt;&lt;p1.get()&lt;&lt;endl;
-        
-    }
-    
-
-    return 0;
-}
-
-/*
-输出：
-Constructed (Hello)!
-p1.use_count = 1
-p1.get = 0x7f948cc05a18
-==========
-p1.use_count = 2
-p2.use_count = 2
-p1.get = 0x7f948cc05a18
-p2.get = 0x7f948cc05a18
-==========
-p1.use_count = 1
-p1.get = 0x7f948cc05a18
-Destructed (Hello)!
-*/
-</code></pre>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[C++11 新特征：Lambda表达式（续）]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-lambda-biao-da-shi-xu/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-lambda-biao-da-shi-xu/">
-        </link>
-        <updated>2020-06-07T08:17:54.000Z</updated>
-        <summary type="html"><![CDATA[<p>上一次总结Lambda表达式后，又陆陆续续看到许多关于Lambda表达式的资料，又有了许多新的感触。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>上一次总结Lambda表达式后，又陆陆续续看到许多关于Lambda表达式的资料，又有了许多新的感触。</p>
-<!-- more -->
-<h2 id="1-更常见的应用场景">1. 更常见的应用场景</h2>
-<p>在上一篇介绍Lambda表达式的文章中，已经提及Lambda结合sort函数的应用场景，但并未展开。其实，相较于上一篇文章中那个具体的例子，sort函数（find_if函数同理）结合Lambda表达式其实更易于理解：在引入Lambda表达式之前，我们要对容器中的元素进行自定义的排序需要自己定义一个比表函数（也被称为 “谓词”），如下：</p>
-<pre><code>bool compare(const string&amp; s1, const string&amp; s2){
-    return s1.size() &lt; s2.size();
-}
-
-vector&lt;string&gt; v{&quot;This&quot;,&quot;is&quot;, &quot;a&quot;, &quot;predicate&quot;, &quot;.&quot;};
-sort(v.begin(), v.end(), compare);
-for(auto s:v){
-    cout &lt;&lt; s &lt;&lt; endl;
-}
-/*
-输出：
-.
-a
-is
-This
-predicate
-*/
-</code></pre>
-<p>在这个例子中，我们定义了一个函数传递给sort算法。这个函数可以重复使用还好，如果只是用使用一次的话就显得比较麻烦。这种情况下可以使用C++11提供的新特性：lamada表达式。代码如下：</p>
-<pre><code>vector&lt;string&gt; v{&quot;This&quot;,&quot;is&quot;, &quot;a&quot;, &quot;predicate&quot;, &quot;.&quot;};
-sort(v.begin(), v.end(),[](const string&amp; s1, const string&amp; s2){
-        return s1.size() &gt; s2.size();
-      });
-for(auto s:v){
-    cout &lt;&lt; s &lt;&lt; endl;
-}
-/*
-输出：
-predicate
-This
-is
-.
-a
-*/
-</code></pre>
-<h2 id="2-可变lambda">2. 可变Lambda</h2>
-<p>在一些资料里还看到了一个有趣的例子：<br>
-假设有如下vector，保存的内容是学生的考试成绩，可以用以下代码来寻找第一个及格成绩：</p>
-<pre><code>vector&lt;int&gt; score{45, 70, 56, 86, 28, 60, 90};
-find_if(score.begin(), score.end(), 
-        [](int v){return (v &gt;=60);});
-</code></pre>
-<p>如果需要找到第n个及格成绩，很自然地会考虑使用下面的代码：</p>
-<pre><code>vector&lt;int&gt; score{45, 70, 56, 86, 28, 60, 90};
-int counter = 2;
-find_if(score.begin(), score.end(), 
-        [counter](int v){
-           return (v &gt;=60)&amp;&amp;(--counter == 0);
-        });
-</code></pre>
-<p>但是，这时会出现编译错误，告诉你counter是只读的。其原因是因为在lambda表达式中很少有需要修改捕获值的场景，因此<strong>默认捕获值具有const属性</strong>。如果出现本例这样，确实希望修改捕获值的情况，C++11使用<strong>mutable</strong>关键字来解决这个问题。来看完整代码：</p>
-<pre><code>vector&lt;int&gt; score{45, 70, 56, 86, 28, 60, 90};
-int counter = 2;
-auto iter find_if(score.begin(), score.end(),
-        [counter](int v)mutable{
-           return (v &gt;=60)&amp;&amp;(--counter == 0);
-        });
-cout &lt;&lt; *iter &lt;&lt; endl;
-</code></pre>
-<p>需要注意的是，由于是<strong>值捕获</strong>，处于lambda表达式外面的counter值依然不会改变。如果希望连外面的counter一起修改，使用<strong>引用捕获</strong>即可。</p>
-<h2 id="3-lambda表达式的递归调用">3. Lambda表达式的递归调用</h2>
-<p>没想到吧～Lambda表达式也可以递归调用...老套娃了...<br>
-直观地想，Lambda表达式由于不存在函数名，因此如何自己调用自己是一个比较棘手的问题。但是，还是有办法的。以阶乘为例：</p>
-<pre><code>function&lt;int(int)&gt; factorial =[&amp;](int n){
-           if(n &lt; 2) return 1;
-           return n * factorial(n - 1);
-        };
-cout &lt;&lt; factorial(3) &lt;&lt; endl;
-</code></pre>
-<p>Lambda表达式的递归调用有几个要点：</p>
-<ul>
-<li>使用标准库中的<strong>function模版类型定义表达式类型</strong>，其中<strong>模版参数与lambda表达式的返回值，参数一致</strong>;</li>
-<li>使用<strong>引用捕获</strong>来获得factorial的使用权;</li>
-<li>调用factorial实现递归调用。</li>
+<li>简化用户操作</li>
+<li>使用户以多种角度看待同一数据</li>
+<li>对机密数据提供安全保护</li>
+<li>可以更清晰表达查询</li>
 </ul>
 ]]></content>
     </entry>
     <entry>
-        <title type="html"><![CDATA[C++11 新特性：string与数值转换函数]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-xing-string-yu-shu-zhi-zhuan-huan-han-shu/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-xing-string-yu-shu-zhi-zhuan-huan-han-shu/">
+        <title type="html"><![CDATA[C++：new与malloc]]></title>
+        <id>https://mocuishle0.github.io/post/cnew-yu-malloc/</id>
+        <link href="https://mocuishle0.github.io/post/cnew-yu-malloc/">
         </link>
-        <updated>2020-06-07T07:50:41.000Z</updated>
-        <summary type="html"><![CDATA[<p>我还以为这个不是新特征呢...</p>
+        <updated>2020-07-12T02:57:49.000Z</updated>
+        <summary type="html"><![CDATA[<p>简单来说，new从自由存储区上分配内存，malloc从堆上分配内存；new/delete会调用构造函数/析构函数对对象进行初始化与销毁；operator new/delete可以进行重载。</p>
 ]]></summary>
-        <content type="html"><![CDATA[<p>我还以为这个不是新特征呢...</p>
+        <content type="html"><![CDATA[<p>简单来说，new从自由存储区上分配内存，malloc从堆上分配内存；new/delete会调用构造函数/析构函数对对象进行初始化与销毁；operator new/delete可以进行重载。</p>
 <!-- more -->
-<p>可能由于对于string的使用较多，所以该库中的一些方法也时常会被用到，因此对于string与数值转换函数也并未意识到这是C++11新特征中的一项。</p>
-<p>P.s：数值和string的转换其实也可以通过<sstream>头文件下的stringstream进行转换。详细内容可参考：<a href="https://home.gamer.com.tw/creationDetail.php?sn=4114818">stringstream用法</a></p>
-<h2 id="1-数值-string">1. 数值-&gt;string</h2>
-<p>使用全局函数<strong>std::to_string</strong>：</p>
-<pre><code>string to_string (int val);
-string to_string (long val);
-string to_string (long long val);
-string to_string (unsigned val);
-string to_string (unsigned long val);
-string to_string (unsigned long long val);
-string to_string (float val);
-string to_string (double val);
-string to_string (long double val)
+<h2 id="1-申请的内存所在位置">1. 申请的内存所在位置</h2>
+<blockquote>
+<p>new操作符从自由存储区（free store）上为对象动态分配内存空间，而malloc函数从堆上动态分配内存。</p>
+</blockquote>
+<p>自由存储区是C++基于new操作符的一个抽象概念，<strong>凡是通过new操作符进行内存申请，该内存即为自由存储区</strong>。而堆是操作系统中的术语，是操作系统所维护的一块特殊内存，用于程序的内存动态分配，C语言使用malloc从堆上分配内存，使用free释放已分配的对应内存。</p>
+<p>自由存储区是否能够是堆（问题等价于new是否能在堆上动态分配内存），这取决于operator new 的实现细节。自由存储区不仅可以是堆，还可以是静态存储区，这都看operator new在哪里为对象分配内存。</p>
+<h2 id="2-返回类型安全性">2. 返回类型安全性</h2>
+<blockquote>
+<p>new操作符内存分配成功时，返回的是对象类型的指针，类型严格与对象匹配，无须进行类型转换，故new是符合类型安全性的操作符。而malloc内存分配成功则是返回void*，需要通过强制类型转换将void*指针转换成我们需要的类型。</p>
+</blockquote>
+<p>类型安全很大程度上可以等价于内存安全，类型安全的代码不会试图方法自己没被授权的内存区域。</p>
+<h2 id="3-内存分配失败时的返回值">3. 内存分配失败时的返回值</h2>
+<p>new内存分配失败时，<strong>会抛出bac_alloc异常</strong>，它不会返回NULL；malloc分配内存失败时<strong>返回NULL</strong>。</p>
+<h2 id="4-是否需要指定内存大小">4. 是否需要指定内存大小</h2>
+<blockquote>
+<p>使用new操作符申请内存分配时无须指定内存块的大小，编译器会根据类型信息自行计算，而malloc则需要显式地指出所需内存的尺寸。</p>
+</blockquote>
+<h2 id="5-是否调用构造函数析构函数">5. 是否调用构造函数/析构函数</h2>
+<p>使用new操作符来分配对象内存时会经历三个步骤<br>
+第一步：调用operator new 函数（对于数组是operator new[]）<strong>分配一块足够大的、原始的、未命名的内存空间以便存储特定类型的对象</strong>。<br>
+第二步：编译器运行相应的<strong>构造函数以构造对象</strong>，并为其传入初值。<br>
+第三部：对象构造完成后，<strong>返回一个指向该对象的指针</strong>。</p>
+<p>使用delete操作符来释放对象内存时会经历两个步骤：<br>
+第一步：调用对象的<strong>析构函数</strong>。<br>
+第二步：编译器调用operator delete(或operator delete[])函数<strong>释放内存空间</strong>。</p>
+<blockquote>
+<p>总之来说，new/delete会调用对象的构造函数/析构函数以完成对象的构造/析构。而malloc则不会。</p>
+</blockquote>
+<h2 id="6-对数组的处理">6. 对数组的处理</h2>
+<p>C++提供了new[]与delete[]来专门处理数组类型:</p>
+<pre><code>A * ptr = new A[10];//分配10个A对象
+delete [] ptr;
 </code></pre>
-<p>以上函数实现了各类数值类型到string的转换。</p>
-<h2 id="2-string-数值">2. string-&gt;数值</h2>
-<p>针对基本的数值类型，C++11提供了相应的转换方法：</p>
-<pre><code>stoi：string -&gt; int
-
-stol:  string -&gt; long
-
-stoll：string -&gt; long long
-
-stoul：sting -&gt; unsigned long
-
-stoull：string -&gt; unsigned long long.
-
-stof：string -&gt; float
-
-stod：string -&gt; double
-
-stold：string -&gt; long double.
+<p>new对数组的支持体现在它会分别调用构造函数函数初始化每一个数组元素，释放对象时为每个对象调用析构函数。注意delete[]要与new[]配套使用，不然会找出数组对象部分释放的现象，造成内存泄漏。</p>
+<p>至于malloc，它并知道你在这块内存上要放的数组还是啥别的东西，反正它就给你一块原始的内存，在给你个内存的地址就完事。所以如果要动态分配一个数组的内存，还需要我们手动自定数组的大小：</p>
+<pre><code>int * ptr = (int *) malloc( sizeof(int)* 10 );//分配一个10个int元素的数组
 </code></pre>
-<p>例如：</p>
-<pre><code>string value = to_string(2.5);
-int iv = stoi(value);
-cout &lt;&lt; &quot;iv=&quot; &lt;&lt; iv &lt;&lt; endl;        //iv=2
-double dv = stod(value);
-cout &lt;&lt; &quot;dv=&quot; &lt;&lt; dv &lt;&lt; endl;        //dv=2.5
-</code></pre>
-<p>需要注意的是，string到数值转换函数的声明，会发现这些函数的第二个参数，例如stod的声明：</p>
-<pre><code>double stod (const string&amp;  str, size_t* idx = 0);
-</code></pre>
-<p>参数idx用于保管数值之后下一个字符的位置。利用这个参数带回的结果，可以实现某些便利的处理，例如实现一个包含多个数值的string的连续转换：</p>
-<pre><code>string values(&quot;1.0,2.4,3.5,4.6,5.7&quot;);
-while(values.size()&gt;0){
-    string::size_type sz;
-    cout &lt;&lt; stod(values, &amp;sz) &lt;&lt; endl;
-    if(sz &lt; values.size()){
-        values = values.substr(sz + 1);
-    }
-    else{
-        values.clear();
-    }
-}
-/*
-输出：
-1
-2.4
-3.5
-4.6
-5.7
-*/
-</code></pre>
-<p>除此之外，从当转换目标为整数时，可以通过第三个参数指定转换的基数，例如以下代码的输出结果就是256：</p>
-<pre><code>string hex(&quot;100&quot;);
-cout &lt;&lt; stoi(hex, nullptr, 16);     //256，即将一个16进制数值的字符串形式转换成10进制整型
-</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1594524042466.png" alt="" loading="lazy"></figure>
 ]]></content>
     </entry>
     <entry>
-        <title type="html"><![CDATA[C++：内存分配方式]]></title>
-        <id>https://mocuishle0.github.io/post/cnei-cun-fen-pei-fang-shi/</id>
-        <link href="https://mocuishle0.github.io/post/cnei-cun-fen-pei-fang-shi/">
+        <title type="html"><![CDATA[数据库：SQL常用语句]]></title>
+        <id>https://mocuishle0.github.io/post/shu-ju-ku-sql-chang-yong-yu-ju/</id>
+        <link href="https://mocuishle0.github.io/post/shu-ju-ku-sql-chang-yong-yu-ju/">
         </link>
-        <updated>2020-06-07T02:22:38.000Z</updated>
-        <summary type="html"><![CDATA[<p>C++的内存分配方式是理解C++特征的基础。</p>
+        <updated>2020-07-04T03:36:27.000Z</updated>
+        <summary type="html"><![CDATA[<p>本文整理一下常用的SQL语句</p>
 ]]></summary>
-        <content type="html"><![CDATA[<p>C++的内存分配方式是理解C++特征的基础。</p>
+        <content type="html"><![CDATA[<p>本文整理一下常用的SQL语句</p>
 <!-- more -->
-<p>首先，我们主要根据《C++ Primer Plus》中的介绍进行一个总结：C++有三种管理数据内存的方式——<strong>自动存储、静态存储和动态存储</strong>（也称为自由存储空间 或 堆）。在C++11中还新增了线程存储，这将在后续文章中介绍。本文主要就自动存储、静态存储和动态存储进行归纳整理。</p>
-<h2 id="1-堆和栈">1. 堆和栈</h2>
-<h3 id="11-概念">1.1 概念</h3>
-<p>在具体介绍三类存储方式之前，我们先明确堆和栈的概念：</p>
+<p>在本文中，我们主要是用以下实例数据库：<br>
+学生-课程模式S-T：</p>
 <ul>
-<li>栈：就像装数据的桶或箱子，它是一种具有<strong>后进先出</strong>性质的数据结构。</li>
-<li>堆：一种经过排序的树形数据结构，每个结点都有一个值。通常我们所说的堆的数据结构，是指二叉堆。堆的特点是根结点的值最小（或最大），且根结点的两个子树也是一个堆。由于堆的这个特性，常用来实现优先队列，堆的存取是随意，这就如同我们在图书馆的书架上取书，虽然书的摆放是有顺序的，但是我们想取任意一本时不必像栈一样，先取出前面所有的书，书架这种机制不同于箱子，我们可以直接取出我们想要的书。</li>
+<li>学生表（学号，姓名，性别，年龄，院系）：Student（Sno，Sname，Ssex，Sage，Sdept）</li>
+<li>课程表（课程号，课程名，先行课，学分）：Course（Cno，Cname，Cpno，Ccredit）</li>
+<li>学生选课表（学号，课程号，成绩）：SC（Sno，Cno，Grade）</li>
 </ul>
-<h3 id="12-程序的内存分配">1.2 程序的内存分配</h3>
-<p>一个由C/C++编译的程序占用的内存分为以下几个部分：<br>
-1、<strong>栈区（stack）</strong> —— 由编译器自动分配释放，存放函数的参数值，局部变量的值等。其操作方式类似于数据结构中的栈。<br>
-2、<strong>堆区（heap）</strong> —— 一般由程序员分配释放，若程序员不释放，程序结束时可能由OS（操作系统）回收。注意它与数据结构中的堆是两回事，分配方式倒是类似于链表。<br>
-3、<strong>全局区（静态区）</strong>（static）—— 全局变量和静态变量的存储是放在一块的，初始化的全局变量和静态变量在一块区域，未初始化的全局变量和未初始化的静态变量在相邻的另一块区域。程序结束后由系统释放。<br>
-4、<strong>文字常量区</strong> —— 常量字符串就是放在这里的。程序结束后由系统释放。<br>
-5、<strong>程序代码区</strong> —— 存放函数体的二进制代码。</p>
-<p>可以根据以下代码进行理解：</p>
-<pre><code>int  a=0;   全局初始化区    
-
-char *p1;   全局未初始化区    
-int  main()    
+<h2 id="1-sql的动词">1. SQL的动词</h2>
+<ul>
+<li>数据查询：SELECT；</li>
+<li>数据定义：CREATE；DROP；ALTER；</li>
+<li>数据操纵：INSERT；UPDATE；DELETE；</li>
+<li>数据控制：GRANT；REVOKE；</li>
+</ul>
+<h2 id="2-数据定义">2. 数据定义</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">操作对象</th>
+<th style="text-align:center">创建</th>
+<th style="text-align:center">删除</th>
+<th style="text-align:center">修改</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">模式</td>
+<td style="text-align:center">CREATE SCHEMA</td>
+<td style="text-align:center">DROP SCHEMA</td>
+<td style="text-align:center">\</td>
+</tr>
+<tr>
+<td style="text-align:center">表</td>
+<td style="text-align:center">CREATE TABLE</td>
+<td style="text-align:center">DROP TABLE</td>
+<td style="text-align:center">ALTER TABLE</td>
+</tr>
+<tr>
+<td style="text-align:center">视图</td>
+<td style="text-align:center">CREATE VIEW</td>
+<td style="text-align:center">DROP VIEW</td>
+<td style="text-align:center">\</td>
+</tr>
+<tr>
+<td style="text-align:center">索引</td>
+<td style="text-align:center">CREATE INDEX</td>
+<td style="text-align:center">DROP INDEX</td>
+<td style="text-align:center">ALTER INDEX</td>
+</tr>
+</tbody>
+</table>
+<h3 id="21-关于模式">2.1 关于模式：</h3>
+<h4 id="211-定义模式">2.1.1 定义模式</h4>
+<blockquote>
+<p>CREATE SCHEMA &lt;模式名&gt; AUTHORIZATION &lt;用户名&gt; [&lt;表定义子句&gt;|&lt;视图定义子句&gt;|&lt;授权定义子句&gt;]</p>
+</blockquote>
+<p>--为用户User定义一个学生-课程模式S-T<br>
+<strong>CREATE SCHEMA S-T AUTHORIZATION User；</strong></p>
+<p>P.s:</p>
+<ol>
+<li>若未指定&lt;模式名&gt;，则&lt;模式名&gt;隐含为&lt;用户名&gt;；</li>
+<li>定义模式实际上定义了一个命名空间，在该命名空间中可定义该模式包含的数据库对象，如：基本表、视图、索引等。</li>
+</ol>
+<h4 id="212-删除模式">2.1.2 删除模式</h4>
+<blockquote>
+<p>DROP SCHEMA &lt;模式名&gt; &lt;CASCADE（级联）|RESTRICT（限制）&gt;</p>
+</blockquote>
+<ul>
+<li>CASCADE（级联）：删除模式的同时把模式中所有数据库对象全部删除；</li>
+<li>RESTRICT（限制）：若该模式中定义了下属数据库对象（表、视图等），则拒绝该删除语句的执行。</li>
+</ul>
+<p>--级联删除模式User<br>
+<strong>DROP SCHEMA User CASCADE;</strong></p>
+<h3 id="22-关于表">2.2 关于表</h3>
+<h4 id="221-创建表">2.2.1 创建表：</h4>
+<p>CREATE TABLE &lt;表名&gt;<br>
+(&lt;列名&gt;&lt;数据类型&gt;[&lt;列级完整性约束&gt;]<br>
+[,&lt;列名&gt;&lt;数据类型&gt;[&lt;列级完整性约束&gt;]<br>
+...<br>
+[,&lt;表级完整性约束&gt;]<br>
+)</p>
+<ul>
+<li>&lt;列级完整性约束&gt;：设计相应属性列的完整性约束条件；</li>
+<li>&lt;表级完整性约束&gt;：设计一个或多个属性列的完整性约束条件；</li>
+</ul>
+<p>--建立学生表<br>
+CREATE TABLE Student<br>
+(<br>
+Sno         CAHR(9)     PRIMARY KEY,<br>
+Sname     CHAR(20)   UNIQUE,<br>
+Ssex        CHAR(2),<br>
+Sage        SMALLINT,<br>
+Sdept       CHAR(20)<br>
+);<br>
+--建立课程表<br>
+CREATE TABLE Course<br>
+(<br>
+Cno     CHAR(4) PRIMARY KEY,<br>
+Cname CHAR(40),<br>
+Cpno    CHAR(4),<br>
+Ccredit SMALLINT,<br>
+FOREIGN KEY (Cpno) REFERENCES Course(Cno)<br>
+);</p>
+<p>--建立学生选课表<br>
+CREATE TABLE SC<br>
+(<br>
+Sno     CHAR(9),<br>
+Cno     CHAR(4),<br>
+Grade   SMALLINT,<br>
+PRIMARY KEY (Sno,Cno),<br>
+FOREIGN KEY (Sno) REFERENCES Student (Sno),<br>
+FOREIGN KEY (Cno) REFERENCES Course (Cno)<br>
+)</p>
+<h4 id="222-修改表">2.2.2 修改表</h4>
+<p>ALTER TABLE &lt;表名&gt;<br>
+[ADD [COLUMN] &lt;列名&gt;&lt;数据类型&gt;[完整性约束]]<br>
+[ADD &lt;表级完整性约束&gt;]<br>
+[DROP [COLUMN] &lt;列名&gt; [CASCADE|RESTRICT]]<br>
+[DROP CONSTRAINT &lt;完整性约束名&gt; [CASCADE|RESTRICT]]<br>
+[ALTER COLUMN &lt;列名&gt;&lt;数据类型&gt;];</p>
+<p>--向Student表中加入“入学时间”列，数据类型为日期（新增的一列均为空值）<br>
+ALTER TABLE Student ADD S_entrance DATE;</p>
+<p>--修改年龄数据类型为整数<br>
+ALTER TABLE Student ALTER COLUMN Sage INT;</p>
+<p>--增加课程名称必为唯一值的约束<br>
+ALTER TABLE Course ADD UNIQUE(Cname);</p>
+<h4 id="223-删除表">2.2.3 删除表</h4>
+<p>DROP TABLE &lt;表名&gt; [CASCADE|RESTRICT]</p>
+<ul>
+<li>CASCADE：删除表时将相关依赖对象（索引、视图等）一起删除；</li>
+<li>RESTRICT：删除的表不能被其他表的约束引用，否则不能删除；</li>
+</ul>
+<h3 id="23-模式与表">2.3 模式与表</h3>
+<p>每个基本表需属于某个模式。定义基本表所属模式有如下方式：</p>
+<ul>
+<li>表名中显式给出：CREATE TABLE &quot;S-T&quot;.Student（...）;</li>
+<li>创建模式同时创建表；</li>
+<li>设置所属模式；</li>
+</ul>
+<p>创建基本表时，若未指定模式，系统会根据搜索路径来确定该对象所属的模式。设置搜索路径的方式：<br>
+<strong>SET search_path TO &quot;S-T&quot;, PUBLIC；</strong></p>
+<h3 id="24-关于索引">2.4 关于索引</h3>
+<p>数据库管理系统中常见的索引：</p>
+<ul>
+<li>顺序文件上的索引</li>
+<li>B+树索引</li>
+<li>Hash索引</li>
+<li>位图索引</li>
+</ul>
+<p>其中，B+树索引具有动态平衡的优点，Hash索引具有查找速度快的特点。</p>
+<h4 id="241-建立索引">2.4.1 建立索引</h4>
+<p>索引可以建立在表的一列或多列上：</p>
+<p>CREATE [UNIQUE][CLUSTER] INDEX &lt;索引名&gt;<br>
+ON &lt;表名&gt;(&lt;列名&gt;[&lt;次序&gt;][,&lt;列名&gt;[&lt;次序&gt;]]...)</p>
+<ul>
+<li>表名：要建立索引的基本表的名字；</li>
+<li>次序：制定索引值的排列次序——升序：ASC；降序：DESC。缺省值为ASC。</li>
+<li>UNIQUE：索引的每一个索引值只对应唯一的数据记录</li>
+<li>CLUSTER： 聚簇索引</li>
+</ul>
+<p>--为Student，Course，SC三个表建立索引。其中Student按学号升序建立唯一索引，Course按课程号升序建立唯一索引，SC按学号升序和课程号降序建立唯一索引：<br>
+CREATE UNIQUE INDEX Stusno ON Student(Sno);<br>
+CREATE UNIQUE INDEX Coucno ON Course(Cno);<br>
+CREATE UNIQUE INDEX SCno ON SC(Sno ASC,Cno DESC);</p>
+<h4 id="242-修改删除索引">2.4.2 修改/删除索引</h4>
+<p>ALTER INDEX &lt;旧索引名&gt; RENAME TO &lt;新索引名&gt;<br>
+E.g：ALTER INDEX SCno RENAME TO SCSno;</p>
+<p>DROP INDEX &lt;索引名&gt;<br>
+E.g：DROP INDEX Stusname;</p>
+<h2 id="3-数据查询">3. 数据查询</h2>
+<p>SELECT [ALL|DISTINCT] &lt;目标表达式&gt;[,&lt;目标表达式&gt;]...<br>
+FROM &lt;表/视图名&gt;[,&lt;表/视图名&gt;]...|(SELECT 语句) [AS] &lt;别名&gt;<br>
+[WHERE &lt;条件表达式&gt;]<br>
+[GROUP &lt;列名1&gt;[HAVING &lt;条件表达式&gt;]]<br>
+[ORDER BY &lt;列名2&gt; [ASC|DESC]]</p>
+<ul>
+<li>SELECT：指定要显示的属性列；</li>
+<li>FROM：指定查询对象</li>
+<li>WHERE：指定查询条件</li>
+<li>GROUP BY：对查询结果按指定列分组</li>
+<li>HAVING：只有满足指定条件的组才输出</li>
+<li>ORDER  BY：对查询结果按列值的升序或降序排列</li>
+</ul>
+<h3 id="31-基础单表查询">3.1 基础单表查询</h3>
+<p>E.g：<br>
+“查询全体学生姓名及出生年份”：<br>
+SELECT Sname，2020-Sage From Student；</p>
+<p>“查询全体学生姓名，出生年份和所在院系（小写字母表示系名）”：<br>
+SELECT Sname，2020-Sage，LOWER(Sdept) FROM Student；</p>
+<p>【使用别名】：<br>
+SELECT Sname NAME，2020-Sage BIRTHDAY FROM Student；</p>
+<p>【消除重复行】（不指定DISTINCT关键词，则缺省为ALL）：<br>
+SELECT DISTINCT Sno FROM SC；</p>
+<p>【大小比较】：<br>
+SELECT Sname FROM Student WHERE Sdept=‘CS’；<br>
+SELECT Sname，Sage FROM Student WHERE Sage&lt;20 AND Sage&gt;17；</p>
+<p>【范围】：<br>
+SELECT Sname，Sage FROM Student WHERE Sage （NOT） BETWEEN 20 AND 23；</p>
+<p>【集合】：<br>
+SELECT Sname，Sage FROM Student WHERE Sdept （NOT） IN（‘CS’，‘MA’，‘IS’）；</p>
+<p>【字符匹配】（‘%’：任意长度字符；‘<em>’：任意单个字符）：<br>
+SELECT * FROM Student WHERE Sno （NOT）LIKE ‘2018216020’；<br>
+SELECT * FROM Student WHERE Sno （NOT）LIKE ‘刘%’；<br>
+SELECT * FROM Course WHERE Cname （NOT）LIKE ‘DB_%i</em> <em>’ ESCAPE ‘\’；（查询以‘DB</em>’开头且倒数第三个字符为i的课程信息，ESCAPE ‘\’说明\为转码符号）。</p>
+<p>【空值】<br>
+SELECT Sno，Cno FROM SC WHERE Grade IS（NOT）NULL；</p>
+<h3 id="32-进阶单表查询">3.2 进阶单表查询：</h3>
+<h4 id="321-order-by-子句">3.2.1 ORDER BY 子句</h4>
+<p>【ORDER BY】按一个或多个属性排序（ASC——升序（默认）；DESC——降序）：<br>
+SELECT Sno，Grade<br>
+FROM SC<br>
+WHERE Cno=‘3’<br>
+ORDER BY Grade DESC；</p>
+<h4 id="322-聚集函数">3.2.2 聚集函数</h4>
+<ul>
+<li>统计元组个数：COUNT（*）</li>
+<li>统计一列中值得个数：COUNT （[DISTINCT｜ALL]&lt;列名&gt;）</li>
+<li>计算一列总和：SUM（[DISTINCT｜ALL]&lt;列名&gt;）</li>
+<li>计算一列平均值：AVG（[DISTINCT｜ALL]&lt;列名&gt;）</li>
+<li>求一列最值：MAX/MIN（[DISTINCT｜ALL]&lt;列名&gt;）</li>
+</ul>
+<p>SELECT COUNT（*）FROM Student；<br>
+SELECT COUNT（DISTINCT Sno） FROM SC；<br>
+SELECT AVG（Grade）FROM SC WHERE Cno=‘1’；</p>
+<h4 id="323-group-by-子句">3.2.3 GROUP BY 子句</h4>
+<p>细化聚集函数作用对象：</p>
+<ul>
+<li>未对查询结果分组，<strong>聚集函数将作用在整个查询结果</strong>；</li>
+<li>对查询结果分组，<strong>聚集函数会作用在每个组</strong>；</li>
+</ul>
+<p>求各门课程相应的选课人数：<br>
+SELECT Cno，COUNT（Sno）<br>
+FROM SC<br>
+GROUP BY Cno；<br>
+<img src="https://mocuishle0.github.io//post-images/1594609759383.png" alt="" loading="lazy"></p>
+<p>查询选了三门以上课程的学生学号<br>
+SELECT Sno<br>
+FROM SC<br>
+GROUP BY Sno<br>
+HAVING COUNT（*）&gt;3;</p>
+<blockquote>
+<p>P.s：WHERE 与 HAVING 区别<br>
+作用对象不同<br>
+WHERE子句作用于基本表或视图，从中选择满足条件的元组；<br>
+HAVING短语作用于组，从中选择满足条件的组；<br>
+WHERE子句中不能用聚集函数作为条件表达式；</p>
+</blockquote>
+<h2 id="33-连接查询">3.3 连接查询</h2>
+<h3 id="331-等值非等值连接查询">3.3.1 等值&amp;非等值连接查询</h3>
+<p><strong>等值连接</strong>：<br>
+SELECT Student.<em>, SC.</em><br>
+FROM Student, SC<br>
+WHERE Student.Sno=SC.Sno;<br>
+<img src="https://mocuishle0.github.io//post-images/1594610358294.png" alt="" loading="lazy"></p>
+<p><strong>自然连接</strong>：<br>
+SELECT Student.Sno,Sname,Ssex,Sage,Sdept,Cno,Grade<br>
+FROM Student,SC<br>
+WHERE Student.Sno=SC.Sno;</p>
+<blockquote>
+<p><strong>连接操作执行过程：</strong><br>
+（1）嵌套循环：多重循环嵌套<br>
+（2）排序合并（常用于等值连接）：先排序后连接<br>
+（3）索引连接：建立索引进而连接</p>
+</blockquote>
+<h3 id="332-自身连接">3.3.2 自身连接</h3>
+<p>一个表与自身进行连接。需要通过别名以示区别：<br>
+SELECT FIRST.Cname,SECOND.Cname<br>
+FROM Course FIRST,Course SECOND<br>
+WHERE FIRST.Cpno=SECOND.cno;<br>
+<img src="https://mocuishle0.github.io//post-images/1594610926638.png" alt="" loading="lazy"></p>
+<h3 id="333-外连接">3.3.3 外连接</h3>
+<p>普通连接仅输出满足连接条件的元组，而外连接则以指定表为连接主体，将主体表中不满足的元组一并输出：</p>
+<ul>
+<li>左外连接：列出左边关系中所有的元组；</li>
+<li>右外连接：列出右边关系中所有的元组；</li>
+</ul>
+<p>SELECT Student.Sno,Sname,Ssex,Sage,Sdept,Cno,Grade<br>
+FROM Student LEFT OUT JOIN SC ON（Student.Sno=SC.Sno）;<br>
+<img src="https://mocuishle0.github.io//post-images/1594611164461.png" alt="" loading="lazy"></p>
+<h2 id="4-数据更新">4. 数据更新</h2>
+<h3 id="41-插入数据">4.1 插入数据</h3>
+<p><strong>A. 插入元组</strong><br>
+INSERT INTO &lt;表名&gt;[(&lt;属性1&gt;[,&lt;属性2&gt;]...)]<br>
+VALUES (&lt;常量1&gt;[,&lt;常量2&gt;]...)；</p>
+<p>E.g：<br>
+INSERT INTO Student（Sno，Sname，Ssex，Sdept，Sage）<br>
+VALUES （‘2018216020’，‘Li’，‘男’，‘CS’，‘18’）；</p>
+<p><strong>B. 插入子查询结果</strong><br>
+INSERT INTO &lt;表名&gt;[(&lt;属性1&gt;[,&lt;属性2&gt;]...)]<br>
+子查询</p>
+<p>E.g：<br>
+INSERT INTO Dept_age（Sdept，Avg_age）<br>
+SELECT Sdept，AVG（Sage）<br>
+FROM Student<br>
+GROUP BY Sdept；</p>
+<h3 id="42-数据修改">4.2 数据修改</h3>
+<p>UPDATE &lt;表名&gt;<br>
+SET &lt;列名&gt;=&lt;表达式&gt;[,&lt;列名&gt;=&lt;表达式&gt;]...<br>
+[WHERE &lt;条件&gt;];</p>
+<p>存在三种修改方式：</p>
+<ul>
+<li>修改某一个元组的值；</li>
+<li>修改多个元组的值；</li>
+<li>带子查询的修改语句；</li>
+</ul>
+<p>【将学号为2018216020的年龄改为24岁】：<br>
+UPDATE Student<br>
+SET Sage=24<br>
+WHERE Sno=‘2018216020’；</p>
+<p>【将所有学生年龄+1】<br>
+UPDATE Student<br>
+SET Sage=Sage+1；</p>
+<p>【将计算机专业全体学生成绩置0】<br>
+UPDATE SC<br>
+SET Grade=0<br>
+WHERE Sno IN<br>
+（SELECT Sno FROM WHERE Sdept=‘CS’）；</p>
+<h3 id="43-删除数据">4.3 删除数据</h3>
+<p>DELETE FROM &lt;表名&gt;<br>
+[WHERE &lt;条件&gt;]</p>
+<p>功能：删除指定表中满足WHERE子句条件的元组<br>
+存在三种删除方式：</p>
+<ul>
+<li>删除某一个元组的值</li>
+<li>删除多个元组的值；</li>
+<li>带子查询的删除语句；</li>
+</ul>
+<p>【将学号为2018216020学生记录删除】<br>
+DELETE FROM Student<br>
+WHERE Sno=‘2018216020’；</p>
+<p>【删除所有学生的选课记录】<br>
+DELETE FROM SC；</p>
+<p>【删除计算机系所有学生的选课记录】<br>
+DELETE FROM SC<br>
+WHERE Sno IN<br>
+（SELECT Sno FROM Student WHERE Sdept=‘CS’）；</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[数据库：数据库系统结构]]></title>
+        <id>https://mocuishle0.github.io/post/shu-ju-ku-shu-ju-ku-xi-tong-jie-gou/</id>
+        <link href="https://mocuishle0.github.io/post/shu-ju-ku-shu-ju-ku-xi-tong-jie-gou/">
+        </link>
+        <updated>2020-07-04T02:20:26.000Z</updated>
+        <summary type="html"><![CDATA[<p>本文主要介绍关于数据库系统的三级模式与数据独立性的相关知识。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>本文主要介绍关于数据库系统的三级模式与数据独立性的相关知识。</p>
+<!-- more -->
+<p>本文主要内容：</p>
+<ul>
+<li>模式与实例</li>
+<li>数据库系统的三级模式结构</li>
+<li>数据库的二级映像与数据独立性</li>
+</ul>
+<h2 id="1-模式schema实例instance">1. 模式（Schema）&amp;实例（Instance）</h2>
+<p>模式与实例其本质就是“型”与“值”的关系：<br>
+<strong>模式（Schema）：</strong><br>
+* 是对数据库逻辑结构和特征的描述；<br>
+* 模式是相对稳定的<br>
+* 是对型的描述，不涉及具体值</p>
+<p>E.g：“学生选课数据库”：<br>
+<img src="https://mocuishle0.github.io//post-images/1593829964496.png" alt="" loading="lazy"></p>
+<p><strong>实例（Instance）：</strong><br>
+* 数据库某一时刻的状态，即为模式的一个具体值<br>
+* 同一个模式可以有多个实例<br>
+* 实例会随数据库中数据更新而变动</p>
+<p>E.g：“各年学生选课实例”：<br>
+<img src="https://mocuishle0.github.io//post-images/1593829990708.png" alt="" loading="lazy"></p>
+<h2 id="2-数据库系统的三级模式">2. 数据库系统的三级模式</h2>
+<p>所谓数据库的三级模式，即：外模式-模式-内模式，如图所示：<br>
+<img src="https://mocuishle0.github.io//post-images/1593830015412.png" alt="" loading="lazy"></p>
+<h3 id="21-模式逻辑模式">2.1 模式（逻辑模式）：</h3>
+<p>模式（逻辑模式）是对数据库中全体数据的逻辑结构和特征的描述，是所有用户的公共数据视图。</p>
+<ul>
+<li>模式是数据库系统模式结构的中心：
+<ul>
+<li>与数据的物理存储细节和硬件环境无关；</li>
+<li>与具体应用程序、开发工具以及高级程序设计语言无关；</li>
+</ul>
+</li>
+<li>定义模式：
+<ul>
+<li>定义数据间联系；</li>
+<li>定义数据相关的安全性、完整性要求；</li>
+</ul>
+</li>
+</ul>
+<h3 id="22-外模式">2.2 外模式：</h3>
+<p>外模式是对用户使用的局部数据的逻辑结构和特征的描述，是与某一应用有关的数据的逻辑表示。</p>
+<ul>
+<li>外模式通常是模式的子集，一个模式通常可以有多个外模式以反映用户的不同应用需求；</li>
+<li>一个外模式可以被多个应用系统所使用，但一个应用程序只能使用一个外模式；</li>
+<li>外模式用途：
+<ul>
+<li>每个用户只能看到和访问1所对应的外模式中的数据，简化了用户视图；</li>
+<li>提供了安全保障</li>
+</ul>
+</li>
+</ul>
+<h3 id="23-内模式存储模式">2.3 内模式（存储模式）：</h3>
+<p>内模式是对数据物理结构和存储方式的描述，是数据在数据库内部的表示方式，包括：</p>
+<ul>
+<li>记录的存储方式——顺序、堆存储、hash存储</li>
+<li>索引的组织方式——B+树、Hash</li>
+<li>数据是否压缩存储、是否加密等<br>
+<strong>一个数据库只有一个内模式。</strong></li>
+</ul>
+<h2 id="3-数据库的二级映像与数据独立性">3. 数据库的二级映像与数据独立性</h2>
+<h3 id="31-数据库的二级映像">3.1 数据库的二级映像：</h3>
+<p>数据库的三级模式对应了数据库的二级映像：</p>
+<ul>
+<li>外模式——模式映像：保证数据的逻辑独立性，即：模式改变时，仅需要对外模式——模式映像进行改变即可，无需改变应用程序</li>
+<li>模式——内模式映像：保证数据的物理独立性，即：数据存储结构改变时，仅需要对模式——内模式映像进行改变即可，无需改变模式。</li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[数据库：关系模型]]></title>
+        <id>https://mocuishle0.github.io/post/shu-ju-ku-guan-xi-mo-xing/</id>
+        <link href="https://mocuishle0.github.io/post/shu-ju-ku-guan-xi-mo-xing/">
+        </link>
+        <updated>2020-07-04T01:54:06.000Z</updated>
+        <summary type="html"><![CDATA[<p>数据模型是对现实世界数据特征的抽象，其可被分为：概念模型、逻辑模型和物理模型两类。本文主要介绍最为常用的一类数据模型——关系模型。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>数据模型是对现实世界数据特征的抽象，其可被分为：概念模型、逻辑模型和物理模型两类。本文主要介绍最为常用的一类数据模型——关系模型。</p>
+<!-- more -->
+<p>本文主要内容：</p>
+<ul>
+<li>关系模型数据结构</li>
+<li>关系模型的数据操纵</li>
+<li>关系模型的完整性约束</li>
+</ul>
+<p>首先需要明确的是：<strong>关系数据库系统采用关系模型作为数据的组织方式</strong>。</p>
+<h2 id="1-关系模型的数据结构">1. 关系模型的数据结构：</h2>
+<p>在用户观点下，关系模型中的逻辑结构是一张<strong>二维表</strong>：</p>
+<ul>
+<li>关系（Relation）：一张表；</li>
+<li>元组（Tuple）：表中一行即为一个元组；</li>
+<li>属性（Attribute）：表中一列即为一个属性；</li>
+<li>主键（Key）：某个属性组，可用于确定一个元组；</li>
+<li>域（Domain）：一组具有相同数据类型的值的集合；</li>
+<li>分量：元组中的一个属性值；</li>
+<li>关系模式：对关系的描述</li>
+</ul>
+<p>P.s：关系必须是规范化的，最基本的规范条件——关系中的每个分量必须是一个不可分的数据项。具体参见后续关于范式的介绍。</p>
+<h2 id="2-关系模型的数据操纵">2. 关系模型的数据操纵</h2>
+<p>数据操作是集合操作，操作对象与结果均为关系：</p>
+<ul>
+<li>查询</li>
+<li>插入</li>
+<li>删除</li>
+<li>更新</li>
+</ul>
+<h2 id="3-关系模型的完整性约束">3. 关系模型的完整性约束</h2>
+<ul>
+<li>实体完整性</li>
+<li>参照完整性</li>
+<li>用户定义完整性</li>
+</ul>
+<h3 id="31-实体完整性">3.1 实体完整性</h3>
+<p>主属性（候选码的诸项属性）不能为空值；<br>
+P.s：</p>
+<ul>
+<li>候选码——关系中某一属性组能唯一表示一个元组。</li>
+<li>现实世界中实体都是可区分的，若主属性为空值说明存在不可区分的实体。</li>
+</ul>
+<h3 id="32-参照完整性">3.2 参照完整性</h3>
+<p>即关系间的参照关系——外码。<br>
+P.s：外码可取空值。</p>
+<h2 id="4-关系模型的优缺点">4. 关系模型的优缺点</h2>
+<ul>
+<li>
+<p>优点：</p>
+<ul>
+<li>建立在严格的数学概念上；</li>
+<li>概念单一——实体和各类联系均用关系表示，检索结果也是关系；</li>
+<li>关系模型存取路径对用户透明</li>
+</ul>
+</li>
+<li>
+<p>缺点：</p>
+<ul>
+<li>查询效率往往不如格式化数据模型</li>
+<li>对用户给定的查询请求往往会进行优化，增加了开发难度</li>
+</ul>
+</li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[数据库：数据库系统概述]]></title>
+        <id>https://mocuishle0.github.io/post/shu-ju-ku-shu-ju-ku-xi-tong-gai-shu/</id>
+        <link href="https://mocuishle0.github.io/post/shu-ju-ku-shu-ju-ku-xi-tong-gai-shu/">
+        </link>
+        <updated>2020-07-04T01:31:48.000Z</updated>
+        <summary type="html"><![CDATA[<p>从今天开始逐步整理一些关于数据库系统的知识，以应对面试中的一些相关问题。今天就先从系统概述开始：</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>从今天开始逐步整理一些关于数据库系统的知识，以应对面试中的一些相关问题。今天就先从系统概述开始：</p>
+<!-- more -->
+<p>本文主要内容：</p>
+<ul>
+<li>四大概念</li>
+<li>数据库管理系统主要功能</li>
+<li>数据库系统特点</li>
+</ul>
+<h2 id="1-四大概念">1. 四大概念：</h2>
+<ol>
+<li>数据（Data）；</li>
+<li>数据库（DataBase）：<strong>长期存储</strong>在计算机内，<strong>有组织、可共享</strong>的大量数据的集合；</li>
+<li>数据库管理系统（DBMS）：科学地<strong>组织和存储</strong>数据，并高效地<strong>获取和维护</strong>数据；</li>
+<li>数据库系统（DBS）：不引起混淆的情况下，常将数据库系统简称为数据库；</li>
+</ol>
+<h2 id="2-数据库管理系统主要功能">2. 数据库管理系统主要功能：</h2>
+<ol>
+<li>数据定义功能</li>
+<li>数据组织、存储和管理；</li>
+<li>数据操纵功能（查询、插入、删除、修改等）</li>
+<li>数据库的事务管理和运行功能</li>
+<li>数据库的建立和维护功能</li>
+<li>其他功能</li>
+</ol>
+<h2 id="3-数据库系统特点">3. 数据库系统特点</h2>
+<ol>
+<li>数据结构化</li>
+<li>数据共享性高、冗余度低、易扩充</li>
+<li>数据独立性高</li>
+<li>数据有数据库管理系统统一管理；</li>
+</ol>
+<p>P.s：<strong>关于数据独立性</strong><br>
+所谓数据库中的数据独立性包括：物理独立性、逻辑独立性两个方面：</p>
+<ul>
+<li>物理独立性：用户的应用程序与数据库中数据的物理存储是相互独立的——数据的物理存储改变，不影响应用程序；</li>
+<li>逻辑独立性：用户的应用程序与数据库的逻辑结构是相互独立的——数据的逻辑结构改变了，不影响应用程序。</li>
+<li><strong>数据独立性有数据库管理系统的二级映像功能来保证。</strong></li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[数据结构：哈希 Hash]]></title>
+        <id>https://mocuishle0.github.io/post/shu-ju-jie-gou-ha-xi-hash/</id>
+        <link href="https://mocuishle0.github.io/post/shu-ju-jie-gou-ha-xi-hash/">
+        </link>
+        <updated>2020-06-17T10:01:31.000Z</updated>
+        <summary type="html"><![CDATA[<p>整理一下关于哈希冲突的解决策略</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>整理一下关于哈希冲突的解决策略</p>
+<!-- more -->
+<h2 id="1-开放地址法再散列法">1. 开放地址法（再散列法）</h2>
+<p>当关键字key的哈希地址p=H（key）出现冲突时，以p为基础，产生另一个哈希地址p1，如果p1仍然冲突，再以p为基础，产生另一个哈希地址p2，…，直到找出一个不冲突的哈希地址pi ，将相应元素存入其中。这种方法有一个通用的再散列函数形式：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>H</mi><mi>i</mi><mo>=</mo><mo>(</mo><mi>H</mi><mo>(</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo>)</mo><mo>+</mo><msub><mi>d</mi><mi>i</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">Hi=(H(key)+d_i)%m，i=1，2，…，n
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.08125em;">H</span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.08125em;">H</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathdefault">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span></p>
+<p>其中<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>H</mi><mo>(</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">H(key)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.08125em;">H</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span>为哈希函数，m 为表长，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>d</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">d_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>称为增量序列。<strong>增量序列的取值方式不同</strong>，相应的再散列方式也不同。主要有以下几种：</p>
+<h3 id="11-线性探测法">1.1 线性探测法：</h3>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>d</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mn>2</mn><mo separator="true">,</mo><mn>3</mn><mo separator="true">,</mo><mo>⋯</mo><mtext> </mtext><mo separator="true">,</mo><mi>m</mi><mi mathvariant="normal">−</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">d_i=1,2,3,\dotsb,m−1
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8388800000000001em;vertical-align:-0.19444em;"></span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">m</span><span class="mord">−</span><span class="mord">1</span></span></span></span></span></p>
+<p>这种方法的特点是：冲突发生时，<strong>顺序</strong>查看表中下一单元，直到找出一个空单元或查遍全表。<br>
+<strong>建立在两个假设基础上：（1）表格足够大（2）每个元素都能够独立</strong></p>
+<h3 id="12-二次探测法">1.2 二次探测法：</h3>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>d</mi><mi>i</mi></msub><mo>=</mo><msup><mn>1</mn><mn>2</mn></msup><mi mathvariant="normal">，</mi><mi mathvariant="normal">−</mi><msup><mn>1</mn><mn>2</mn></msup><mi mathvariant="normal">，</mi><msup><mn>2</mn><mn>2</mn></msup><mi mathvariant="normal">，</mi><mi mathvariant="normal">−</mi><msup><mn>2</mn><mn>2</mn></msup><mi mathvariant="normal">，</mi><mo>…</mo><mi mathvariant="normal">，</mi><msup><mi>k</mi><mn>2</mn></msup><mi mathvariant="normal">，</mi><mi mathvariant="normal">−</mi><msup><mi>k</mi><mn>2</mn></msup><mtext> </mtext><mo>(</mo><mi>k</mi><mo>≤</mo><mi>m</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">d_i=1^2，−1^2，2^2，−2^2，…，k^2，−k^2 \ (k\leq m/2)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.1141079999999999em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641079999999999em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord cjk_fallback">，</span><span class="mord">−</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641079999999999em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord cjk_fallback">，</span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641079999999999em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord cjk_fallback">，</span><span class="mord">−</span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641079999999999em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord cjk_fallback">，</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord cjk_fallback">，</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641079999999999em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord cjk_fallback">，</span><span class="mord">−</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641079999999999em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace"> </span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">m</span><span class="mord">/</span><span class="mord">2</span><span class="mclose">)</span></span></span></span></span></p>
+<p>这种方法的特点是：冲突发生时，在表的左右进行<strong>跳跃式探测</strong>，比较灵活。</p>
+<h3 id="13-伪随机探测法">1.3 伪随机探测法：</h3>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>d</mi><mi>i</mi></msub><mo>=</mo><mi mathvariant="normal">伪</mi><mi mathvariant="normal">随</mi><mi mathvariant="normal">机</mi><mi mathvariant="normal">数</mi><mi mathvariant="normal">序</mi><mi mathvariant="normal">列</mi></mrow><annotation encoding="application/x-tex">d_i=伪随机数序列
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0em;vertical-align:0em;"></span><span class="mord cjk_fallback">伪</span><span class="mord cjk_fallback">随</span><span class="mord cjk_fallback">机</span><span class="mord cjk_fallback">数</span><span class="mord cjk_fallback">序</span><span class="mord cjk_fallback">列</span></span></span></span></span></p>
+<p>具体实现时，应建立一个伪随机数发生器，（如i=(i+p)%m），并给定一个随机数做起点。</p>
+<h3 id="14-示例">1.4 示例：</h3>
+<p>已知哈希表长度m=11，哈希函数为：H（key）= key % 11，则对于序列<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>{</mo><mn>47</mn><mo separator="true">,</mo><mn>26</mn><mo separator="true">,</mo><mn>60</mn><mo separator="true">,</mo><mn>69</mn><mo>}</mo></mrow><annotation encoding="application/x-tex">\{47,26,60,69\}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">{</span><span class="mord">4</span><span class="mord">7</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">2</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">6</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">6</span><span class="mord">9</span><span class="mclose">}</span></span></span></span>有<br>
+H（47）=3，H（26）=4，H（60）=5，H（69）=3，69与47冲突:</p>
+<ul>
+<li>
+<p><strong>线性探测再散列处理冲突：</strong><br>
+下一个哈希地址为H1=（3+1）%11=4,<br>
+仍然冲突，再找下一个哈希地址为H2=（3+2）%11=5<br>
+还是冲突，继续找下一个哈希地址为H3=（3+3）%11=6<br>
+此时不再冲突，将69填入6号单元。<br>
+平均查找长度为 (1+1+1+4)/4=7/4</p>
+</li>
+<li>
+<p><strong>用二次探测再散列处理冲突：</strong><br>
+下一个哈希地址为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>H</mi><mn>1</mn><mo>=</mo><mi mathvariant="normal">（</mi><mn>3</mn><mo>+</mo><msup><mn>1</mn><mn>2</mn></msup><mi mathvariant="normal">）</mi></mrow><annotation encoding="application/x-tex">H1=（3+1^2）%11=4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.08125em;">H</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord cjk_fallback">（</span><span class="mord">3</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord cjk_fallback">）</span></span></span></span><br>
+仍然冲突，再找下一个哈希地址为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>H</mi><mn>2</mn><mo>=</mo><mi mathvariant="normal">（</mi><mn>3</mn><mi mathvariant="normal">−</mi><msup><mn>1</mn><mn>2</mn></msup><mi mathvariant="normal">）</mi></mrow><annotation encoding="application/x-tex">H2=（3−1^2）%11=2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.08125em;">H</span><span class="mord">2</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.897438em;vertical-align:-0.08333em;"></span><span class="mord cjk_fallback">（</span><span class="mord">3</span><span class="mord">−</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord cjk_fallback">）</span></span></span></span><br>
+此时不再冲突，将69填入2号单元<br>
+平均查找长度为 (1+1+1+3)/4=6/4</p>
+</li>
+<li>
+<p><strong>用伪随机探测再散列处理冲突：</strong><br>
+若伪随机数序列为：2，5，9，……..，<br>
+则下一个哈希地址为H1=（3+2）%11=5<br>
+仍然冲突，再找下一个哈希地址为H2=（3+5）%11=8<br>
+此时不再冲突，将69填入8号单元。<br>
+平均查找长度为 (1+1+1+3)/4=6/4</p>
+</li>
+</ul>
+<h2 id="2-链地址法拉链法">2. 链地址法（拉链法）：</h2>
+<p>这种方法的基本思想是将所有哈希地址为i的元素构成一个称为同义词链的单链表，并将单链表的头指针存在哈希表的第i个单元中，因而查找、插入和删除主要在同义词链中进行。</p>
+<p>例如，已知一组关键字（32，40，36，53，16，46，71，27，42，24，49，64），哈希表长度为13，哈希函数为：H（key）=key%13，如图：<br>
+<img src="https://mocuishle0.github.io//post-images/1592443779588.gif" alt="" loading="lazy"></p>
+<p>由于链表的特点是：<strong>寻址困难，插入和删除容易，链地址法适用于经常进行插入和删除的情况。</strong></p>
+<h2 id="3-公共溢出区法">3. 公共溢出区法：</h2>
+<p>将哈希表分为基本表和溢出表两部分，凡是和基本表发生冲突的元素，一律填入溢出表。</p>
+<h2 id="4-再哈希法">4. 再哈希法：</h2>
+<p>这种方法是同时构造多个不同的哈希函数：</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>H</mi><mi>i</mi></msub><mo>=</mo><mi>R</mi><msub><mi>H</mi><mi>i</mi></msub><mo>(</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo>)</mo><mo separator="true">,</mo><mtext> </mtext><mi>i</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mn>2</mn><mo separator="true">,</mo><mo>⋯</mo><mtext> </mtext><mo separator="true">,</mo><mi>k</mi></mrow><annotation encoding="application/x-tex">H_i=RH_i(key),\ i=1,2,\dotsb , k
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.08125em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.08125em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace"> </span><span class="mord mathdefault">i</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span></span></span></span></span></p>
+<p>当哈希地址<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>H</mi><mi>i</mi></msub><mo>=</mo><mi>R</mi><msub><mi>H</mi><mn>1</mn></msub><mo>(</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">H_i=RH_1(key)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.08125em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.08125em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span>发生冲突时，再计算<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>H</mi><mi>i</mi></msub><mo>=</mo><mi>R</mi><msub><mi>H</mi><mn>2</mn></msub><mo>(</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">H_i=RH_2(key)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.08125em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.00773em;">R</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.08125em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span>……，直到冲突不再产生。<br>
+这种方法不易产生聚集，但增加了计算时间。</p>
+<h2 id="ps-hash法查找效率">P.s hash法查找效率：</h2>
+<p>我们可以看到，哈希表存储和查找数据的时候分为两步，第一步为将关键字通过哈希函数映射为数组中的索引， 这个过程可以认为是只需要常数时间的。第二步是，如果出现哈希值冲突，如何解决，对于常用的拉链法和线性探测法我们可以讨论得到：</p>
+<p>对于拉链法，查找的效率在于链表的长度，一般的我们应该保证长度在m /8~m /2之间，如果链表的长度大于m /2，我们可以缩小链表长度。如果长度在0~M/8时，我们可以扩充链表。</p>
+<p>对于线性探测法，需要调整数组长度，但是动态调整数组的大小需要对所有的值从新进行重新散列并插入新的表中。因此，拉链法的查找效率要比线性探测法高。</p>
+<p>不管是拉链法还是散列法，这种动态调整链表或者数组的大小以提高查询效率的同时，还应该考虑动态改变链表或者数组大小的成本。散列表长度加倍的插入需要进行大量的探测， 这种均摊成本不能忽略。</p>
+<p>此外，hash表的查找效率还和负载因子有关，**负载因子即hash表的记录数与哈希表的长度的比值，一般为0.7左右。**冲突性的概率与负载因子的大小成正比，因此负载因子越大，查找效率越低。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[C++11 新特征：可变参数模板(variadic template)]]></title>
+        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-ke-bian-can-shu-mo-ban-variadic-template/</id>
+        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-ke-bian-can-shu-mo-ban-variadic-template/">
+        </link>
+        <updated>2020-06-13T07:31:10.000Z</updated>
+        <summary type="html"><![CDATA[<p>泛化之美~</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>泛化之美~</p>
+<!-- more -->
+<p>C++11的新特性--可变模版参数（variadic templates）是C++11新增的最强大的特性之一，它对参数进行了高度泛化，它能表示0到任意个数、任意类型的参数。相比C++98/03，类模版和函数模版中只能含固定数量的模版参数，可变模版参数无疑是一个巨大的改进。然而由于可变模版参数比较抽象，使用起来需要一定的技巧，所以它也是C++11中最难理解和掌握的特性之一。虽然掌握可变模版参数有一定难度，但是它却是C++11中最有意思的一个特性。</p>
+<h2 id="1-可变模版参数的定义">1. 可变模版参数的定义</h2>
+<p>可变参数模板和普通模板的语义是一样的，只是写法上稍有区别，<strong>声明可变参数模板时需要在typename或class后面带上省略号“...”</strong>。比如我们常常这样声明一个可变模版参数：template&lt;typename...&gt;或者template&lt;class...&gt;。具体如下:</p>
+<pre><code>template &lt;class... T&gt;
+void f(T... args);
+</code></pre>
+<p>上面的可变模版参数的定义当中，省略号的作用有两个：</p>
+<ol>
+<li>声明一个参数包T... args，这个参数包中可以包含0到任意个模板参数；</li>
+<li>在模板定义的右边，可以将参数包展开成一个一个独立的参数。</li>
+</ol>
+<p>上面的参数args前面有省略号，所以它就是一个可变模版参数，<strong>我们把带省略号的参数称为“参数包”，它里面包含了0到N（N&gt;=0）个模版参数</strong>。我们<strong>无法直接获取参数包args中的每个参数的</strong>，只能通过展开参数包的方式来获取参数包中的每个参数，这是使用可变模版参数的一个主要特点，也是最大的难点，即如何展开可变模版参数。</p>
+<h2 id="2-可变模版参数函数">2. 可变模版参数函数</h2>
+<pre><code>template &lt;class... T&gt;
+void f(T... args)
 {    
-  int  b; //栈    
-  char  s[]=&quot;abc&quot;; //栈    
-  char  *p2; //栈    
-  char  *p3=&quot;123456&quot;; //123456/0在常量区，p3在栈上。    
+    cout &lt;&lt; sizeof...(args) &lt;&lt; endl; //打印变参的个数
+}
 
-  static int c =0；//全局（静态）初始化区    
-  p1 =  (char  *)malloc(10);  //分配得来得10和20字节的区域就在堆区
-  p2  = (char  *)malloc(20);       
-  strcpy(p3,&quot;123456&quot;); //123456/0放在常量区，编译器可能会将它与p3所指向的&quot;123456&quot;  优化成一个地方。    
-}    
+f();        //0
+f(1, 2);    //2
+f(1, 2.5, &quot;&quot;);    //3
 </code></pre>
-<h2 id="2-三种管理数据内存的方式">2. 三种管理数据内存的方式</h2>
-<h3 id="21-自动存储">2.1 自动存储</h3>
-<p>在函数内部定义的常规变量使用自动存储空间，被称为自动变量，这意味着他们在所属的函数被调用时自动产生，在该函数结束时消亡。实际上，自动变量是一个局部变量，其作用域为包含它的代码块。</p>
-<p>自动变量通常存储在栈中，即：执行该代码块时，其中变量依次加入栈中；而在离开代码块时，将按相反顺序释放这些变量——后进先出（LIFO）。因此，程序执行过程中，栈将不断的增大和缩小。</p>
-<h3 id="22-静态存储">2.2 静态存储</h3>
-<p>静态存储是整个程序执行期间都存在的存储方式。其数据位于静态存储区（静态区）。使得变量成为静态变量的方式有两种：1）在函数外部定义它；2）使用static关键字声明变量。</p>
-<p>自动存储和静态存储的关键在于：其对于变量的寿命限制不同——变量可能存在于程序的的整个生命周期（静态变量）；也可能仅存在于特定函数被执行时（自动变量）。</p>
-<p>例如：</p>
+<p>这个例子只是简单的将可变模版参数的个数打印出来，如果我们需要将参数包中的每个参数打印出来的话就需要通过一些方法了。展开可变模版参数函数的方法一般有两种：<strong>一种是通过递归函数来展开参数包，另外一种是通过逗号表达式来展开参数包</strong>。下面来看看如何用这两种方法来展开参数包。</p>
+<h3 id="21-递归函数方式展开参数包">2.1 递归函数方式展开参数包</h3>
 <pre><code>#include &lt;iostream&gt;
- 
 using namespace std;
- 
-void display();
- 
-int main()
+//递归终止函数
+void print()
 {
-    display();
-    display();
-    display();
-    display();
-    display();
-     return 0;
+   cout &lt;&lt; &quot;empty&quot; &lt;&lt; endl;
 }
- 
- 
-void display() {
-    static int counter = 0;
-    cout &lt;&lt; &quot;display function called &quot; &lt;&lt; ++counter &lt;&lt; &quot; times.&quot; &lt;&lt; endl;
+//展开函数
+template &lt;class T, class ...Args&gt;
+void print(T head, Args... rest)
+{
+   cout &lt;&lt; &quot;parameter &quot; &lt;&lt; head &lt;&lt; endl;
+   print(rest...);
 }
 
-/*
-输出：
-    display function called 1 times.
-    display function called 2 times.
-    display function called 3 times.
-    display function called 4 times.
-    display function called 5 times.
-*/
-</code></pre>
-<p>上例说明：当我们在一个函数中声明一个static的变量的时候（即static 为function scope），那么这个静态变量的 lifetime将开始于函数第一次调用开始， 一直到这个Program 运行结束。即函数中的声明并初始化的static变量只执行一次， 无论在Program调用多少次， 都只执行一次， 并该变量保存在heap中。 发生修改就可以保存。</p>
-<h3 id="23-动态存储">2.3 动态存储</h3>
-<p><strong>new</strong>和<strong>delete</strong>运算符提供了一个比自动变量和静态变量更灵活的方法。其管理一个内存池，在C++中被称为自由存储空间（free store）或 堆（heap）。<strong>该内存池同用于静态变量和动态变量的内存是分开的</strong>。</p>
-<p>new和delete使得程序员对变量寿命有更多控制权，甚至可以在一个函数中分配内存，而在另一个函数中释放。因此，数据的生命周期不完全受程序或函数的生存时间控制。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[计算机网络：TCP协议的三次握手 & 四次挥手]]></title>
-        <id>https://mocuishle0.github.io/post/ji-suan-ji-wang-luo-tcp-xie-yi-de-san-ci-wo-shou-and-si-ci-hui-shou/</id>
-        <link href="https://mocuishle0.github.io/post/ji-suan-ji-wang-luo-tcp-xie-yi-de-san-ci-wo-shou-and-si-ci-hui-shou/">
-        </link>
-        <updated>2020-06-07T01:38:50.000Z</updated>
-        <summary type="html"><![CDATA[<p>上一次接触计算机网络相关知识还是本科阶段学习计网课程，此次为了准备相关面试，还是需要把这部分知识好好整理一下......</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>上一次接触计算机网络相关知识还是本科阶段学习计网课程，此次为了准备相关面试，还是需要把这部分知识好好整理一下......</p>
-<!-- more -->
-<p>计算机网络部分最容易考到的便是TCP协议的**“三次握手”<strong>和</strong>“四次挥手”**，在网上也看到了许多形象的解读，在此做一归纳：</p>
-<h2 id="1-tcpip协议">1. TCP/IP协议</h2>
-<p>TCP/IP协议模型（Transmission Control Protocol/Internet Protocol），包含了一系列构成互联网基础的网络协议，是Internet的核心协议，通过20多年的发展已日渐成熟，并被广泛应用于局域网和广域网中，目前已成为事实上的国际标准。TCP/IP协议簇是一组不同层次上的多个协议的组合，<strong>通常被认为是一个四层协议系统，与OSI的七层模型相对应</strong>。</p>
-<p>HTTP（HyperText Transfer Protocol），超文本传输协议，是互联网上应用最广泛的一种网络协议，所有www文件都必须遵守的一个标准，是以 ASCII 码传输，建立在 TCP/IP 协议之上的应用层规范。简而言之，<strong>HTTP协议就是基于TCP/IP协议模型来传输信息的</strong>。</p>
-<p><strong>TCP/IP四层模型：</strong></p>
-<ul>
-<li><strong>链路层</strong>：也称作数<strong>据链路层或网络接口层</strong>（在第一个图中为网络接口层和硬件层），通常包括操作系统中的设备驱动程序和计算机中对应的网络接口卡。它们一起处理与电缆（或其他任何传输媒介）的物理接口细节。ARP（地址解析协议）和RARP（逆地址解析协议）是某些网络接口（如以太网和令牌环网）使用的特殊协议，用来转换IP层和网络接口层使用的地址。</li>
-<li><strong>网络层</strong>： 也称作互联网层（在第一个图中为网际层），处理分组在网络中的活动，例如分组的选路。在TCP/IP协议族中，网络层协议包括IP协议（网际协议），ICMP协议（Internet互联网控制报文协议），以及IGMP协议（Internet组管理协议）。IP是一种网络层协议，提供的是一种不可靠的服务，它只是尽可能快地把分组从源结点送到目的结点，但是并不提供任何可靠性保证。同时被TCP和UDP使用。TCP和UDP的每组数据都通过端系统和每个中间路由器中的IP层在互联网中进行传输。ICMP是IP协议的附属协议。IP层用它来与其他主机或路由器交换错误报文和其他重要信息。IGMP是Internet组管理协议。它用来把一个UDP数据报多播到多个主机。</li>
-<li><strong>传输层</strong>：主要为两台主机上的应用程序提供端到端的通信。<strong>在TCP/IP协议族中，有两个互不相同的传输协议：TCP（传输控制协议）和UDP（用户数据报协议）</strong>。TCP为两台主机提供高可靠性的数据通信。它所做的工作包括把应用程序交给它的数据分成合适的小块交给下面的网络层，确认接收到的分组，设置发送最后确认分组的超时时钟等。由于运输层提供了高可靠性的端到端的通信，因此应用层可以忽略所有这些细节。为了提供可靠的服务，TCP采用了超时重传、发送和接收端到端的确认分组等机制。UDP则为应用层提供一种非常简单的服务。它只是把称作数据报的分组从一台主机发送到另一台主机，但并不保证该数据报能到达另一端。一个数据报是指从发送方传输到接收方的一个信息单元（例如，发送方指定的一定字节数的信息）。UDP协议任何必需的可靠性必须由应用层来提供。</li>
-<li><strong>应用层</strong>：应用层决定了向用户提供应用服务时通信的活动。TCP/IP 协议族内预存了各类通用的应用服务。包括 HTTP，FTP（File Transfer Protocol，文件传输协议），DNS（Domain Name System，域名系统）服务。</li>
-</ul>
-<h2 id="2-tcp三次握手">2. TCP三次握手</h2>
-<p>先给一个更便于理解的示例：<br>
-<img src="https://mocuishle0.github.io//post-images/1591494923826.webp" alt="" loading="lazy"></p>
-<ul>
-<li>客户端A：你好服务器，我是客户端A；</li>
-<li>服务器B：你好客户端A，我是服务器B；</li>
-<li>客户端A：你好，服务器B。</li>
-</ul>
-<p>官方描述：</p>
-<ul>
-<li><strong>第一次握手</strong>：建立连接时，客户端发送syn包（syn=j）到服务器，并进入SYN_SENT状态，等待服务器确认；【SYN：同步序列编号（Synchronize Sequence Numbers）】</li>
-<li><strong>第二次握手</strong>：服务器收到syn包，必须确认客户的SYN（ack=j+1），同时自己也发送一个SYN包（syn=k），即SYN+ACK包，此时服务器进入SYN_RECV状态；</li>
-<li><strong>第三次握手</strong>：客户端收到服务器的SYN+ACK包，向服务器发送确认包ACK(ack=k+1），此包发送完毕，客户端和服务器进入ESTABLISHED（TCP连接成功）状态，完成三次握手。</li>
-</ul>
-<p>完成三次握手，客户端与服务器开始传送数据。这样就保证了，每次传送数据都会准确到达目标设备了。</p>
-<h2 id="3-tcp四次挥手">3. TCP四次挥手</h2>
-<p>还是先给出一个更便于理解的示例：</p>
-<ul>
-<li>主动结束方：你好，我的数据发送完毕了，我要进入准备断开的状态了。（此时它虽然不再发送数据了，但是可以接受数据）</li>
-<li>另一方：我知道了，我还没有发送完毕的，你等着吧。</li>
-<li>另一方：我也发送完毕了，可以断开链接了。（此时它也进入准备断开的状态）</li>
-<li>主动结束方：好的，那断开吧</li>
-</ul>
-<figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1591495364320.webp" alt="" loading="lazy"></figure>
-<p>官方描述：</p>
-<ul>
-<li>客户端A发送一个FIN，用来关闭客户A到服务器B的数据传送。</li>
-<li>服务器B收到这个FIN，它发回一个ACK，确认序号为收到的序号加1。和SYN一样，一个FIN将占用一个序号。</li>
-<li>服务器B关闭与客户端A的连接，发送一个FIN给客户端A。</li>
-<li>客户端A发回ACK报文确认，并将确认序号设置为收到序号加1。</li>
-</ul>
-<h2 id="4-为什么tcp建立链接是三次关闭链接是四次呢">4. 为什么TCP建立链接是三次，关闭链接是四次呢？</h2>
-<p>其实也不难理解，因为服务端的listen状态下的socket当收到SYN报文的建连请求后，<strong>它可以把ACK和SYN（ACK起应答作用，而SYN起同步作用）放在一个报文里来发送</strong>。但关闭连接时，当收到对方的FIN报文通知时，<strong>它仅仅表示对方没有数据发送给你了；但未必你所有的数据都全部发送给对方了，所以你可以未必会马上会关闭SOCKET，也即你可能还需要发送一些数据给对方之后，再发送FIN报文给对方来表示你同意现在可以关闭连接了，所以它这里的ACK报文和FIN报文多数情况下都是分开发送的</strong>。</p>
-<p>通过TCP协议使得两台设备成功链接，并成功发送了数据，接下来，就需要服务器端来处理数据了。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[C++11 新特征：容器的emplace成员]]></title>
-        <id>https://mocuishle0.github.io/post/c11-xin-te-zheng-rong-qi-de-emplace-cheng-yuan/</id>
-        <link href="https://mocuishle0.github.io/post/c11-xin-te-zheng-rong-qi-de-emplace-cheng-yuan/">
-        </link>
-        <updated>2020-06-06T03:26:02.000Z</updated>
-        <summary type="html"><![CDATA[<p>老问题，但还有更优雅的做法。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>老问题，但还有更优雅的做法。</p>
-<!-- more -->
-<p>在右值引用和移动语义部分，其实我们的核心在于减少了程序运行中对变量的拷贝次数（这仅是个人直观的理解）。其实在C++11的容器中，还有一种优雅的方式可以达到这一目的。</p>
-<h2 id="1-引例">1. 引例</h2>
-<p>考虑下面的Rect类：</p>
-<pre><code>struct Rect
+
+int main(void)
 {
-    Rect(int l, int t, int r, int b)
-        :left{l}, top{t}
-        ,right{r}, bottom{b}
-    {}
-    int left;
-    int top;
-    int right;
-    int bottom;
-};
+   print(1,2,3,4);
+   return 0;
+}
 </code></pre>
-<p>如果我们需要向容器添加Rect对象时，代码大致是这样的：</p>
-<pre><code>std::list&lt;Rect&gt; rlist;
-rlist.push_front(Rect(10, 10, 20, 20));
+<p>上例会输出每一个参数，直到为空时输出empty。展开参数包的函数有两个，一个是递归函数，另外一个是递归终止函数，参数包Args...在展开的过程中递归调用自己，每调用一次参数包中的参数就会少一个，直到所有的参数都展开为止，当没有参数时，则调用非模板函数print终止递归过程。<br>
+上面的递归终止函数还可以写成这样，当参数包展开到最后一个参数时递归为止。</p>
+<pre><code>template &lt;class T&gt;
+void print(T t)
+{
+   cout &lt;&lt; t &lt;&lt; endl;
+}
 </code></pre>
-<p>在调用push_front时，首先构造一个临时的Rect对象传递给push_front方法，然后在push_front的内部，在复制一个Rect对象添加到容器中。全过程会发生一次创建动作和一次拷贝动作，才能将对象的内容添加到list当中去(其他容器同理)。</p>
-<h2 id="2-emplace方法">2. emplace方法</h2>
-<p>为了减少拷贝动作的次数，当然可以使用右值引用参数的成员函数。除此之外，C++11还提供了另一种方法：emplace成员。<strong>使用这个成员可以直接传递用于生成对象的参数，对象的创建过程交给容器去执行</strong>：</p>
-<pre><code>std::list&lt;Rect&gt; rlist;
-rlist.emplace_front(10, 10, 20, 20);
+<p>此外，我们在给出一个示例，该示例于上一示例原理一致</p>
+<pre><code>template&lt;typename T&gt;
+T sum(T t)
+{
+    return t;
+}
+template&lt;typename T, typename ... Types&gt;
+T sum (T first, Types ... rest)
+{
+    return first + sum&lt;T&gt;(rest...);
+}
+
+sum(1,2,3,4); //10
 </code></pre>
-<p>用法非常简单，只要保证参数和元素构造函数的参数相同即可。除了emplace_front以外，C++11还提供了emplace和emplace_bak方法，分别对应insert和push_back方法。</p>
+<h3 id="22-逗号表达式展开参数包">2.2 逗号表达式展开参数包</h3>
+<p>递归函数展开参数包是一种标准做法，也比较好理解，但也有一个缺点，就是必须要一个重载的递归终止函数，即必须要有一个同名的终止函数来终止递归，这样可能会感觉稍有不便。有没有一种更简单的方式呢？其实还有一种方法可以不通过递归方式来展开参数包，这种方式需要借助逗号表达式和初始化列表。比如前面print的例子可以改成这样：</p>
+<pre><code>template &lt;class T&gt;
+void printarg(T t)
+{
+   cout &lt;&lt; t &lt;&lt; endl;
+}
+
+template &lt;class ...Args&gt;
+void expand(Args... args)
+{
+   int arr[] = {(printarg(args), 0)...};
+}
+
+expand(1,2,3,4);
+</code></pre>
+<p>这个例子将分别打印出1,2,3,4四个数字。这种展开参数包的方式，不需要通过递归终止函数，是直接在expand函数体中展开的。<strong>printarg不是一个递归终止函数，只是一个处理参数包中每一个参数的函数</strong>。这种就地展开参数包的方式实现的关键是逗号表达式。我们知道逗号表达式会按顺序执行逗号前面的表达式，比如：</p>
+<pre><code>d = (a = b, c); 
+</code></pre>
+<p>这个表达式会按顺序执行：b会先赋值给a，接着括号中的逗号表达式返回c的值，因此d将等于c。</p>
+<p>expand函数中的逗号表达式：(printarg(args), 0)，也是按照这个执行顺序，先执行printarg(args)，再得到逗号表达式的结果0。同时还用到了C++11的另外一个特性——初始化列表，<strong>通过初始化列表来初始化一个变长数组, {(printarg(args), 0)...}将会展开成((printarg(arg1),0), (printarg(arg2),0), (printarg(arg3),0),  etc... )，最终会创建一个元素值都为0的数组int arr[sizeof...(Args)]</strong>。由于是逗号表达式，在创建数组的过程中会先执行逗号表达式前面的部分printarg(args)打印出参数，也就是说在构造int数组的过程中就将参数包展开了，这个数组的目的纯粹是为了在数组构造的过程展开参数包。</p>
+<h2 id="3-可变模版参数类">3. 可变模版参数类</h2>
+<p>可变参数模板类是一个带可变模板参数的模板类，比如C++11中的元祖std::tuple就是一个可变模板类，它的定义如下：</p>
+<pre><code>template&lt; class... Types &gt;
+class tuple;
+</code></pre>
+<p>这个可变参数模板类可以携带任意类型任意个数的模板参数：</p>
+<pre><code>std::tuple&lt;&gt; tp;        //可变参数模板的模板参数个数可以为0个，所以该定义也是合法的：
+std::tuple&lt;int&gt; tp1 = std::make_tuple(1);
+std::tuple&lt;int, double&gt; tp2 = std::make_tuple(1, 2.5);
+std::tuple&lt;int, double, string&gt; tp3 = std::make_tuple(1, 2.5, “”);
+</code></pre>
+<p>可变参数模板类的参数包展开的方式和可变参数模板函数的展开方式不同，<strong>可变参数模板类的参数包展开需要通过模板特化和继承方式去展开，展开方式比可变参数模板函数要复杂</strong>。</p>
+<p>具体方法可参考：[泛化之美--C++11可变模版参数的妙用]{https://www.cnblogs.com/qicosmos/p/4325949.html}</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[数据结构：二叉树]]></title>
+        <id>https://mocuishle0.github.io/post/shu-ju-jie-gou-er-cha-shu/</id>
+        <link href="https://mocuishle0.github.io/post/shu-ju-jie-gou-er-cha-shu/">
+        </link>
+        <updated>2020-06-11T02:52:20.000Z</updated>
+        <summary type="html"><![CDATA[<p>二叉树向来都是一个极其重要的数据结构。此外，二叉树还衍生出众多数据结构，如：B树、B+树、红黑树等。本文将根据近期看到的一些讲解，对该专题进行一个归纳。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>二叉树向来都是一个极其重要的数据结构。此外，二叉树还衍生出众多数据结构，如：B树、B+树、红黑树等。本文将根据近期看到的一些讲解，对该专题进行一个归纳。</p>
+<!-- more -->
+<h2 id="1-二叉查找树bst">1. 二叉查找树（BST）</h2>
+<h3 id="11-特点">1.1 特点</h3>
+<ul>
+<li>左子树上所有结点的值均小于或等于它的根结点的值。</li>
+<li>右子树上所有结点的值均大于或等于它的根结点的值。</li>
+<li>左、右子树也分别为二叉排序树。<br>
+示例如图：<br>
+<img src="https://mocuishle0.github.io//post-images/1591845027043.webp" alt="" loading="lazy"></li>
+</ul>
+<h3 id="12-缺陷">1.2 缺陷</h3>
+<p>单纯的二叉查找树不包含“调节功能”，这使得在一些极端情况下导致其查询效率大打折扣，甚至退回到线性查找，如图：<br>
+<img src="https://mocuishle0.github.io//post-images/1591845396453.webp" alt="" loading="lazy"><br>
+该示例虽然满足二叉查找树的特征，但显然其查询效率近似于线性查找。</p>
+<h2 id="2-平衡二叉树">2. 平衡二叉树</h2>
+<h3 id="21-特点">2.1 特点</h3>
+<p>平衡二叉树实质仍然是一棵二叉查找树。其采用二分法思维把数据按规则组装成一个树形结构的数据，用这个树形结构的数据减少无关数据的检索，大大的提升了数据检索的速度；平衡二叉树的数据结构组装过程有以下规则：</p>
+<ul>
+<li>非叶子节点只能允许最多两个子节点存在；</li>
+<li>每一个非叶子节点数据分布规则为左边的子节点小当前节点的值，右边的子节点大于当前节点的值(这里值是基于自己的算法规则而定的，比如hash值)；</li>
+<li><strong>树的左右两边的节点层级相差不会大于1</strong>。</li>
+</ul>
+<figure data-type="image" tabindex="1"><img src="https://mocuishle0.github.io//post-images/1591845534214.png" alt="" loading="lazy"></figure>
+<h3 id="22-层级结构">2.2 层级结构</h3>
+<p>因为平衡二叉树查询性能和树的层级（h高度）成反比，h值越小查询越快、为了保证树的结构左右两端数据大致平衡降低二叉树的查询难度一般会采用一种算法机制实现节点数据结构的平衡，实现了这种算法的有比如Treap、红黑树。<strong>使用平衡二叉树能保证数据的左右两边的节点层级相差不会大于1</strong>，通过这样避免树形结构由于删除增加变成线性链表影响查询效率，保证数据平衡的情况下查找数据的速度近于二分法查找；</p>
+<h3 id="23-小结">2.3 小结</h3>
+<ul>
+<li>非叶子节点最多拥有两个子节点；</li>
+<li>非叶子节值大于左边子节点、小于右边子节点；</li>
+<li>树的左右两边的层级数相差不会大于1;</li>
+<li>没有值相等重复的节点;</li>
+</ul>
+<h2 id="3-红黑树">3 红黑树</h2>
+<h3 id="31-红黑树特性">3.1 红黑树特性</h3>
+<p>红黑树其实质是一棵平衡二叉树。只是红黑树增加了一些特性来保证其平衡性：</p>
+<ul>
+<li>结点是红色或黑色。</li>
+<li>根结点是黑色。</li>
+<li>每个叶子结点都是黑色的空结点（NIL结点）。</li>
+<li><strong>每个红色结点的两个子结点都是黑色</strong>。(从每个叶子到根的所有路径上不能有两个连续的红色结点)</li>
+<li><strong>从任一结点到其每个叶子的所有路径都包含相同数目的黑色结点</strong>。<br>
+<img src="https://mocuishle0.github.io//post-images/1591845904948.webp" alt="" loading="lazy"></li>
+</ul>
+<p>P.s：正是由于上述规则的限制，才保证了红黑树的自平衡，并保证了红黑树上从根到叶子最长路径不超过最短路径的2倍。</p>
+<h3 id="32-红黑树的自平衡">3.2 红黑树的自平衡</h3>
+<p>正如之前我们所说，平衡二叉树的核心是：<strong>树的左右两边的节点层级相差不会大于1</strong>。红黑树作为一棵特殊的平衡二叉树，其在插入/删除节点时容易打破其规则约束，此时需要对树的结构进行一些调整来维护其仍然满足红黑素性质。<br>
+红黑树维护自平衡性的方法总结来看有两种：</p>
+<ul>
+<li>变色</li>
+<li>旋转：
+<ul>
+<li>左旋</li>
+<li>右旋</li>
+</ul>
+</li>
+</ul>
+<p>由于红黑树的自平衡维护需要根据不同情况具体分析，参考文献：<a href="https://mp.weixin.qq.com/s/X3zYwQXxq93P_XUzFmKluQ">红黑树</a>中对这一过程有具体的说明，此处便不详细展开了。</p>
+<h2 id="4-b树">4. B树</h2>
+<p>B树和平衡二叉树稍有不同的是，<strong>B树属于多叉树又名平衡多路查找树（查找路径不只两个）</strong>。B树和B+树被广泛应用于数据库索引技术中。</p>
+<h3 id="41-b树特性">4.1 B树特性</h3>
+<ul>
+<li>排序方式：所有节点<strong>关键字是按递增次序排列</strong>，并遵循左小右大原则；</li>
+<li>子节点数：**非叶节点的子节点数&gt;1，且&lt;=M **，且M&gt;=2，空树除外（注：<strong>M代表一个树节点最多有多少个查找路径，M=M路,当M=2则是2叉树,M=3则是3叉</strong>）；</li>
+<li>关键字数：<strong>枝节点的关键字数量大于等于ceil(m/2)-1个且小于等于M-1个</strong>（注：ceil()向上取整的函数 如ceil(1.1)结果为2);</li>
+<li><strong>所有叶子节点均在同一层、叶子节点除了包含了关键字和关键字记录的指针外也有指向其子节点的指针只不过其指针地址都为null对应下图最后一层节点的空格子</strong>;</li>
+</ul>
+<figure data-type="image" tabindex="2"><img src="https://mocuishle0.github.io//post-images/1591846623300.jpg" alt="" loading="lazy"></figure>
+<h3 id="42-b树查询">4.2 B树查询</h3>
+<p>其查询过程类似于二分查找</p>
+<h3 id="43-b树插入">4.3 B树插入</h3>
+<p>例如：定义一个5阶树（平衡5路查找树;），现在我们要把3、8、31、11、23、29、50、28 这些数字构建出一个5阶树出来；我们需要遵循以下规则：</p>
+<ul>
+<li>节点拆分规则：当前是要组成一个5路查找树，那么此时m=5,关键字数必须&lt;=5-1（这里关键字数&gt;4就要进行节点拆分）；</li>
+<li>排序规则：满足节点本身比左边节点大，比右边节点小的排序规则;</li>
+</ul>
+<p>我们首先插入 3、8、31、11：<br>
+<img src="https://mocuishle0.github.io//post-images/1591847056750.jpg" alt="" loading="lazy"><br>
+再插入23、29<br>
+<img src="https://mocuishle0.github.io//post-images/1591847098035.jpg" alt="" loading="lazy"><br>
+再插入50、28<br>
+<img src="https://mocuishle0.github.io//post-images/1591847122970.jpg" alt="" loading="lazy"></p>
+<h3 id="44-b树删除">4.4 B树删除</h3>
+<p>当我们需要删除B树中的节点时，需遵循以下规则：</p>
+<ul>
+<li>节点合并规则：当前是要组成一个5路查找树，那么此时m=5,关键字数必须大于等于ceil（5/2）（这里关键字数&lt;2就要进行节点合并）；</li>
+<li>满足节点本身比左边节点大，比右边节点小的排序规则;</li>
+<li>关键字数小于二时先从子节点取，子节点没有符合条件时就向向父节点取，取中间值往父节点放；</li>
+</ul>
+<figure data-type="image" tabindex="3"><img src="https://mocuishle0.github.io//post-images/1591847499673.png" alt="" loading="lazy"></figure>
+<h3 id="45-b树小结">4.5 B树小结</h3>
+<p>B树相对于平衡二叉树的不同是，每个<strong>节点包含的关键字增多了</strong>，特别是在B树应用到数据库中的时候，数据库充分利用了磁盘块的原理（磁盘数据存储是采用块的形式存储的，每个块的大小为4K，每次IO进行数据读取时，同一个磁盘块的数据可以一次性读取出来）把节点大小限制在充分使用在磁盘快大小范围；把树的节点关键字增多后树的层级比原来的二叉树少了，减少数据查找的次数和复杂度;</p>
 ]]></content>
     </entry>
 </feed>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>C++11 新特征：可变参数模板(variadic template) | MoCuishle</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://mocuishle0.github.io//favicon.ico?v=1597310925003">
+<link rel="stylesheet" href="https://mocuishle0.github.io//styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="泛化之美~
+
+C++11的新特性--可变模版参数（variadic templates）是C++11新增的最强大的特性之一，它对参数进行了高度泛化，它能表示0到任意个数、任意类型的参数。相比C++98/03，类模版和函数模版中只能含固定数量..." />
+    <meta name="keywords" content="C++" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://mocuishle0.github.io/">
+        <img src="https://mocuishle0.github.io//images/avatar.png?v=1597310925003" class="site-logo">
+        <h1 class="site-title">MoCuishle</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      我拥有的都是侥幸，
+我失去的都是人生。
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://mocuishle0.github.io//atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">C++11 新特征：可变参数模板(variadic template)</h2>
+            <div class="post-date">2020-06-13</div>
+            
+              <div class="feature-container" style="background-image: url('https://mocuishle0.github.io//post-images/c11-xin-te-zheng-ke-bian-can-shu-mo-ban-variadic-template.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>泛化之美~</p>
+<!-- more -->
+<p>C++11的新特性--可变模版参数（variadic templates）是C++11新增的最强大的特性之一，它对参数进行了高度泛化，它能表示0到任意个数、任意类型的参数。相比C++98/03，类模版和函数模版中只能含固定数量的模版参数，可变模版参数无疑是一个巨大的改进。然而由于可变模版参数比较抽象，使用起来需要一定的技巧，所以它也是C++11中最难理解和掌握的特性之一。虽然掌握可变模版参数有一定难度，但是它却是C++11中最有意思的一个特性。</p>
+<h2 id="1-可变模版参数的定义">1. 可变模版参数的定义</h2>
+<p>可变参数模板和普通模板的语义是一样的，只是写法上稍有区别，<strong>声明可变参数模板时需要在typename或class后面带上省略号“...”</strong>。比如我们常常这样声明一个可变模版参数：template&lt;typename...&gt;或者template&lt;class...&gt;。具体如下:</p>
+<pre><code>template &lt;class... T&gt;
+void f(T... args);
+</code></pre>
+<p>上面的可变模版参数的定义当中，省略号的作用有两个：</p>
+<ol>
+<li>声明一个参数包T... args，这个参数包中可以包含0到任意个模板参数；</li>
+<li>在模板定义的右边，可以将参数包展开成一个一个独立的参数。</li>
+</ol>
+<p>上面的参数args前面有省略号，所以它就是一个可变模版参数，<strong>我们把带省略号的参数称为“参数包”，它里面包含了0到N（N&gt;=0）个模版参数</strong>。我们<strong>无法直接获取参数包args中的每个参数的</strong>，只能通过展开参数包的方式来获取参数包中的每个参数，这是使用可变模版参数的一个主要特点，也是最大的难点，即如何展开可变模版参数。</p>
+<h2 id="2-可变模版参数函数">2. 可变模版参数函数</h2>
+<pre><code>template &lt;class... T&gt;
+void f(T... args)
+{    
+    cout &lt;&lt; sizeof...(args) &lt;&lt; endl; //打印变参的个数
+}
+
+f();        //0
+f(1, 2);    //2
+f(1, 2.5, &quot;&quot;);    //3
+</code></pre>
+<p>这个例子只是简单的将可变模版参数的个数打印出来，如果我们需要将参数包中的每个参数打印出来的话就需要通过一些方法了。展开可变模版参数函数的方法一般有两种：<strong>一种是通过递归函数来展开参数包，另外一种是通过逗号表达式来展开参数包</strong>。下面来看看如何用这两种方法来展开参数包。</p>
+<h3 id="21-递归函数方式展开参数包">2.1 递归函数方式展开参数包</h3>
+<pre><code>#include &lt;iostream&gt;
+using namespace std;
+//递归终止函数
+void print()
+{
+   cout &lt;&lt; &quot;empty&quot; &lt;&lt; endl;
+}
+//展开函数
+template &lt;class T, class ...Args&gt;
+void print(T head, Args... rest)
+{
+   cout &lt;&lt; &quot;parameter &quot; &lt;&lt; head &lt;&lt; endl;
+   print(rest...);
+}
+
+
+int main(void)
+{
+   print(1,2,3,4);
+   return 0;
+}
+</code></pre>
+<p>上例会输出每一个参数，直到为空时输出empty。展开参数包的函数有两个，一个是递归函数，另外一个是递归终止函数，参数包Args...在展开的过程中递归调用自己，每调用一次参数包中的参数就会少一个，直到所有的参数都展开为止，当没有参数时，则调用非模板函数print终止递归过程。<br>
+上面的递归终止函数还可以写成这样，当参数包展开到最后一个参数时递归为止。</p>
+<pre><code>template &lt;class T&gt;
+void print(T t)
+{
+   cout &lt;&lt; t &lt;&lt; endl;
+}
+</code></pre>
+<p>此外，我们在给出一个示例，该示例于上一示例原理一致</p>
+<pre><code>template&lt;typename T&gt;
+T sum(T t)
+{
+    return t;
+}
+template&lt;typename T, typename ... Types&gt;
+T sum (T first, Types ... rest)
+{
+    return first + sum&lt;T&gt;(rest...);
+}
+
+sum(1,2,3,4); //10
+</code></pre>
+<h3 id="22-逗号表达式展开参数包">2.2 逗号表达式展开参数包</h3>
+<p>递归函数展开参数包是一种标准做法，也比较好理解，但也有一个缺点，就是必须要一个重载的递归终止函数，即必须要有一个同名的终止函数来终止递归，这样可能会感觉稍有不便。有没有一种更简单的方式呢？其实还有一种方法可以不通过递归方式来展开参数包，这种方式需要借助逗号表达式和初始化列表。比如前面print的例子可以改成这样：</p>
+<pre><code>template &lt;class T&gt;
+void printarg(T t)
+{
+   cout &lt;&lt; t &lt;&lt; endl;
+}
+
+template &lt;class ...Args&gt;
+void expand(Args... args)
+{
+   int arr[] = {(printarg(args), 0)...};
+}
+
+expand(1,2,3,4);
+</code></pre>
+<p>这个例子将分别打印出1,2,3,4四个数字。这种展开参数包的方式，不需要通过递归终止函数，是直接在expand函数体中展开的。<strong>printarg不是一个递归终止函数，只是一个处理参数包中每一个参数的函数</strong>。这种就地展开参数包的方式实现的关键是逗号表达式。我们知道逗号表达式会按顺序执行逗号前面的表达式，比如：</p>
+<pre><code>d = (a = b, c); 
+</code></pre>
+<p>这个表达式会按顺序执行：b会先赋值给a，接着括号中的逗号表达式返回c的值，因此d将等于c。</p>
+<p>expand函数中的逗号表达式：(printarg(args), 0)，也是按照这个执行顺序，先执行printarg(args)，再得到逗号表达式的结果0。同时还用到了C++11的另外一个特性——初始化列表，<strong>通过初始化列表来初始化一个变长数组, {(printarg(args), 0)...}将会展开成((printarg(arg1),0), (printarg(arg2),0), (printarg(arg3),0),  etc... )，最终会创建一个元素值都为0的数组int arr[sizeof...(Args)]</strong>。由于是逗号表达式，在创建数组的过程中会先执行逗号表达式前面的部分printarg(args)打印出参数，也就是说在构造int数组的过程中就将参数包展开了，这个数组的目的纯粹是为了在数组构造的过程展开参数包。</p>
+<h2 id="3-可变模版参数类">3. 可变模版参数类</h2>
+<p>可变参数模板类是一个带可变模板参数的模板类，比如C++11中的元祖std::tuple就是一个可变模板类，它的定义如下：</p>
+<pre><code>template&lt; class... Types &gt;
+class tuple;
+</code></pre>
+<p>这个可变参数模板类可以携带任意类型任意个数的模板参数：</p>
+<pre><code>std::tuple&lt;&gt; tp;        //可变参数模板的模板参数个数可以为0个，所以该定义也是合法的：
+std::tuple&lt;int&gt; tp1 = std::make_tuple(1);
+std::tuple&lt;int, double&gt; tp2 = std::make_tuple(1, 2.5);
+std::tuple&lt;int, double, string&gt; tp3 = std::make_tuple(1, 2.5, “”);
+</code></pre>
+<p>可变参数模板类的参数包展开的方式和可变参数模板函数的展开方式不同，<strong>可变参数模板类的参数包展开需要通过模板特化和继承方式去展开，展开方式比可变参数模板函数要复杂</strong>。</p>
+<p>具体方法可参考：[泛化之美--C++11可变模版参数的妙用]{https://www.cnblogs.com/qicosmos/p/4325949.html}</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://mocuishle0.github.io/tag/Yz3MZw1Sl/" class="tag">
+                    C++
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://mocuishle0.github.io/post/shu-ju-jie-gou-er-cha-shu/">
+                  <h3 class="post-title">
+                    数据结构：二叉树
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>
